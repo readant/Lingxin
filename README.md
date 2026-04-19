@@ -62,7 +62,31 @@ Lingxin/
 
 ## 安装依赖
 
+本项目基于PyTorch框架，需要以下依赖包：
+
+| 类别 | 依赖包 | 版本要求 | 用途 |
+|------|--------|----------|------|
+| 核心依赖 | mediapipe | >=0.10.0 | 手部关键点检测 |
+| 核心依赖 | opencv-python | >=4.8.0 | 图像处理 |
+| 核心依赖 | numpy | >=1.24.0 | 数值计算 |
+| 核心依赖 | pandas | >=2.0.0 | 数据处理 |
+| 核心依赖 | scikit-learn | >=1.3.0 | 传统机器学习模型 |
+| 核心依赖 | torch | >=2.0.0 | PyTorch深度学习框架 |
+| 核心依赖 | torchvision | >=0.15.0 | PyTorch视觉工具 |
+| 工具 | matplotlib | >=3.7.0 | 数据可视化 |
+| 工具 | seaborn | >=0.12.0 | 统计数据可视化 |
+| 工具 | tqdm | >=4.65.0 | 进度条 |
+| 工具 | pillow | >=10.0.0 | 图像处理 |
+| API服务 | flask | >=3.0.0 | Web框架 |
+| API服务 | flask-cors | >=4.0.0 | 跨域支持 |
+| 开发工具 | pytest | >=7.4.0 | 测试框架 |
+| 开发工具 | black | >=23.0.0 | 代码格式化 |
+
+### 安装方法
+
 ```bash
+# 在LingXin虚拟环境中安装
+conda activate LingXin
 pip install -r requirements.txt
 ```
 
