@@ -1,0 +1,21 @@
+# 核心依赖
+numpy
+pandas
+scikit-learn
+opencv-python
+mediapipe
+
+# 深度学习框架
+tensorflow
+
+# API 服务
+flask
+
+# 工具
+matplotlib
+seaborn
+
+# 开发工具
+pytest
+black
+flake8
