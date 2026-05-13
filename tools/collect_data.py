@@ -1,7 +1,11 @@
 import cv2
 import numpy as np
 import os
+import sys
 import pandas as pd
+from PIL import Image, ImageDraw, ImageFont
+
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from src.detection.hand_detector import HolisticDetector
 
 class DataCollector:
@@ -10,24 +14,45 @@ class DataCollector:
         self.person_id = person_id
         self.save_dir = save_dir
         self.target_samples = target_samples
-        
+
         vocab_path = 'data/vocab.csv'
         self.vocab_df = pd.read_csv(vocab_path)
         self.words = self.vocab_df['word'].tolist()
         self.current_idx = 0
-        
+
         self.is_recording = False
         self.current_sequence = []
         self.recorded_counts = {}
-        
+        self.last_saved_sequence = None
+
         self._init_save_dirs()
         self._load_recorded_counts()
-    
+
+        self._init_font()
+
+    def _init_font(self):
+        font_paths = [
+            "C:/Windows/Fonts/msyh.ttc",
+            "C:/Windows/Fonts/simhei.ttf",
+            "C:/Windows/Fonts/simsun.ttc",
+            "C:/Windows/Fonts/arial.ttf",
+        ]
+        self.font = None
+        for fp in font_paths:
+            if os.path.exists(fp):
+                try:
+                    self.font = ImageFont.truetype(fp, 20)
+                    break
+                except:
+                    continue
+        if self.font is None:
+            self.font = ImageFont.load_default()
+
     def _init_save_dirs(self):
         for word in self.words:
             word_dir = os.path.join(self.save_dir, word)
             os.makedirs(word_dir, exist_ok=True)
-    
+
     def _load_recorded_counts(self):
         for word in self.words:
             word_dir = os.path.join(self.save_dir, word)
@@ -36,99 +61,304 @@ class DataCollector:
                 self.recorded_counts[word] = len(files)
             else:
                 self.recorded_counts[word] = 0
-    
+
     def _get_next_index(self, word):
         word_dir = os.path.join(self.save_dir, word)
         os.makedirs(word_dir, exist_ok=True)
         existing_files = [f for f in os.listdir(word_dir) if f.startswith(self.person_id) and f.endswith('.npy')]
         return len(existing_files) + 1
-    
+
     def _save_sequence(self, word, sequence):
         if len(sequence) < 15:
             return False, f"序列太短（{len(sequence)}帧），至少需要15帧"
-        
+
         if len(sequence) > 150:
             start = (len(sequence) - 150) // 2
             sequence = sequence[start:start + 150]
-        
+
         sequence_array = np.array(sequence)
-        
+
         index = self._get_next_index(word)
         file_name = f'{self.person_id}_{index:03d}.npy'
         save_path = os.path.join(self.save_dir, word, file_name)
         np.save(save_path, sequence_array)
-        
+
         self.recorded_counts[word] = self.recorded_counts.get(word, 0) + 1
-        
+        self.last_saved_sequence = sequence_array.copy()
+
         return True, f"已保存: {save_path} (形状: {sequence_array.shape})"
-    
-    def _draw_ui(self, frame, status_text=""):
+
+    def _delete_last_sequence(self, word):
+        word_dir = os.path.join(self.save_dir, word)
+        existing_files = sorted([f for f in os.listdir(word_dir)
+                                 if f.startswith(self.person_id) and f.endswith('.npy')])
+        if existing_files:
+            last_file = existing_files[-1]
+            os.remove(os.path.join(word_dir, last_file))
+            self.recorded_counts[word] = max(0, self.recorded_counts.get(word, 1) - 1)
+            self.last_saved_sequence = None
+            return True, f"已删除: {last_file}"
+        return False, "没有可删除的录像"
+
+    def _cv2_to_pil(self, frame):
+        frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+        return Image.fromarray(frame_rgb)
+
+    def _pil_to_cv2(self, pil_image):
+        return cv2.cvtColor(np.array(pil_image), cv2.COLOR_RGB2BGR)
+
+    def _draw_text_pil(self, pil_img, text, position, font_size=20, color=(255, 255, 255)):
+        draw = ImageDraw.Draw(pil_img)
+        draw.text(position, text, font=self.font, fill=color)
+
+    def _create_blank_frame(self, h, w, color=(20, 20, 20)):
+        frame = np.zeros((h, w, 3), dtype=np.uint8)
+        for i in range(h):
+            for j in range(w):
+                frame[i][j] = color
+        return frame
+
+    def _draw_landmarks_on_frame(self, frame, landmarks):
         h, w = frame.shape[:2]
-        
+
+        left_hand = landmarks[:63].reshape(21, 3)
+        right_hand = landmarks[63:126].reshape(21, 3)
+        pose = landmarks[126:].reshape(15, 3)
+
+        connections = [
+            (0, 1), (1, 2), (2, 3), (3, 4),
+            (0, 5), (5, 6), (6, 7), (7, 8),
+            (0, 9), (9, 10), (10, 11), (11, 12),
+            (0, 13), (13, 14), (14, 15), (15, 16),
+            (0, 17), (17, 18), (18, 19), (19, 20),
+            (5, 9), (9, 13), (13, 17),
+        ]
+
+        # 绘制左手
+        for start, end in connections:
+            x1 = int(left_hand[start][0])
+            y1 = int(left_hand[start][1])
+            x2 = int(left_hand[end][0])
+            y2 = int(left_hand[end][1])
+            if 0 <= x1 < w and 0 <= y1 < h and 0 <= x2 < w and 0 <= y2 < h:
+                cv2.line(frame, (x1, y1), (x2, y2), (255, 0, 0), 2)
+
+        for i in range(21):
+            x = int(left_hand[i][0])
+            y = int(left_hand[i][1])
+            if 0 <= x < w and 0 <= y < h:
+                cv2.circle(frame, (x, y), 4, (255, 0, 0), -1)
+
+        # 绘制右手
+        for start, end in connections:
+            x1 = int(right_hand[start][0])
+            y1 = int(right_hand[start][1])
+            x2 = int(right_hand[end][0])
+            y2 = int(right_hand[end][1])
+            if 0 <= x1 < w and 0 <= y1 < h and 0 <= x2 < w and 0 <= y2 < h:
+                cv2.line(frame, (x1, y1), (x2, y2), (0, 255, 0), 2)
+
+        for i in range(21):
+            x = int(right_hand[i][0])
+            y = int(right_hand[i][1])
+            if 0 <= x < w and 0 <= y < h:
+                cv2.circle(frame, (x, y), 4, (0, 255, 0), -1)
+
+        # 绘制姿态
+        pose_connections = [
+            (0, 1), (1, 2), (2, 3), (3, 4),
+            (0, 5), (5, 6), (6, 7), (7, 8),
+            (0, 9), (9, 10), (10, 11), (11, 12),
+            (0, 13), (13, 14),
+        ]
+        for start, end in pose_connections:
+            x1 = int(pose[start][0])
+            y1 = int(pose[start][1])
+            x2 = int(pose[end][0])
+            y2 = int(pose[end][1])
+            if 0 <= x1 < w and 0 <= y1 < h and 0 <= x2 < w and 0 <= y2 < h:
+                cv2.line(frame, (x1, y1), (x2, y2), (0, 255, 255), 2)
+
+        for i in range(15):
+            x = int(pose[i][0])
+            y = int(pose[i][1])
+            if 0 <= x < w and 0 <= y < h:
+                cv2.circle(frame, (x, y), 4, (0, 255, 255), -1)
+
+        return frame
+
+    def _playback_sequence(self, sequence, cap):
+        h, w = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT)), int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+
+        # 显示预览信息
+        print(f"预览序列长度: {len(sequence)}")
+        if len(sequence) > 0:
+            print(f"第一帧关键点数据: {sequence[0][:10]}...")
+            print(f"是否有手部数据: {not np.all(sequence[0][:126] == 0)}")
+
+        for idx, landmarks in enumerate(sequence):
+            # 使用浅灰色背景，更清晰
+            frame = np.ones((h, w, 3), dtype=np.uint8) * 40
+            
+            # 检查是否有有效关键点
+            has_hand = not np.all(landmarks[:126] == 0)
+            has_pose = not np.all(landmarks[126:] == 0)
+            
+            if has_hand or has_pose:
+                frame = self._draw_landmarks_on_frame(frame, landmarks)
+            else:
+                # 显示无数据提示
+                pil_frame = self._cv2_to_pil(frame)
+                self._draw_text_pil(pil_frame, "无有效关键点数据", (w//2-100, h//2), font_size=24, color=(255, 0, 0))
+                frame = self._pil_to_cv2(pil_frame)
+
+            # 添加边框和文本
+            cv2.rectangle(frame, (0, 0), (w - 1, h - 1), (255, 255, 255), 2)
+            
+            pil_frame = self._cv2_to_pil(frame)
+            self._draw_text_pil(pil_frame, f"预览回放  {idx + 1}/{len(sequence)} 帧", (10, 30), font_size=24, color=(255, 255, 255))
+            self._draw_text_pil(pil_frame, "[SPACE]暂停 [ESC]退出", (10, h - 30), font_size=18, color=(200, 200, 200))
+
+            frame = self._pil_to_cv2(pil_frame)
+            cv2.imshow('Preview', frame)
+
+            key = cv2.waitKey(33) & 0xFF
+            if key == 27:
+                return
+            elif key == ord(' '):
+                cv2.waitKey(0)
+
+        cv2.waitKey(500)
+
+    def _show_countdown(self, cap, seconds=3):
+        for i in range(seconds, 0, -1):
+            ret, frame = cap.read()
+            if not ret:
+                return False
+            frame = cv2.flip(frame, 1)
+            results = self.detector.detect(frame)
+            frame = self.detector.draw_landmarks(frame, results)
+
+            pil_frame = self._cv2_to_pil(frame)
+            h, w = frame.shape[:2]
+
+            cv2.rectangle(frame, (0, 0), (w - 1, h - 1), (0, 255, 255), 4)
+
+            countdown_text = f"{i}"
+            
+            # 计算文本位置
+            text_x = w // 2 - 50
+            text_y = h // 2 - 50
+            
+            self._draw_text_pil(pil_frame, countdown_text, (text_x, text_y), font_size=120, color=(0, 255, 255))
+
+            self._draw_text_pil(pil_frame, "准备录制...", (w // 2 - 80, h // 2 + 80), font_size=30, color=(255, 255, 255))
+            self._draw_text_pil(pil_frame, "按 [ESC] 取消", (w // 2 - 80, h // 2 + 120), font_size=20, color=(200, 200, 200))
+
+            frame = self._pil_to_cv2(pil_frame)
+            cv2.imshow('Data Collection', frame)
+
+            key = cv2.waitKey(1000) & 0xFF
+            if key == 27:
+                return False
+        return True
+
+    def _show_review(self, cap, sequence):
+        ret, frame = cap.read()
+        if not ret:
+            return False, None
+        frame = cv2.flip(frame, 1)
+        results = self.detector.detect(frame)
+        frame = self.detector.draw_landmarks(frame, results)
+
+        pil_frame = self._cv2_to_pil(frame)
+        h, w = frame.shape[:2]
+
+        cv2.rectangle(frame, (0, 0), (w - 1, h - 1), (255, 255, 0), 4)
+
+        self._draw_text_pil(pil_frame, f"录制完成，共 {len(sequence)} 帧", (w // 2 - 150, h // 2 - 60), font_size=28, color=(255, 255, 0))
+        self._draw_text_pil(pil_frame, "[SPACE] 保存  [R] 重录  [D] 预览回放  [ESC] 取消", (w // 2 - 220, h // 2 + 10), font_size=22, color=(255, 255, 255))
+
+        frame = self._pil_to_cv2(pil_frame)
+        cv2.imshow('Data Collection', frame)
+
+        while True:
+            key = cv2.waitKey(0) & 0xFF
+            if key == ord(' '):
+                return True, 'save'
+            elif key == ord('r') or key == ord('R'):
+                return True, 'retry'
+            elif key == ord('d') or key == ord('D'):
+                self._playback_sequence(sequence, cap)
+                cv2.imshow('Data Collection', frame)
+            elif key == 27:
+                return False, 'cancel'
+
+    def _draw_ui(self, frame, status_text=""):
+        pil_frame = self._cv2_to_pil(frame)
+        h, w = frame.shape[:2]
+
         if self.is_recording:
             cv2.rectangle(frame, (0, 0), (w - 1, h - 1), (0, 0, 255), 3)
-            cv2.putText(frame, f"RECORDING: {len(self.current_sequence)} frames", 
-                       (10, h - 30), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 255), 2)
+            rec_text = f"RECORDING: {len(self.current_sequence)} frames"
+            self._draw_text_pil(pil_frame, rec_text, (10, h - 35), font_size=20, color=(255, 0, 0))
         else:
             cv2.rectangle(frame, (0, 0), (w - 1, h - 1), (0, 255, 0), 2)
-        
+
         word = self.words[self.current_idx]
         category = self.vocab_df.iloc[self.current_idx]['category']
-        
-        cv2.putText(frame, f"词: {word} ({category})", (10, 30), 
-                   cv2.FONT_HERSHEY_SIMPLEX, 0.9, (255, 255, 255), 2)
-        cv2.putText(frame, f"进度: {self.current_idx + 1}/{len(self.words)}", (10, 65), 
-                   cv2.FONT_HERSHEY_SIMPLEX, 0.7, (200, 200, 200), 2)
-        
+
+        self._draw_text_pil(pil_frame, f"词: {word} ({category})", (10, 10), font_size=28, color=(255, 255, 255))
+        self._draw_text_pil(pil_frame, f"进度: {self.current_idx + 1}/{len(self.words)}", (10, 45), font_size=22, color=(200, 200, 200))
+
         recorded = self.recorded_counts.get(word, 0)
-        cv2.putText(frame, f"已录: {recorded}/{self.target_samples}", (w - 200, 30), 
-                   cv2.FONT_HERSHEY_SIMPLEX, 0.7, (100, 255, 100), 2)
-        
+        self._draw_text_pil(pil_frame, f"已录: {recorded}/{self.target_samples}", (w - 160, 10), font_size=22, color=(100, 255, 100))
+
         if status_text:
-            cv2.putText(frame, status_text, (w // 2 - 200, h // 2), 
-                       cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 255, 255), 2)
-        
-        cv2.putText(frame, "[SPACE]录制 [N]下一个 [P]上一个 [Q]统计退出 [ESC]直接退出",
-                   (10, h - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (150, 150, 150), 1)
-        
-        return frame
-    
+            self._draw_text_pil(pil_frame, status_text, (w // 2 - 150, h // 2), font_size=26, color=(0, 255, 255))
+
+        self._draw_text_pil(pil_frame, "[SPACE]录制 [N]下一个 [P]上一个 [R]删除 [Q]统计退出 [ESC]直接退出",
+                   (10, h - 30), font_size=16, color=(150, 150, 150))
+
+        return self._pil_to_cv2(pil_frame)
+
     def _draw_warning(self, frame, message):
+        pil_frame = self._cv2_to_pil(frame)
         h, w = frame.shape[:2]
-        cv2.putText(frame, message, (w // 2 - 150, h // 2 + 50),
-                   cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 255, 255), 2)
-        return frame
-    
+        self._draw_text_pil(pil_frame, message, (w // 2 - 150, h // 2 + 30), font_size=26, color=(0, 255, 255))
+        return self._pil_to_cv2(pil_frame)
+
     def run(self):
         cap = cv2.VideoCapture(0)
         if not cap.isOpened():
             print("错误：无法打开摄像头")
             return
-        
+
         print(f"开始数据采集，当前录制人: {self.person_id}")
         print(f"词汇表共 {len(self.words)} 个词，每个词目标录制 {self.target_samples} 次")
         print("操作说明：")
-        print("  [空格] 开始/停止录制")
+        print("  [空格] 开始录制（3秒倒计时）")
         print("  [N] 下一个词")
         print("  [P] 上一个词")
+        print("  [R] 删除刚才录制的样本")
         print("  [Q] 显示统计后退出")
         print("  [ESC] 直接退出")
-        
+
         status_message = ""
         status_timer = 0
-        
+
         while True:
             ret, frame = cap.read()
             if not ret:
                 break
-            
+
             frame = cv2.flip(frame, 1)
             results = self.detector.detect(frame)
             landmarks = self.detector.get_landmarks(results, frame.shape)
             frame = self.detector.draw_landmarks(frame, results)
-            
+
             has_hand = not np.all(landmarks[:126] == 0)
-            
+
             if self.is_recording:
                 if has_hand:
                     self.current_sequence.append(landmarks)
@@ -136,39 +366,58 @@ class DataCollector:
                     if status_timer <= 0:
                         status_message = "警告：检测不到手！"
                         status_timer = 30
-            
+
             if status_timer > 0:
                 frame = self._draw_warning(frame, status_message)
                 status_timer -= 1
-            
+
             frame = self._draw_ui(frame, status_message if status_timer > 0 else "")
-            
+
             cv2.imshow('Data Collection', frame)
-            
+
             key = cv2.waitKey(1) & 0xFF
-            
+
             if key == 27:
                 break
             elif key == ord(' '):
                 if self.is_recording:
                     self.is_recording = False
                     if len(self.current_sequence) > 0:
-                        success, msg = self._save_sequence(self.words[self.current_idx], self.current_sequence)
-                        print(msg)
-                        if success:
-                            status_message = f"保存成功！({len(self.current_sequence)}帧)"
+                        proceed, choice = self._show_review(cap, self.current_sequence)
+                        if proceed and choice == 'save':
+                            success, msg = self._save_sequence(self.words[self.current_idx], self.current_sequence)
+                            print(msg)
+                            if success:
+                                status_message = f"保存成功！({len(self.current_sequence)}帧)"
+                                status_timer = 60
+                            else:
+                                status_message = msg
+                                status_timer = 90
+                        elif choice == 'retry':
+                            status_message = "已取消，请重新录制"
                             status_timer = 60
                         else:
-                            status_message = msg
-                            status_timer = 90
+                            status_message = "已取消录制"
+                            status_timer = 60
                         self.current_sequence = []
                     else:
                         status_message = "未录制到有效数据"
                         status_timer = 60
                 else:
+                    if not has_hand:
+                        status_message = "请先伸出手！"
+                        status_timer = 60
+                        continue
+
+                    can_proceed = self._show_countdown(cap, seconds=3)
+                    if not can_proceed:
+                        status_message = "已取消录制"
+                        status_timer = 60
+                        continue
+
                     self.is_recording = True
                     self.current_sequence = []
-                    status_message = "开始录制..."
+                    status_message = "录制中...按空格停止"
                     status_timer = 30
             elif key == ord('n') or key == ord('N'):
                 if self.current_idx < len(self.words) - 1:
@@ -180,31 +429,36 @@ class DataCollector:
                     self.current_idx -= 1
                     status_message = f"切换到: {self.words[self.current_idx]}"
                     status_timer = 60
+            elif key == ord('r') or key == ord('R'):
+                success, msg = self._delete_last_sequence(self.words[self.current_idx])
+                print(msg)
+                status_message = msg
+                status_timer = 60
             elif key == ord('q') or key == ord('Q'):
                 break
-        
+
         cap.release()
         cv2.destroyAllWindows()
-        
+
         self._print_statistics()
-        
+
         self.detector.close()
-    
+
     def _print_statistics(self):
         print("\n" + "=" * 50)
         print("录制统计")
         print("=" * 50)
-        
+
         total_recorded = 0
         total_target = len(self.words) * self.target_samples
-        
+
         for word in self.words:
             recorded = self.recorded_counts.get(word, 0)
             total_recorded += recorded
             category = self.vocab_df[self.vocab_df['word'] == word]['category'].values[0]
-            status = "✓" if recorded >= self.target_samples else "✗"
+            status = "V" if recorded >= self.target_samples else "X"
             print(f"  {status} {word} ({category}): {recorded}/{self.target_samples}")
-        
+
         print("-" * 50)
         print(f"总计: {total_recorded}/{total_target} ({total_recorded/total_target*100:.1f}%)")
         print("=" * 50)
@@ -213,12 +467,12 @@ def main():
     print("=" * 50)
     print("聆心手语数据采集工具")
     print("=" * 50)
-    
+
     person_id = input("请输入录制人ID: ").strip()
     if not person_id:
         print("错误：录制人ID不能为空")
         return
-    
+
     collector = DataCollector(person_id=person_id)
     collector.run()
 
