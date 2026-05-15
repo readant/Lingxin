@@ -1,301 +1,263 @@
-# 聆心（Lingxin）项目发展记录
+# 聆心手语识别系统 - 开发记录
 
-## 项目简介
+## 一、项目简介
 
-聆心（聆心/灵心）是一个基于深度学习的实时手语识别系统，聆听心灵的声音，搭建无声与有声世界的桥梁。
+聆心（Lingxin）是一个基于深度学习的实时手语识别系统，致力于搭建无声与有声世界的桥梁。本记录跟踪项目的开发历程、问题解决和技术演进。
 
-## 问题归档
+## 二、技术栈
 
-### 2026年4月19日 - 问题记录
+| 类别 | 技术 | 版本要求 | 用途 |
+|------|------|----------|------|
+| 深度学习框架 | PyTorch | >=2.0.0 | 模型训练和推理 |
+| 关键点检测 | MediaPipe | 0.10.5 | 手部和姿态检测 |
+| 图像处理 | OpenCV | >=4.8.0 | 视频处理和显示 |
+| 图像处理 | Pillow | >=10.0.0 | 中文绘制 |
+| 机器学习 | scikit-learn | >=1.3.0 | 传统ML模型 |
+| API服务 | Flask | >=3.0.0 | RESTful API |
+| 可视化 | Matplotlib | >=3.7.0 | 绘图和展示 |
+| 可视化 | Seaborn | >=0.13.0 | 统计图表 |
 
-#### 问题1：Python模块导入路径错误
+## 三、问题归档
 
-**现象：**
+### 3.1 Python模块导入路径错误
+
+**现象**：
 ```
 ModuleNotFoundError: No module named 'src'
 ```
 
-**原因：**
+**原因**：
 运行 `python tools/collect_data.py` 时，Python无法找到 `src` 模块，因为项目根目录未添加到Python路径。
 
-**解决方案：**
-在 `tools/collect_data.py` 开头添加：
+**解决方案**：
+在工具脚本开头添加路径处理：
 ```python
+import sys
+import os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 ```
 
----
+### 3.2 MediaPipe版本不兼容
 
-#### 问题2：mediapipe版本不兼容
-
-**现象：**
+**现象**：
 ```
 AttributeError: module 'mediapipe' has no attribute 'solutions'
 ```
 
-**原因：**
-- 最初安装的 mediapipe 0.10.33 使用新的 `mediapipe.tasks.python` API
-- 原代码使用的是旧的 `mp.solutions.hands` API
+**原因**：
+- 新版本 MediaPipe（0.10.33+）使用新的 `mediapipe.tasks.python` API
+- 本项目使用旧的 `mp.solutions.hands` API
 
-**解决方案：**
-降级到 mediapipe 0.10.5：
+**解决方案**：
+降级到兼容版本：
 ```bash
 pip install mediapipe==0.10.5
 ```
 
-**验证：**
+**验证方法**：
 ```python
 import mediapipe as mp
 print(mp.solutions.hands)  # 正常输出模块路径
 ```
 
----
+### 3.3 OpenCV中文字体显示乱码
 
-#### 问题3：OpenCV中文字体显示为"???"
-
-**现象：**
+**现象**：
 使用 `cv2.putText()` 绘制中文时，显示为"???"乱码。
 
-**原因：**
+**原因**：
 OpenCV默认字体不支持中文字符。
 
-**解决方案：**
+**解决方案**：
 使用PIL库绘制中文：
 ```python
 from PIL import Image, ImageDraw, ImageFont
 
 # 加载中文字体
-def _init_font(self):
-    font_paths = [
-        "C:/Windows/Fonts/msyh.ttc",  # 微软雅黑
-        "C:/Windows/Fonts/simhei.ttf",  # 黑体
-        "C:/Windows/Fonts/simsun.ttc",  # 宋体
-    ]
-    for fp in font_paths:
-        if os.path.exists(fp):
-            self.font = ImageFont.truetype(fp, 20)
-            break
+font = ImageFont.truetype("C:/Windows/Fonts/msyh.ttc", 20)
 
 # OpenCV转PIL
-def _cv2_to_pil(self, frame):
-    frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-    return Image.fromarray(frame_rgb)
-
-# PIL转OpenCV
-def _pil_to_cv2(self, pil_image):
-    return cv2.cvtColor(np.array(pil_image), cv2.COLOR_RGB2BGR)
+frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+pil_img = Image.fromarray(frame_rgb)
 
 # 绘制中文
-def _draw_text_pil(self, pil_img, text, position, font_size=20, color=(255, 255, 255)):
-    draw = ImageDraw.Draw(pil_img)
-    draw.text(position, text, font=self.font, fill=color)
+draw = ImageDraw.Draw(pil_img)
+draw.text((10, 10), "你好", font=font, fill=(255, 255, 255))
+
+# PIL转OpenCV
+frame = cv2.cvtColor(np.array(pil_img), cv2.COLOR_RGB2BGR)
 ```
 
----
+### 3.4 模型训练过拟合
 
-## 发展历程
+**现象**：
+训练准确率很高，但验证准确率很低。
 
-### 2026年4月19日 - 项目初始化
+**解决方案**：
+1. 增加训练数据量
+2. 添加数据增强（随机裁剪、旋转等）
+3. 使用正则化（Dropout、L2正则）
+4. 减少模型复杂度
 
-#### 里程碑：项目结构搭建
+## 四、开发历程
 
-完成了聆心手语识别系统的基础项目结构搭建，包括以下目录和文件：
+### 4.1 项目初始化（2026年4月）
 
-**目录结构：**
+**里程碑**：搭建项目基础结构
+
+完成内容：
+- 创建项目目录结构
+- 配置Git仓库
+- 编写基础依赖清单
+- 初始化README文档
+
+**目录结构设计**：
 ```
 Lingxin/
-├── data/                        # 数据目录
-│   ├── raw/                     # 原始数据（视频/关键点）
-│   │   ├── collected/           # 自采数据
-│   │   └── ms_asl/              # MS-ASL数据集
-│   └── processed/               # 预处理后的数据
-│       └── csl_isolated/        # 自采孤立词数据
-├── src/                         # 核心代码
-│   ├── detection/               # 手部检测
-│   ├── features/                # 特征工程
-│   ├── models/                  # 模型定义
-│   ├── training/                # 训练逻辑
-│   └── utils/                   # 工具函数
-├── tools/                       # 工具脚本
-├── api/                         # API服务
-├── docs/                        # 文档
-├── tests/                       # 测试
-├── requirements.txt
-├── .gitignore
-└── README.md
+├── src/          # 核心代码
+├── tools/        # 工具脚本
+├── api/          # API服务
+├── data/         # 数据存储
+├── docs/         # 文档
+└── tests/        # 测试代码
 ```
 
-**核心模块：**
-- `src/detection/hand_detector.py` - 基于MediaPipe的手部检测
-- `src/features/feature_extractor.py` - 关键点到特征的转换
-- `src/models/classifiers.py` - SVM/RF/MLP分类器
-- `src/models/lstm_model.py` - LSTM模型
-- `src/models/transformer_model.py` - Transformer模型
-- `src/training/trainer.py` - 统一训练接口
-- `src/utils/data_loader.py` - 数据加载
-- `src/utils/visualization.py` - 可视化工具
-- `src/utils/metrics.py` - 评估指标
+### 4.2 框架迁移至PyTorch（2026年4月）
 
-**工具脚本：**
-- `tools/collect_data.py` - 数据采集工具
-- `tools/preprocess.py` - 数据预处理
-- `tools/train.py` - 训练入口
-- `tools/evaluate.py` - 评估入口
-- `tools/inference.py` - 推理/演示
+**里程碑**：选择PyTorch作为深度学习框架
 
-**初始提交：**
-- Git仓库初始化
-- 首次提交：`初始化项目结构`
+**变更内容**：
+- 更新 `requirements.txt`，移除TensorFlow，添加PyTorch
+- 重写 `src/models/lstm_model.py`（PyTorch实现）
+- 重写 `src/models/transformer_model.py`（PyTorch实现）
+- 更新 `src/training/trainer.py` 适配PyTorch
 
----
+**选择理由**：
+- PyTorch动态图更适合科研和调试
+- 社区活跃，学习资源丰富
+- 与Python生态无缝衔接
 
-### 2026年4月19日 - 框架迁移至PyTorch
+### 4.3 上半身姿态检测功能（2026年4月）
 
-#### 里程碑：深度学习框架切换
+**里程碑**：扩展关键点检测能力
 
-将项目从TensorFlow迁移至PyTorch框架，具体变更包括：
+**新增内容**：
+- `PoseDetector` 类：检测上半身15个关键点
+- `HolisticDetector` 类：组合手部和姿态检测
+- 171维特征向量：左手63 + 右手63 + 姿态45
 
-**依赖更新（requirements.txt）：**
-- 移除TensorFlow依赖
-- 添加PyTorch相关依赖：
-  - torch>=2.0.0
-  - torchvision>=0.15.0
-- 为每个依赖包添加中文注释说明用途
+**设计考虑**：
+- 单独的手部信息可能不足以区分某些手语
+- 添加姿态信息可以提高识别准确率
+- 保持向后兼容，原有手部检测功能不变
 
-**模型实现更新：**
-- `src/models/lstm_model.py` - 从TensorFlow实现改为PyTorch实现
-- `src/models/transformer_model.py` - 从TensorFlow实现改为PyTorch实现
-- `src/training/trainer.py` - 更新训练接口以适配PyTorch
+### 4.4 词汇表创建（2026年4月）
 
-**提交记录：**
-- `更新依赖和模型实现，切换到PyTorch`
+**里程碑**：建立数据采集基础
 
----
+**词汇表设计**：
+- 共50个常用词汇
+- 涵盖7大类别（问候、人称、数字、家庭、动作、形容词、场景）
+- 使用CSV格式存储，便于扩展
 
-### 2026年4月19日 - 环境配置
+**文件格式**：`data/vocab.csv`
+```csv
+category,word,description
+问候,你好,打招呼用语
+问候,谢谢,表达感谢
+...
+```
 
-#### 里程碑：开发环境就绪
+### 4.5 数据采集工具重写（2026年4月）
 
-完成了项目开发环境的配置：
+**里程碑**：支持时序数据录制
 
-**虚拟环境：**
-- 使用miniconda虚拟环境：`LingXin`
-- Python版本：3.12.9
+**核心改进**：
+1. 使用 `HolisticDetector` 获取171维特征
+2. 空格键控制录制开始/停止
+3. 实时显示录制帧计数
+4. 自动质量检查（帧长度过滤）
+5. 支持中文字体显示
 
-**依赖安装：**
-- 已安装所有项目依赖
-- PyTorch版本：2.11.0+cpu
-- 验证CUDA可用性：False（当前为CPU版本）
+**界面功能**：
+- 实时显示当前词汇和采集进度
+- 录制状态可视化（红色边框）
+- 检测失败警告（黄色提示）
 
-**文档更新：**
-- 更新README.md，添加详细的依赖说明表格
-- 添加安装方法和虚拟环境激活说明
+### 4.6 设计模式应用（2026年5月）
 
-**提交记录：**
-- `更新文档，添加详细的依赖说明`
+**里程碑**：代码质量提升
 
----
+**应用的设计模式**：
+1. **模板方法模式**：`BaseModel` 定义模型骨架
+2. **字典映射替代策略模式**：消除 if-elif 分支
+3. **依赖注入**：训练器与模型解耦
 
-### 2026年4月19日 - 上半身姿态检测功能
+**优化效果**：
+- 代码复用率提高
+- 新增模型更加便捷
+- 代码可读性提升
 
-#### 里程碑：关键点检测扩展
+### 4.7 代码注释完善（2026年5月）
 
-在原有的手部检测基础上，增加了上半身姿态检测功能：
+**里程碑**：提升代码可维护性
 
-**新增模块（src/detection/hand_detector.py）：**
+**注释覆盖范围**：
+- `src/detection/hand_detector.py` ✓
+- `src/features/feature_extractor.py` ✓
+- `src/models/*.py` ✓
+- `src/training/trainer.py` ✓
+- `src/utils/*.py` ✓
+- `tools/*.py` ✓
 
-1. **HandDetector类**（原有，保持不变）
-   - 使用MediaPipe Hands检测手部21个关键点
+**注释规范**：
+- 文件头注释：说明文件功能和使用方法
+- 类注释：说明类的职责和设计意图
+- 方法注释：包含参数说明和返回值
+- 关键代码注释：解释复杂逻辑
 
-2. **PoseDetector类**（新增）
-   - 使用MediaPipe Pose检测上半身姿态
-   - 只提取上半身15个关键点（索引0~14）
-   - 每个关键点包含x, y, z坐标
+## 五、当前项目状态
 
-3. **HolisticDetector类**（新增）
-   - 组合HandDetector + PoseDetector
-   - 一次调用同时返回手部和姿态关键点
-   - 返回格式：numpy array，形状为(171,)
-     - 左手：63维（21×3）
-     - 右手：63维（21×3）
-     - 姿态：45维（15×3）
+### 5.1 已完成功能
 
-**提交记录：**
-- `增加PoseDetector和HolisticDetector类，支持上半身姿态检测`
+| 模块 | 状态 | 说明 |
+|------|------|------|
+| 手部检测 | ✅ 完成 | MediaPipe手部关键点检测 |
+| 姿态检测 | ✅ 完成 | MediaPipe上半身姿态检测 |
+| 数据采集 | ✅ 完成 | 支持时序录制和质量检查 |
+| 数据预处理 | ✅ 完成 | 标准化、序列对齐、划分 |
+| 传统ML模型 | ✅ 完成 | SVM、随机森林、MLP |
+| 深度学习模型 | ✅ 完成 | LSTM、Transformer |
+| 模型训练 | ✅ 完成 | 统一训练接口 |
+| 模型评估 | ✅ 完成 | 多指标评估和混淆矩阵 |
+| 实时推理 | ✅ 完成 | 摄像头实时识别 |
 
----
+### 5.2 待开发功能
 
-### 2026年4月19日 - 词汇表创建
+| 功能 | 优先级 | 说明 |
+|------|--------|------|
+| API服务 | 高 | Flask RESTful API |
+| 模型部署 | 中 | ONNX/TensorRT优化 |
+| 数据增强 | 中 | 提高模型泛化能力 |
+| Web界面 | 低 | 可视化演示界面 |
 
-#### 里程碑：数据基础建立
+## 六、下一步计划
 
-创建了项目词汇表，为后续数据采集和模型训练奠定基础：
+### 6.1 短期目标（1-2周）
+1. 完善API服务（`api/app.py`）
+2. 测试实时推理功能
+3. 整理项目文档
 
-**词汇表（data/vocab.csv）：**
-- 共50个常用手语词汇
-- 涵盖7大类别：
-  - 问候（8个）：你好、谢谢、对不起、没关系、再见、你好吗、认识你、欢迎
-  - 人称（6个）：我、你、他、她、我们、他们
-  - 数字（10个）：一至十
-  - 家庭（6个）：爸爸、妈妈、哥哥、姐姐、弟弟、妹妹
-  - 动作（8个）：吃、喝、睡、走、跑、坐、站、看
-  - 形容词（6个）：好、坏、大、小、多、少
-  - 场景（6个）：学校、医院、家、工作、帮助、喜欢
+### 6.2 中期目标（1-2月）
+1. 采集更多训练数据
+2. 优化模型性能
+3. 支持更多词汇
 
-**提交记录：**
-- `添加手语词汇表vocab.csv，包含50个常用词汇`
-
----
-
-### 2026年4月19日 - 数据采集工具重写
-
-#### 里程碑：支持时序数据录制
-
-完全重写了 `tools/collect_data.py`，解决了单帧保存的问题：
-
-**核心改进：**
-1. 使用 `HolisticDetector` 获取171维关键点向量
-2. 空格键控制录制开始/停止，持续采集时序数据
-3. 录制时检测手部，黄色警告检测不到手的情况
-4. 质量检查：序列<15帧不保存，>150帧截取中间部分
-
-**界面元素：**
-- 左上角：当前词汇 + 进度（X/50）
-- 右上角：已录次数 / 目标30次
-- 底部：操作提示
-- 录制中：红色边框 + 帧计数
-
-**键盘控制：**
-- 空格：开始/停止录制
-- N：下一个词
-- P：上一个词
-- Q：显示统计后退出
-- ESC：直接退出
-
-**提交记录：**
-- `重写数据采集工具，支持时序录制和HolisticDetector`
+### 6.3 长期目标（3-6月）
+1. 部署到生产环境
+2. 支持连续手语识别
+3. 开发移动端应用
 
 ---
 
-## 技术栈
-
-| 类别 | 技术 | 版本要求 |
-|------|------|----------|
-| 深度学习框架 | PyTorch | >=2.0.0 |
-| 手部检测 | MediaPipe | 0.10.5 |
-| 图像处理 | OpenCV | >=4.8.0 |
-| 图像处理(PIL) | Pillow | >=10.0.0 |
-| 机器学习 | scikit-learn | >=1.3.0 |
-| API服务 | Flask | >=3.0.0 |
-
-## 远程仓库
-
-- GitHub仓库：git@github.com:readant/Lingxin.git
-
-## 下一步计划
-
-- [ ] 数据采集工具完善
-- [ ] 特征工程模块优化
-- [ ] 模型训练流程验证
-- [ ] 实时推理功能测试
-- [ ] API服务部署
+> **作者提示**：本项目遵循敏捷开发原则，持续迭代改进。欢迎提交Issue和Pull Request！
