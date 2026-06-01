@@ -1,0 +1,1651 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>聆心手语识别 - 资源导航</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700&family=Noto+Sans+SC:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-primary: #FAF7F2;
+            --bg-secondary: #F5F0E8;
+            --bg-card: #FFFFFF;
+            --text-primary: #2C2420;
+            --text-secondary: #6B5E54;
+            --text-muted: #9B8B7A;
+            --accent-warm: #D4A574;
+            --accent-terracotta: #C17F59;
+            --accent-sage: #8B9A7D;
+            --accent-indigo: #5A6B7C;
+            --border-light: #E8E0D5;
+            --border-medium: #D4C8B8;
+            --shadow-soft: 0 2px 12px rgba(44, 36, 32, 0.06);
+            --shadow-medium: 0 4px 24px rgba(44, 36, 32, 0.08);
+            --shadow-hover: 0 8px 32px rgba(44, 36, 32, 0.12);
+            --transition-fast: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            --transition-normal: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            --transition-slow: 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        body {
+            font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-primary);
+            min-height: 100vh;
+            color: var(--text-primary);
+            line-height: 1.7;
+            background-image: 
+                radial-gradient(circle at 80% 20%, rgba(212, 165, 116, 0.04) 0%, transparent 50%),
+                radial-gradient(circle at 20% 80%, rgba(139, 154, 125, 0.03) 0%, transparent 50%);
+            scroll-behavior: smooth;
+        }
+
+        .page-wrapper {
+            display: flex;
+            gap: 24px;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 24px;
+        }
+
+        /* ===== 侧边导航 ===== */
+        .sidebar {
+            position: sticky;
+            top: 24px;
+            width: 240px;
+            flex-shrink: 0;
+            background: var(--bg-card);
+            border-radius: 20px;
+            padding: 24px;
+            border: 1px solid var(--border-light);
+            box-shadow: var(--shadow-soft);
+            height: fit-content;
+        }
+
+        .sidebar-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 24px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--border-light);
+        }
+
+        .sidebar-logo {
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            background: var(--accent-warm);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+
+        .sidebar-title {
+            font-family: 'Noto Serif SC', serif;
+            font-weight: 600;
+            font-size: 1.1rem;
+            color: var(--text-primary);
+        }
+
+        .nav-list {
+            list-style: none;
+        }
+
+        .nav-item {
+            margin-bottom: 8px;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            border-radius: 12px;
+            text-decoration: none;
+            color: var(--text-secondary);
+            transition: all var(--transition-fast);
+            font-size: 0.9rem;
+        }
+
+        .nav-link:hover {
+            background: var(--bg-secondary);
+            color: var(--accent-terracotta);
+        }
+
+        .nav-link.active {
+            background: rgba(212, 165, 116, 0.15);
+            color: var(--accent-terracotta);
+            font-weight: 500;
+        }
+
+        .nav-icon {
+            font-size: 1.1rem;
+            flex-shrink: 0;
+        }
+
+        .nav-count {
+            margin-left: auto;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            background: var(--bg-secondary);
+            padding: 3px 10px;
+            border-radius: 20px;
+        }
+
+        .nav-divider {
+            height: 1px;
+            background: var(--border-light);
+            margin: 16px 0;
+        }
+
+        /* ===== 主内容区 ===== */
+        .main-content {
+            flex: 1;
+            min-width: 0;
+        }
+
+        /* ===== 头部区域 ===== */
+        header {
+            text-align: center;
+            padding: 40px 20px 32px;
+            position: relative;
+            background: var(--bg-card);
+            border-radius: 20px;
+            border: 1px solid var(--border-light);
+            box-shadow: var(--shadow-soft);
+            margin-bottom: 24px;
+        }
+
+        header::before {
+            content: '';
+            position: absolute;
+            top: 24px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60px;
+            height: 3px;
+            background: linear-gradient(90deg, transparent, var(--accent-warm), transparent);
+            border-radius: 2px;
+        }
+
+        .back-link {
+            position: absolute;
+            top: 16px;
+            left: 16px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            background: var(--bg-secondary);
+            color: var(--text-secondary);
+            text-decoration: none;
+            border-radius: 50px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            transition: all var(--transition-fast);
+            border: 1px solid var(--border-light);
+        }
+
+        .back-link:hover {
+            transform: translateX(-4px);
+            border-color: var(--accent-warm);
+            color: var(--accent-terracotta);
+        }
+
+        .logo {
+            font-size: 3.5rem;
+            margin-bottom: 16px;
+            display: inline-block;
+            animation: gentleFloat 6s ease-in-out infinite;
+        }
+
+        @keyframes gentleFloat {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-6px); }
+        }
+
+        h1 {
+            font-family: 'Noto Serif SC', serif;
+            font-size: 2.2rem;
+            font-weight: 700;
+            margin-bottom: 12px;
+            color: var(--text-primary);
+            letter-spacing: 0.05em;
+        }
+
+        .subtitle {
+            font-size: 1rem;
+            color: var(--text-secondary);
+            max-width: 500px;
+            margin: 0 auto;
+            font-weight: 300;
+        }
+
+        /* ===== 搜索区域 ===== */
+        .search-section {
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 24px;
+            border: 1px solid var(--border-light);
+            box-shadow: var(--shadow-soft);
+        }
+
+        .search-box {
+            position: relative;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 14px 24px 14px 52px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-light);
+            border-radius: 14px;
+            font-size: 0.95rem;
+            color: var(--text-primary);
+            transition: all var(--transition-fast);
+            font-family: 'Noto Sans SC', sans-serif;
+        }
+
+        .search-box input:focus {
+            outline: none;
+            border-color: var(--accent-warm);
+            background: var(--bg-card);
+            box-shadow: 0 0 0 4px rgba(212, 165, 116, 0.1);
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 18px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 1.1rem;
+            opacity: 0.5;
+        }
+
+        /* ===== 分类区块 ===== */
+        .category-section {
+            background: var(--bg-card);
+            border-radius: 20px;
+            padding: 32px;
+            margin-bottom: 24px;
+            border: 1px solid var(--border-light);
+            box-shadow: var(--shadow-soft);
+        }
+
+        .category-header {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin-bottom: 28px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--border-light);
+        }
+
+        .category-icon {
+            width: 52px;
+            height: 52px;
+            border-radius: 14px;
+            background: linear-gradient(135deg, var(--accent-warm), var(--accent-terracotta));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.6rem;
+            box-shadow: 0 4px 16px rgba(212, 165, 116, 0.3);
+        }
+
+        .category-info {
+            flex: 1;
+        }
+
+        .category-title {
+            font-family: 'Noto Serif SC', serif;
+            font-size: 1.4rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+
+        .category-desc {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        /* ===== 资源列表 ===== */
+        .resource-list {
+            list-style: none;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+            gap: 16px;
+        }
+
+        .resource-item {
+            display: flex;
+            gap: 16px;
+            padding: 20px;
+            background: var(--bg-secondary);
+            border-radius: 16px;
+            border: 1px solid var(--border-light);
+            transition: all var(--transition-normal);
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .resource-item::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background: linear-gradient(180deg, var(--accent-warm), var(--accent-terracotta));
+            transform: scaleY(0);
+            transition: transform var(--transition-fast);
+        }
+
+        .resource-item:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-medium);
+            border-color: var(--accent-warm);
+            padding-left: 24px;
+        }
+
+        .resource-item:hover::before {
+            transform: scaleY(1);
+        }
+
+        .resource-icon-box {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            background: var(--bg-card);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.4rem;
+            flex-shrink: 0;
+            border: 1px solid var(--border-light);
+        }
+
+        .resource-content {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .resource-title {
+            font-weight: 500;
+            font-size: 1rem;
+            color: var(--text-primary);
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .resource-title a {
+            color: inherit;
+            text-decoration: none;
+        }
+
+        .resource-title a:hover {
+            color: var(--accent-terracotta);
+        }
+
+        .resource-desc {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            line-height: 1.6;
+            margin-bottom: 10px;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .resource-meta {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .resource-tag {
+            font-size: 0.7rem;
+            padding: 4px 12px;
+            border-radius: 20px;
+            background: var(--bg-card);
+            color: var(--text-secondary);
+            border: 1px solid var(--border-light);
+        }
+
+        .resource-tag.official {
+            background: rgba(139, 154, 125, 0.15);
+            color: var(--accent-sage);
+            border-color: rgba(139, 154, 125, 0.3);
+        }
+
+        .resource-tag.chinese {
+            background: rgba(193, 127, 89, 0.15);
+            color: var(--accent-terracotta);
+            border-color: rgba(193, 127, 89, 0.3);
+        }
+
+        .resource-tag.tutorial {
+            background: rgba(90, 107, 124, 0.15);
+            color: var(--accent-indigo);
+            border-color: rgba(90, 107, 124, 0.3);
+        }
+
+        /* ===== 数据集卡片 ===== */
+        .dataset-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .dataset-card {
+            background: var(--bg-secondary);
+            border-radius: 16px;
+            padding: 24px;
+            border: 1px solid var(--border-light);
+            transition: all var(--transition-normal);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .dataset-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--accent-warm), var(--accent-terracotta));
+            transform: scaleX(0);
+            transition: transform var(--transition-normal);
+        }
+
+        .dataset-card:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-medium);
+            border-color: var(--accent-warm);
+        }
+
+        .dataset-card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .dataset-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 12px;
+        }
+
+        .dataset-name {
+            font-family: 'Noto Serif SC', serif;
+            font-weight: 600;
+            font-size: 1.15rem;
+            color: var(--text-primary);
+        }
+
+        .dataset-tag {
+            font-size: 0.7rem;
+            padding: 4px 12px;
+            border-radius: 20px;
+            background: rgba(139, 154, 125, 0.15);
+            color: var(--accent-sage);
+            font-weight: 500;
+        }
+
+        .dataset-tag.cn {
+            background: rgba(193, 127, 89, 0.15);
+            color: var(--accent-terracotta);
+        }
+
+        .dataset-desc {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin-bottom: 16px;
+            line-height: 1.6;
+        }
+
+        .dataset-stats {
+            display: flex;
+            gap: 16px;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        .dataset-stat {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        /* ===== GitHub项目卡片 ===== */
+        .github-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 20px;
+        }
+
+        .github-card {
+            background: var(--bg-secondary);
+            border-radius: 16px;
+            padding: 24px;
+            border: 1px solid var(--border-light);
+            transition: all var(--transition-normal);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .github-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--accent-indigo), var(--accent-sage));
+            transform: scaleX(0);
+            transition: transform var(--transition-normal);
+        }
+
+        .github-card:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-medium);
+            border-color: var(--accent-indigo);
+        }
+
+        .github-card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .github-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .github-icon-box {
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            background: var(--bg-card);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+            border: 1px solid var(--border-light);
+        }
+
+        .github-name {
+            font-weight: 600;
+            font-size: 1rem;
+            color: var(--text-primary);
+        }
+
+        .github-desc {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            line-height: 1.6;
+            margin-bottom: 16px;
+        }
+
+        .github-meta {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .github-tag {
+            font-size: 0.7rem;
+            padding: 4px 10px;
+            border-radius: 16px;
+            background: var(--bg-card);
+            color: var(--text-muted);
+            border: 1px solid var(--border-light);
+        }
+
+        /* ===== 书籍推荐 ===== */
+        .book-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+        }
+
+        .book-card {
+            background: var(--bg-secondary);
+            border-radius: 16px;
+            padding: 24px;
+            border: 1px solid var(--border-light);
+            transition: all var(--transition-normal);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .book-card::after {
+            content: '📖';
+            position: absolute;
+            right: 20px;
+            top: 20px;
+            font-size: 2.5rem;
+            opacity: 0.08;
+        }
+
+        .book-card:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-medium);
+            border-color: var(--accent-warm);
+        }
+
+        .book-category {
+            font-size: 0.75rem;
+            color: var(--accent-warm);
+            font-weight: 500;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .book-title {
+            font-family: 'Noto Serif SC', serif;
+            font-weight: 600;
+            font-size: 1.05rem;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+            line-height: 1.5;
+        }
+
+        .book-author {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-bottom: 12px;
+        }
+
+        .book-desc {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        /* ===== 页脚 ===== */
+        footer {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            border-top: 1px solid var(--border-light);
+            margin-top: 32px;
+        }
+
+        /* ===== 响应式 ===== */
+        @media (max-width: 1024px) {
+            .page-wrapper {
+                flex-direction: column;
+            }
+
+            .sidebar {
+                position: relative;
+                width: 100%;
+                top: 0;
+            }
+
+            .nav-list {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 8px;
+            }
+
+            .nav-item {
+                margin-bottom: 0;
+            }
+
+            .nav-link {
+                padding: 10px 16px;
+                border-radius: 50px;
+            }
+
+            .nav-divider {
+                display: none;
+            }
+
+            .nav-count {
+                display: none;
+            }
+        }
+
+        @media (max-width: 768px) {
+            h1 { font-size: 1.8rem; }
+            .logo { font-size: 3rem; }
+            .back-link { 
+                position: relative; 
+                top: 0; 
+                left: 0; 
+                margin-bottom: 16px;
+                display: inline-flex;
+            }
+            header { padding-top: 24px; }
+            .category-section { padding: 24px 20px; }
+            .resource-list { grid-template-columns: 1fr; }
+            .dataset-grid, .github-grid, .book-grid { grid-template-columns: 1fr; }
+        }
+
+        /* ===== 动画 ===== */
+        .resource-item, .dataset-card, .github-card, .book-card {
+            opacity: 0;
+            animation: fadeInUp 0.5s ease forwards;
+        }
+
+        .resource-item:nth-child(1) { animation-delay: 0.05s; }
+        .resource-item:nth-child(2) { animation-delay: 0.1s; }
+        .resource-item:nth-child(3) { animation-delay: 0.15s; }
+        .resource-item:nth-child(4) { animation-delay: 0.2s; }
+        .resource-item:nth-child(5) { animation-delay: 0.25s; }
+        .resource-item:nth-child(6) { animation-delay: 0.3s; }
+        .resource-item:nth-child(7) { animation-delay: 0.35s; }
+        .resource-item:nth-child(8) { animation-delay: 0.4s; }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+    <div class="page-wrapper">
+        <!-- 侧边导航 -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-logo">📚</div>
+                <span class="sidebar-title">资源导航</span>
+            </div>
+            <nav>
+                <ul class="nav-list">
+                    <li class="nav-item">
+                        <a href="#python" class="nav-link active">
+                            <span class="nav-icon">🐍</span>
+                            <span>Python技术栈</span>
+                            <span class="nav-count">32</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#deep-learning" class="nav-link">
+                            <span class="nav-icon">🧠</span>
+                            <span>深度学习模型</span>
+                            <span class="nav-count">8</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#papers" class="nav-link">
+                            <span class="nav-icon">📝</span>
+                            <span>学术论文</span>
+                            <span class="nav-count">6</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#tutorials" class="nav-link">
+                            <span class="nav-icon">🌐</span>
+                            <span>在线教程</span>
+                            <span class="nav-count">7</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#datasets" class="nav-link">
+                            <span class="nav-icon">📊</span>
+                            <span>公开数据集</span>
+                            <span class="nav-count">7</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#github" class="nav-link">
+                            <span class="nav-icon">💻</span>
+                            <span>GitHub项目</span>
+                            <span class="nav-count">7</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#learning" class="nav-link">
+                            <span class="nav-icon">🎓</span>
+                            <span>学习平台</span>
+                            <span class="nav-count">6</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#books" class="nav-link">
+                            <span class="nav-icon">📖</span>
+                            <span>书籍推荐</span>
+                            <span class="nav-count">8</span>
+                        </a>
+                    </li>
+                </ul>
+                <div class="nav-divider"></div>
+                <ul class="nav-list">
+                    <li class="nav-item">
+                        <a href="index.html" class="nav-link" style="color: var(--accent-terracotta);">
+                            <span class="nav-icon">🏠</span>
+                            <span>返回首页</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        </aside>
+
+        <!-- 主内容区 -->
+        <main class="main-content">
+            <header>
+                <a href="index.html" class="back-link">
+                    <span>←</span>
+                    <span>返回首页</span>
+                </a>
+                <div class="logo">📚</div>
+                <h1>资源导航中心</h1>
+                <p class="subtitle">汇集Python技术栈、深度学习模型、手语识别论文等优质学习资源</p>
+            </header>
+
+            <section class="search-section">
+                <div class="search-box">
+                    <span class="search-icon">🔍</span>
+                    <input type="text" id="searchInput" placeholder="搜索资源...">
+                </div>
+            </section>
+
+            <!-- Python技术栈 -->
+            <section id="python" class="category-section">
+                <div class="category-header">
+                    <div class="category-icon">🐍</div>
+                    <div class="category-info">
+                        <h2 class="category-title">Python技术栈官方文档</h2>
+                        <p class="category-desc">涵盖Python基础、深度学习框架、计算机视觉等核心技术栈</p>
+                    </div>
+                </div>
+                <ul class="resource-list">
+                    <li class="resource-item" onclick="window.open('https://docs.python.org/zh-cn/3/tutorial/', '_blank')">
+                        <div class="resource-icon-box">📖</div>
+                        <div class="resource-content">
+                            <div class="resource-title"><a href="https://docs.python.org/zh-cn/3/tutorial/" target="_blank">Python官方教程（中文）</a></div>
+                            <div class="resource-desc">Python官方中文教程，从入门到高级，系统学习Python编程基础</div>
+                            <div class="resource-meta">
+                                <span class="resource-tag official">官方</span>
+                                <span class="resource-tag chinese">中文</span>
+                            </div>
+                        </div>
+                    </li>
+                    <li class="resource-item" onclick="window.open('https://docs.python.org/3/tutorial/', '_blank')">
+                        <div class="resource-icon-box">📘</div>
+                        <div class="resource-content">
+                            <div class="resource-title"><a href="https://docs.python.org/3/tutorial/" target="_blank">Python官方教程（英文）</a></div>
+                            <div class="resource-desc">Python官方英文原版教程，内容最新最全，适合进阶学习</div>
+                            <div class="resource-meta">
+                                <span class="resource-tag official">官方</span>
+                            </div>
+                        </div>
+                    </li>
+                    <li class="resource-item" onclick="window.open('https://docs.python.org/zh-cn/3/library/', '_blank')">
+                        <div class="resource-icon-box">📚</div>
+                        <div class="resource-content">
+                            <div class="resource-title"><a href="https://docs.python.org/zh-cn/3/library/" target="_blank">Python标准库参考</a></div>
+                            <div class="resource-desc">Python标准库完整文档，包含所有内置模块的详细说明</div>
+                            <div class="resource-meta">
+                                <span class="resource-tag official">官方</span>
+                                <span class="resource-tag chinese">中文</span>
+                            </div>
+                        </div>
+                    </li>
+                    <li class="resource-item" onclick="window.open('https://pytorch.org/docs/stable/index.html', '_blank')">
+                        <div class="resource-icon-box">🔥</div>
+                        <div class="resource-content">
+                            <div class="resource-title"><a href="https://pytorch.org/docs/stable/index.html" target="_blank">PyTorch官方文档</a></div>
+                            <div class="resource-desc">PyTorch深度学习框架完整API文档，包含所有模块和函数</div>
+                            <div class="resource-meta">
+                                <span class="resource-tag official">官方</span>
+                            </div>
+                        </div>
+                    </li>
+                    <li class="resource-item" onclick="window.open('https://pytorch.org/tutorials/', '_blank')">
+                        <div class="resource-icon-box">🎓</div>
+                        <div class="resource-content">
+                            <div class="resource-title"><a href="https://pytorch.org/tutorials/" target="_blank">PyTorch官方教程</a></div>
+                            <div class="resource-desc">官方教程集合，从基础到高级，涵盖各种深度学习应用场景</div>
+                            <div class="resource-meta">
+                                <span class="resource-tag official">官方</span>
+                                <span class="resource-tag tutorial">教程</span>
+                            </div>
+                        </div>
+                    </li>
+                    <li class="resource-item" onclick="window.open('https://pytorch.apachecn.org/', '_blank')">
+                        <div class="resource-icon-box">🇨🇳</div>
+                        <div class="resource-content">
+                            <div class="resource-title"><a href="https://pytorch.apachecn.org/" target="_blank">PyTorch中文文档</a></div>
+                            <div class="resource-desc">PyTorch中文翻译文档，适合中文用户快速查阅</div>
+                            <div class="resource-meta">
+                                <span class="resource-tag chinese">中文</span>
+                            </div>
+                        </div>
+                    </li>
+                    <li class="resource-item" onclick="window.open('https://developers.google.com/mediapipe', '_blank')">
+                        <div class="resource-icon-box">🤚</div>
+                        <div class="resource-content">
+                            <div class="resource-title"><a href="https://developers.google.com/mediapipe" target="_blank">MediaPipe官方文档</a></div>
+                            <div class="resource-desc">Google MediaPipe官方文档，包含手部、面部、姿态等关键点检测API</div>
+                            <div class="resource-meta">
+                                <span class="resource-tag official">官方</span>
+                            </div>
+                        </div>
+                    </li>
+                    <li class="resource-item" onclick="window.open('https://scikit-learn.org/stable/', '_blank')">
+                        <div class="resource-icon-box">📊</div>
+                        <div class="resource-content">
+                            <div class="resource-title"><a href="https://scikit-learn.org/stable/" target="_blank">scikit-learn官方文档</a></div>
+                            <div class="resource-desc">Python机器学习库scikit-learn官方文档，包含各种经典ML算法</div>
+                            <div class="resource-meta">
+                                <span class="resource-tag official">官方</span>
+                            </div>
+                        </div>
+                    </li>
+                    <li class="resource-item" onclick="window.open('https://docs.opencv.org/4.x/', '_blank')">
+                        <div class="resource-icon-box">🖼️</div>
+                        <div class="resource-content">
+                            <div class="resource-title"><a href="https://docs.opencv.org/4.x/" target="_blank">OpenCV官方文档</a></div>
+                            <div class="resource-desc">OpenCV计算机视觉库官方文档，图像处理和计算机视觉算法大全</div>
+                            <div class="resource-meta">
+                                <span class="resource-tag official">官方</span>
+                            </div>
+                        </div>
+                    </li>
+                    <li class="resource-item" onclick="window.open('https://flask.palletsprojects.com/', '_blank')">
+                        <div class="resource-icon-box">🌶️</div>
+                        <div class="resource-content">
+                            <div class="resource-title"><a href="https://flask.palletsprojects.com/" target="_blank">Flask官方文档</a></div>
+                            <div class="resource-desc">Flask轻量级Web框架官方文档，快速构建Web应用</div>
+                            <div class="resource-meta">
+                                <span class="resource-tag official">官方</span>
+                            </div>
+                        </div>
+                    </li>
+                    <li class="resource-item" onclick="window.open('https://numpy.org/doc/stable/', '_blank')">
+                        <div class="resource-icon-box">📐</div>
+                        <div class="resource-content">
+                            <div class="resource-title"><a href="https://numpy.org/doc/stable/" target="_blank">NumPy官方文档</a></div>
+                            <div class="resource-desc">NumPy数值计算库官方文档，数组操作和矩阵运算基础</div>
+                            <div class="resource-meta">
+                                <span class="resource-tag official">官方</span>
+                            </div>
+                        </div>
+                    </li>
+                    <li class="resource-item" onclick="window.open('https://matplotlib.org/stable/', '_blank')">
+                        <div class="resource-icon-box">📈</div>
+                        <div class="resource-content">
+                            <div class="resource-title"><a href="https://matplotlib.org/stable/" target="_blank">Matplotlib官方文档</a></div>
+                            <div class="resource-desc">Matplotlib数据可视化库官方文档，绘制各种类型图表</div>
+                            <div class="resource-meta">
+                                <span class="resource-tag official">官方</span>
+                            </div>
+                        </div>
+                    </li>
+                </ul>
+            </section>
+
+            <!-- 深度学习模型 -->
+            <section id="deep-learning" class="category-section">
+                <div class="category-header">
+                    <div class="category-icon">🧠</div>
+                    <div class="category-info">
+                        <h2 class="category-title">深度学习模型官方文档</h2>
+                        <p class="category-desc">LSTM、Transformer、CNN等核心深度学习模型的官方文档和学习资源</p>
+                    </div>
+                </div>
+                <ul class="resource-list">
+                    <li class="resource-item" onclick="window.open('https://pytorch.org/docs/stable/generated/torch.nn.LSTM.html', '_blank')">
+                        <div class="resource-icon-box">🔄</div>
+                        <div class="resource-content">
+                            <div class="resource-title"><a href="https://pytorch.org/docs/stable/generated/torch.nn.LSTM.html" target="_blank">PyTorch LSTM官方文档</a></div>
+                            <div class="resource-desc">PyTorch中LSTM层的完整API文档，包含参数说明和使用示例</div>
+                            <div class="resource-meta">
+                                <span class="resource-tag official">官方</span>
+                            </div>
+                        </div>
+                    </li>
+                    <li class="resource-item" onclick="window.open('https://colah.github.io/posts/2015-08-Understanding-LSTMs/', '_blank')">
+                        <div class="resource-icon-box">📖</div>
+                        <div class="resource-content">
+                            <div class="resource-title"><a href="https://colah.github.io/posts/2015-08-Understanding-LSTMs/" target="_blank">LSTM详解（Colah's Blog）</a></div>
+                            <div class="resource-desc">经典博客文章，用图示方式深入浅出地解释LSTM原理</div>
+                            <div class="resource-meta">
+                                <span class="resource-tag tutorial">教程</span>
+                            </div>
+                        </div>
+                    </li>
+                    <li class="resource-item" onclick="window.open('https://pytorch.org/docs/stable/generated/torch.nn.Transformer.html', '_blank')">
+                        <div class="resource-icon-box">🔀</div>
+                        <div class="resource-content">
+                            <div class="resource-title"><a href="https://pytorch.org/docs/stable/generated/torch.nn.Transformer.html" target="_blank">PyTorch Transformer官方文档</a></div>
+                            <div class="resource-desc">PyTorch Transformer实现文档，Transformer架构的官方API</div>
+                            <div class="resource-meta">
+                                <span class="resource-tag official">官方</span>
+                            </div>
+                        </div>
+                    </li>
+                    <li class="resource-item" onclick="window.open('https://arxiv.org/abs/1706.03762', '_blank')">
+                        <div class="resource-icon-box">📝</div>
+                        <div class="resource-content">
+                            <div class="resource-title"><a href="https://arxiv.org/abs/1706.03762" target="_blank">Attention Is All You Need</a></div>
+                            <div class="resource-desc">Transformer原始论文，开创注意力机制新时代的里程碑之作</div>
+                            <div class="resource-meta">
+                                <span class="resource-tag official">论文</span>
+                            </div>
+                        </div>
+                    </li>
+                    <li class="resource-item" onclick="window.open('https://jalammar.github.io/illustrated-transformer/', '_blank')">
+                        <div class="resource-icon-box">🎨</div>
+                        <div class="resource-content">
+                            <div class="resource-title"><a href="https://jalammar.github.io/illustrated-transformer/" target="_blank">Illustrated Transformer</a></div>
+                            <div class="resource-desc">图解Transformer，用动画和图示直观理解注意力机制</div>
+                            <div class="resource-meta">
+                                <span class="resource-tag tutorial">教程</span>
+                            </div>
+                        </div>
+                    </li>
+                    <li class="resource-item" onclick="window.open('https://pytorch.org/docs/stable/generated/torch.nn.Conv2d.html', '_blank')">
+                        <div class="resource-icon-box">🔲</div>
+                        <div class="resource-content">
+                            <div class="resource-title"><a href="https://pytorch.org/docs/stable/generated/torch.nn.Conv2d.html" target="_blank">PyTorch Conv2d官方文档</a></div>
+                            <div class="resource-desc">二维卷积层API文档，CNN的核心组件</div>
+                            <div class="resource-meta">
+                                <span class="resource-tag official">官方</span>
+                            </div>
+                        </div>
+                    </li>
+                    <li class="resource-item" onclick="window.open('https://cs231n.github.io/convolutional-networks/', '_blank')">
+                        <div class="resource-icon-box">📚</div>
+                        <div class="resource-content">
+                            <div class="resource-title"><a href="https://cs231n.github.io/convolutional-networks/" target="_blank">卷积神经网络详解</a></div>
+                            <div class="resource-desc">斯坦福CS231n课程中的CNN详解，全面深入</div>
+                            <div class="resource-meta">
+                                <span class="resource-tag tutorial">教程</span>
+                            </div>
+                        </div>
+                    </li>
+                </ul>
+            </section>
+
+            <!-- 学术论文 -->
+            <section id="papers" class="category-section">
+                <div class="category-header">
+                    <div class="category-icon">📝</div>
+                    <div class="category-info">
+                        <h2 class="category-title">手语识别学术论文</h2>
+                        <p class="category-desc">手语识别领域的重要综述和经典模型论文</p>
+                    </div>
+                </div>
+                <ul class="resource-list">
+                    <li class="resource-item">
+                        <div class="resource-icon-box">📖</div>
+                        <div class="resource-content">
+                            <div class="resource-title">基于深度学习的手语识别综述（电子与信息学报 2020）</div>
+                            <div class="resource-desc">全面介绍深度学习在手语识别中的应用现状和发展趋势</div>
+                            <div class="resource-meta">
+                                <span class="resource-tag chinese">中文</span>
+                                <span class="resource-tag">综述</span>
+                            </div>
+                        </div>
+                    </li>
+                    <li class="resource-item">
+                        <div class="resource-icon-box">📚</div>
+                        <div class="resource-content">
+                            <div class="resource-title">基于手语表达内容与表达特征的手语识别技术综述（2023）</div>
+                            <div class="resource-desc">2023年最新综述，涵盖表达内容和特征提取方法的最新进展</div>
+                            <div class="resource-meta">
+                                <span class="resource-tag chinese">中文</span>
+                                <span class="resource-tag">综述</span>
+                            </div>
+                        </div>
+                    </li>
+                    <li class="resource-item">
+                        <div class="resource-icon-box">🌍</div>
+                        <div class="resource-content">
+                            <div class="resource-title">Sign-Language Datasets at Scale Survey</div>
+                            <div class="resource-desc">大规模手语数据集调研，为数据集选择提供参考</div>
+                            <div class="resource-meta">
+                                <span class="resource-tag">综述</span>
+                            </div>
+                        </div>
+                    </li>
+                    <li class="resource-item">
+                        <div class="resource-icon-box">🔄</div>
+                        <div class="resource-content">
+                            <div class="resource-title">Sign Language Transformer (SLT)</div>
+                            <div class="resource-desc">首个将Transformer应用于手语识别的开创性工作</div>
+                            <div class="resource-meta">
+                                <span class="resource-tag">经典</span>
+                            </div>
+                        </div>
+                    </li>
+                    <li class="resource-item">
+                        <div class="resource-icon-box">🤖</div>
+                        <div class="resource-content">
+                            <div class="resource-title">SignVLM: 预训练大模型手语识别</div>
+                            <div class="resource-desc">利用视觉语言大模型进行手语识别的前沿研究</div>
+                            <div class="resource-meta">
+                                <span class="resource-tag">SOTA</span>
+                            </div>
+                        </div>
+                    </li>
+                    <li class="resource-item">
+                        <div class="resource-icon-box">📊</div>
+                        <div class="resource-content">
+                            <div class="resource-title">WLASL: 世界级美国手语数据集</div>
+                            <div class="resource-desc">2000词汇，21000+样本的大规模手语数据集论文</div>
+                            <div class="resource-meta">
+                                <span class="resource-tag">数据集</span>
+                            </div>
+                        </div>
+                    </li>
+                </ul>
+            </section>
+
+            <!-- 在线教程 -->
+            <section id="tutorials" class="category-section">
+                <div class="category-header">
+                    <div class="category-icon">🌐</div>
+                    <div class="category-info">
+                        <h2 class="category-title">在线教程与博客</h2>
+                        <p class="category-desc">优质的MediaPipe手语识别教程和计算机视觉实战指南</p>
+                    </div>
+                </div>
+                <ul class="resource-list">
+                    <li class="resource-item">
+                        <div class="resource-icon-box">🤚</div>
+                        <div class="resource-content">
+                            <div class="resource-title">MediaPipe手势识别终极指南（CSDN）</div>
+                            <div class="resource-desc">从入门到精通的完整MediaPipe手势识别教程</div>
+                            <div class="resource-meta">
+                                <span class="resource-tag chinese">中文</span>
+                                <span class="resource-tag tutorial">教程</span>
+                            </div>
+                        </div>
+                    </li>
+                    <li class="resource-item">
+                        <div class="resource-icon-box">👤</div>
+                        <div class="resource-content">
+                            <div class="resource-title">MediaPipe Holistic实战：手语识别系统开发（CSDN）</div>
+                            <div class="resource-desc">使用Holistic模型构建完整手语识别系统</div>
+                            <div class="resource-meta">
+                                <span class="resource-tag chinese">中文</span>
+                                <span class="resource-tag tutorial">教程</span>
+                            </div>
+                        </div>
+                    </li>
+                    <li class="resource-item">
+                        <div class="resource-icon-box">✋</div>
+                        <div class="resource-content">
+                            <div class="resource-title">MediaPipe Hands实战：手语翻译系统开发（CSDN）</div>
+                            <div class="resource-desc">基于手部关键点实现手语翻译功能</div>
+                            <div class="resource-meta">
+                                <span class="resource-tag chinese">中文</span>
+                                <span class="resource-tag tutorial">教程</span>
+                            </div>
+                        </div>
+                    </li>
+                    <li class="resource-item">
+                        <div class="resource-icon-box">🔷</div>
+                        <div class="resource-content">
+                            <div class="resource-title">Keras手语识别5分钟实战（CSDN专栏）</div>
+                            <div class="resource-desc">快速上手手语识别的入门教程</div>
+                            <div class="resource-meta">
+                                <span class="resource-tag chinese">中文</span>
+                                <span class="resource-tag tutorial">教程</span>
+                            </div>
+                        </div>
+                    </li>
+                    <li class="resource-item">
+                        <div class="resource-icon-box">🎨</div>
+                        <div class="resource-content">
+                            <div class="resource-title">自定义手势训练教程（Instructables）</div>
+                            <div class="resource-desc">训练自己的手势识别模型</div>
+                            <div class="resource-meta">
+                                <span class="resource-tag tutorial">教程</span>
+                            </div>
+                        </div>
+                    </li>
+                    <li class="resource-item">
+                        <div class="resource-icon-box">🖼️</div>
+                        <div class="resource-content">
+                            <div class="resource-title">计算机视觉算法实战——手语识别（CSDN）</div>
+                            <div class="resource-desc">完整的计算机视觉项目实战教程</div>
+                            <div class="resource-meta">
+                                <span class="resource-tag chinese">中文</span>
+                                <span class="resource-tag tutorial">教程</span>
+                            </div>
+                        </div>
+                    </li>
+                    <li class="resource-item">
+                        <div class="resource-icon-box">🇺🇸</div>
+                        <div class="resource-content">
+                            <div class="resource-title">MediaPipe ASL手语识别</div>
+                            <div class="resource-desc">美国手语识别专项教程</div>
+                            <div class="resource-meta">
+                                <span class="resource-tag tutorial">教程</span>
+                            </div>
+                        </div>
+                    </li>
+                </ul>
+            </section>
+
+            <!-- 公开数据集 -->
+            <section id="datasets" class="category-section">
+                <div class="category-header">
+                    <div class="category-icon">📊</div>
+                    <div class="category-info">
+                        <h2 class="category-title">手语识别公开数据集</h2>
+                        <p class="category-desc">国际和国内手语识别研究中常用的公开数据集</p>
+                    </div>
+                </div>
+                <div class="dataset-grid">
+                    <div class="dataset-card">
+                        <div class="dataset-header">
+                            <div class="dataset-name">WLASL</div>
+                            <div class="dataset-tag">国际</div>
+                        </div>
+                        <div class="dataset-desc">世界级美国手语数据集，包含2000个词汇，21000+个视频样本，是目前最常用的大规模手语数据集</div>
+                        <div class="dataset-stats">
+                            <div class="dataset-stat">📊 2000词汇</div>
+                            <div class="dataset-stat">🎥 21K+样本</div>
+                        </div>
+                    </div>
+                    <div class="dataset-card">
+                        <div class="dataset-header">
+                            <div class="dataset-name">MS-ASL</div>
+                            <div class="dataset-tag">国际</div>
+                        </div>
+                        <div class="dataset-desc">微软美国手语数据集，包含大规模真实场景手语视频数据</div>
+                        <div class="dataset-stats">
+                            <div class="dataset-stat">📊 1000词汇</div>
+                            <div class="dataset-stat">🎥 25K+样本</div>
+                        </div>
+                    </div>
+                    <div class="dataset-card">
+                        <div class="dataset-header">
+                            <div class="dataset-name">AUTSL</div>
+                            <div class="dataset-tag">国际</div>
+                        </div>
+                        <div class="dataset-desc">土耳其手语数据集，多模态手语识别基准数据集</div>
+                        <div class="dataset-stats">
+                            <div class="dataset-stat">📊 226词汇</div>
+                            <div class="dataset-stat">🎥 38K样本</div>
+                        </div>
+                    </div>
+                    <div class="dataset-card">
+                        <div class="dataset-header">
+                            <div class="dataset-name">CSL-500</div>
+                            <div class="dataset-tag cn">中国</div>
+                        </div>
+                        <div class="dataset-desc">中国手语500词数据集，国内手语识别研究的基础数据集</div>
+                        <div class="dataset-stats">
+                            <div class="dataset-stat">📊 500词汇</div>
+                            <div class="dataset-stat">🎥 25K样本</div>
+                        </div>
+                    </div>
+                    <div class="dataset-card">
+                        <div class="dataset-header">
+                            <div class="dataset-name">CSL-Daily</div>
+                            <div class="dataset-tag cn">中国</div>
+                        </div>
+                        <div class="dataset-desc">中国手语日常用语数据集，覆盖日常生活场景的手语表达</div>
+                        <div class="dataset-stats">
+                            <div class="dataset-stat">📊 日常用语</div>
+                            <div class="dataset-stat">🎥 真实场景</div>
+                        </div>
+                    </div>
+                    <div class="dataset-card">
+                        <div class="dataset-header">
+                            <div class="dataset-name">LSA64</div>
+                            <div class="dataset-tag">国际</div>
+                        </div>
+                        <div class="dataset-desc">64个阿根廷手语词汇数据集，适合小规模实验和快速验证</div>
+                        <div class="dataset-stats">
+                            <div class="dataset-stat">📊 64词汇</div>
+                            <div class="dataset-stat">🎥 3200样本</div>
+                        </div>
+                    </div>
+                    <div class="dataset-card">
+                        <div class="dataset-header">
+                            <div class="dataset-name">KArSL</div>
+                            <div class="dataset-tag">国际</div>
+                        </div>
+                        <div class="dataset-desc">阿拉伯手语数据集，包含多种阿拉伯手语方言</div>
+                        <div class="dataset-stats">
+                            <div class="dataset-stat">📊 502词汇</div>
+                            <div class="dataset-stat">🎥 10K样本</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- GitHub项目 -->
+            <section id="github" class="category-section">
+                <div class="category-header">
+                    <div class="category-icon">💻</div>
+                    <div class="category-info">
+                        <h2 class="category-title">GitHub开源项目</h2>
+                        <p class="category-desc">手语识别相关的优质开源项目和工具</p>
+                    </div>
+                </div>
+                <div class="github-grid">
+                    <div class="github-card">
+                        <div class="github-header">
+                            <div class="github-icon-box">🤚</div>
+                            <span class="github-name">hand-gesture-recognition-using-mediapipe</span>
+                        </div>
+                        <div class="github-desc">使用MediaPipe实现的手势识别项目，包含完整的数据采集、训练和推理代码</div>
+                        <div class="github-meta">
+                            <span class="github-tag">⭐ 高星</span>
+                            <span class="github-tag">🐍 Python</span>
+                            <span class="github-tag">📚 详细文档</span>
+                        </div>
+                    </div>
+                    <div class="github-card">
+                        <div class="github-header">
+                            <div class="github-icon-box">🔧</div>
+                            <span class="github-name">MediaPipe官方仓库</span>
+                        </div>
+                        <div class="github-desc">Google MediaPipe官方开源项目，包含所有解决方案和示例代码</div>
+                        <div class="github-meta">
+                            <span class="github-tag">⭐ 官方</span>
+                            <span class="github-tag">🔥 热门</span>
+                            <span class="github-tag">📖 丰富示例</span>
+                        </div>
+                    </div>
+                    <div class="github-card">
+                        <div class="github-header">
+                            <div class="github-icon-box">🧠</div>
+                            <span class="github-name">SignVLM</span>
+                        </div>
+                        <div class="github-desc">基于预训练视觉语言大模型的手语识别实现</div>
+                        <div class="github-meta">
+                            <span class="github-tag">🤖 大模型</span>
+                            <span class="github-tag">🔬 SOTA</span>
+                            <span class="github-tag">📊 高性能</span>
+                        </div>
+                    </div>
+                    <div class="github-card">
+                        <div class="github-header">
+                            <div class="github-icon-box">🔄</div>
+                            <span class="github-name">Sign Language Transformer</span>
+                        </div>
+                        <div class="github-desc">Sign Language Transformer官方实现，Transformer在手语识别中的应用</div>
+                        <div class="github-meta">
+                            <span class="github-tag">📝 论文实现</span>
+                            <span class="github-tag">🔄 Transformer</span>
+                            <span class="github-tag">🎯 精准</span>
+                        </div>
+                    </div>
+                    <div class="github-card">
+                        <div class="github-header">
+                            <div class="github-icon-box">✋</div>
+                            <span class="github-name">Custom Hand Gestures Training</span>
+                        </div>
+                        <div class="github-desc">自定义手势训练框架，支持快速训练自己的手势识别模型</div>
+                        <div class="github-meta">
+                            <span class="github-tag">🎨 自定义</span>
+                            <span class="github-tag">⚡ 快速</span>
+                            <span class="github-tag">🛠️ 易用</span>
+                        </div>
+                    </div>
+                    <div class="github-card">
+                        <div class="github-header">
+                            <div class="github-icon-box">⚡</div>
+                            <span class="github-name">PyTorch Lightning</span>
+                        </div>
+                        <div class="github-desc">PyTorch高级封装框架，简化深度学习模型训练流程</div>
+                        <div class="github-meta">
+                            <span class="github-tag">🔥 PyTorch</span>
+                            <span class="github-tag">⚡ 高效</span>
+                            <span class="github-tag">🧹 简洁</span>
+                        </div>
+                    </div>
+                    <div class="github-card">
+                        <div class="github-header">
+                            <div class="github-icon-box">🐍</div>
+                            <span class="github-name">MediaPipe Python示例</span>
+                        </div>
+                        <div class="github-desc">MediaPipe Python接口的完整示例集合，快速上手参考</div>
+                        <div class="github-meta">
+                            <span class="github-tag">🐍 Python</span>
+                            <span class="github-tag">📚 示例</span>
+                            <span class="github-tag">🚀 入门</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 学习平台 -->
+            <section id="learning" class="category-section">
+                <div class="category-header">
+                    <div class="category-icon">🎓</div>
+                    <div class="category-info">
+                        <h2 class="category-title">学习平台与课程</h2>
+                        <p class="category-desc">官方学习资源和优质中文教程平台</p>
+                    </div>
+                </div>
+                <ul class="resource-list">
+                    <li class="resource-item" onclick="window.open('https://pytorch.org/tutorials/', '_blank')">
+                        <div class="resource-icon-box">🔥</div>
+                        <div class="resource-content">
+                            <div class="resource-title"><a href="https://pytorch.org/tutorials/" target="_blank">PyTorch官方入门课程</a></div>
+                            <div class="resource-desc">PyTorch官方提供的入门课程，从基础到进阶</div>
+                            <div class="resource-meta">
+                                <span class="resource-tag official">官方</span>
+                                <span class="resource-tag tutorial">教程</span>
+                            </div>
+                        </div>
+                    </li>
+                    <li class="resource-item" onclick="window.open('https://scikit-learn.org/stable/tutorial/index.html', '_blank')">
+                        <div class="resource-icon-box">📊</div>
+                        <div class="resource-content">
+                            <div class="resource-title"><a href="https://scikit-learn.org/stable/tutorial/index.html" target="_blank">scikit-learn官方教程</a></div>
+                            <div class="resource-desc">scikit-learn官方教程，涵盖各种机器学习算法</div>
+                            <div class="resource-meta">
+                                <span class="resource-tag official">官方</span>
+                                <span class="resource-tag tutorial">教程</span>
+                            </div>
+                        </div>
+                    </li>
+                    <li class="resource-item" onclick="window.open('https://docs.opencv.org/4.x/d6/d00/tutorial_py_root.html', '_blank')">
+                        <div class="resource-icon-box">🖼️</div>
+                        <div class="resource-content">
+                            <div class="resource-title"><a href="https://docs.opencv.org/4.x/d6/d00/tutorial_py_root.html" target="_blank">OpenCV官方Python教程</a></div>
+                            <div class="resource-desc">OpenCV官方Python教程，计算机视觉入门</div>
+                            <div class="resource-meta">
+                                <span class="resource-tag official">官方</span>
+                                <span class="resource-tag tutorial">教程</span>
+                            </div>
+                        </div>
+                    </li>
+                    <li class="resource-item">
+                        <div class="resource-icon-box">🇨🇳</div>
+                        <div class="resource-content">
+                            <div class="resource-title">莫烦Python</div>
+                            <div class="resource-desc">优质中文Python教程网站，内容通俗易懂，适合初学者</div>
+                            <div class="resource-meta">
+                                <span class="resource-tag chinese">中文</span>
+                                <span class="resource-tag tutorial">教程</span>
+                            </div>
+                        </div>
+                    </li>
+                    <li class="resource-item" onclick="window.open('https://cs231n.stanford.edu/', '_blank')">
+                        <div class="resource-icon-box">🏫</div>
+                        <div class="resource-content">
+                            <div class="resource-title"><a href="https://cs231n.stanford.edu/" target="_blank">Stanford CS231n</a></div>
+                            <div class="resource-desc">斯坦福大学计算机视觉课程，经典入门课程</div>
+                            <div class="resource-meta">
+                                <span class="resource-tag tutorial">教程</span>
+                            </div>
+                        </div>
+                    </li>
+                    <li class="resource-item" onclick="window.open('https://www.fast.ai/', '_blank')">
+                        <div class="resource-icon-box">⚡</div>
+                        <div class="resource-content">
+                            <div class="resource-title"><a href="https://www.fast.ai/" target="_blank">Fast.ai深度学习课程</a></div>
+                            <div class="resource-desc">实用导向的深度学习课程，注重实战</div>
+                            <div class="resource-meta">
+                                <span class="resource-tag tutorial">教程</span>
+                            </div>
+                        </div>
+                    </li>
+                </ul>
+            </section>
+
+            <!-- 书籍推荐 -->
+            <section id="books" class="category-section">
+                <div class="category-header">
+                    <div class="category-icon">📖</div>
+                    <div class="category-info">
+                        <h2 class="category-title">书籍推荐</h2>
+                        <p class="category-desc">Python编程、深度学习和计算机视觉领域的经典书籍</p>
+                    </div>
+                </div>
+                <div class="book-grid">
+                    <div class="book-card">
+                        <div class="book-category">Python编程</div>
+                        <div class="book-title">Python编程：从入门到实践</div>
+                        <div class="book-author">Eric Matthes</div>
+                        <div class="book-desc">初学者入门首选，涵盖Python基础知识和实践项目</div>
+                    </div>
+                    <div class="book-card">
+                        <div class="book-category">Python编程</div>
+                        <div class="book-title">Python Crash Course</div>
+                        <div class="book-author">Eric Matthes</div>
+                        <div class="book-desc">快速入门Python编程，适合零基础学习者</div>
+                    </div>
+                    <div class="book-card">
+                        <div class="book-category">Python编程</div>
+                        <div class="book-title">Fluent Python</div>
+                        <div class="book-author">Luciano Ramalho</div>
+                        <div class="book-desc">深入理解Python高级特性，提升编程技巧</div>
+                    </div>
+                    <div class="book-card">
+                        <div class="book-category">深度学习</div>
+                        <div class="book-title">深度学习入门：基于Python的理论与实现</div>
+                        <div class="book-author">斋藤康毅</div>
+                        <div class="book-desc">从零开始实现深度学习算法，原理与实践结合</div>
+                    </div>
+                    <div class="book-card">
+                        <div class="book-category">深度学习</div>
+                        <div class="book-title">动手学深度学习(D2L)</div>
+                        <div class="book-author">李沐等</div>
+                        <div class="book-desc">PyTorch实战深度学习，包含丰富实战案例</div>
+                    </div>
+                    <div class="book-card">
+                        <div class="book-category">深度学习</div>
+                        <div class="book-title">Deep Learning with Python</div>
+                        <div class="book-author">François Chollet</div>
+                        <div class="book-desc">Keras作者力作，深度学习入门经典</div>
+                    </div>
+                    <div class="book-card">
+                        <div class="book-category">计算机视觉</div>
+                        <div class="book-title">Computer Vision: Algorithms and Applications</div>
+                        <div class="book-author">Richard Szeliski</div>
+                        <div class="book-desc">计算机视觉领域权威教材，涵盖经典算法</div>
+                    </div>
+                    <div class="book-card">
+                        <div class="book-category">计算机视觉</div>
+                        <div class="book-title">Learning OpenCV 4</div>
+                        <div class="book-author">Adrian Kaehler</div>
+                        <div class="book-desc">OpenCV实战指南，图像处理与计算机视觉</div>
+                    </div>
+                </div>
+            </section>
+
+            <footer>
+                <p>聆心手语识别 - 资源导航中心</p>
+                <p style="margin-top: 8px; font-size: 0.75rem;">© 2024 Lingxin Sign Language Recognition</p>
+            </footer>
+        </main>
+    </div>
+
+    <script>
+        const searchInput = document.getElementById('searchInput');
+        const navLinks = document.querySelectorAll('.nav-link');
+        const categorySections = document.querySelectorAll('.category-section');
+
+        searchInput.addEventListener('input', function(e) {
+            const searchTerm = e.target.value.toLowerCase();
+            
+            categorySections.forEach(section => {
+                const resourceItems = section.querySelectorAll('.resource-item, .dataset-card, .github-card, .book-card');
+                let hasVisibleItems = false;
+                
+                resourceItems.forEach(item => {
+                    const title = item.querySelector('.resource-title, .dataset-name, .github-name, .book-title')?.textContent.toLowerCase() || '';
+                    const desc = item.querySelector('.resource-desc, .dataset-desc, .github-desc, .book-desc')?.textContent.toLowerCase() || '';
+                    
+                    if (title.includes(searchTerm) || desc.includes(searchTerm)) {
+                        item.style.display = '';
+                        hasVisibleItems = true;
+                    } else {
+                        item.style.display = 'none';
+                    }
+                });
+                
+                if (searchTerm === '') {
+                    section.style.display = '';
+                } else if (hasVisibleItems) {
+                    section.style.display = '';
+                } else {
+                    section.style.display = 'none';
+                }
+            });
+        });
+
+        navLinks.forEach(link => {
+            link.addEventListener('click', function(e) {
+                navLinks.forEach(l => l.classList.remove('active'));
+                this.classList.add('active');
+                
+                const targetId = this.getAttribute('href');
+                if (targetId.startsWith('#')) {
+                    e.preventDefault();
+                    const targetElement = document.querySelector(targetId);
+                    if (targetElement) {
+                        targetElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }
+                }
+            });
+        });
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const id = entry.target.getAttribute('id');
+                        navLinks.forEach(link => {
+                            link.classList.remove('active');
+                            if (link.getAttribute('href') === `#${id}`) {
+                                link.classList.add('active');
+                            }
+                        });
+                    }
+                });
+            }, { threshold: 0.2 });
+
+            categorySections.forEach(section => {
+                observer.observe(section);
+            });
+        });
+    </script>
+</body>
+</html>

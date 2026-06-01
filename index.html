@@ -1,0 +1,1267 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>聆心手语识别系统 - 学习导航</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700&family=Noto+Sans+SC:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            /* 温暖的日式配色 */
+            --bg-primary: #FAF7F2;
+            --bg-secondary: #F5F0E8;
+            --bg-card: #FFFFFF;
+            --text-primary: #2C2420;
+            --text-secondary: #6B5E54;
+            --text-muted: #9B8B7A;
+            --accent-warm: #D4A574;
+            --accent-terracotta: #C17F59;
+            --accent-sage: #8B9A7D;
+            --accent-indigo: #5A6B7C;
+            --border-light: #E8E0D5;
+            --border-medium: #D4C8B8;
+            --shadow-soft: 0 2px 12px rgba(44, 36, 32, 0.06);
+            --shadow-medium: 0 4px 24px rgba(44, 36, 32, 0.08);
+            --shadow-hover: 0 8px 32px rgba(44, 36, 32, 0.12);
+            --transition-fast: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            --transition-normal: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            --transition-slow: 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        body {
+            font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-primary);
+            min-height: 100vh;
+            color: var(--text-primary);
+            line-height: 1.7;
+            background-image: 
+                radial-gradient(circle at 20% 50%, rgba(212, 165, 116, 0.03) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(139, 154, 125, 0.03) 0%, transparent 50%);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 24px;
+        }
+
+        /* ===== 头部区域 ===== */
+        header {
+            text-align: center;
+            padding: 80px 20px 60px;
+            position: relative;
+        }
+
+        header::before {
+            content: '';
+            position: absolute;
+            top: 40px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60px;
+            height: 3px;
+            background: linear-gradient(90deg, transparent, var(--accent-warm), transparent);
+            border-radius: 2px;
+        }
+
+        .logo {
+            font-size: 4.5rem;
+            margin-bottom: 24px;
+            display: inline-block;
+            position: relative;
+            animation: gentleFloat 6s ease-in-out infinite;
+        }
+
+        @keyframes gentleFloat {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-8px); }
+        }
+
+        h1 {
+            font-family: 'Noto Serif SC', serif;
+            font-size: 2.8rem;
+            font-weight: 700;
+            margin-bottom: 16px;
+            color: var(--text-primary);
+            letter-spacing: 0.05em;
+        }
+
+        .subtitle {
+            font-size: 1.1rem;
+            color: var(--text-secondary);
+            max-width: 500px;
+            margin: 0 auto;
+            font-weight: 300;
+            line-height: 1.8;
+        }
+
+        .nav-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 14px 28px;
+            background: var(--bg-card);
+            color: var(--text-primary);
+            text-decoration: none;
+            border-radius: 50px;
+            font-weight: 500;
+            margin-top: 32px;
+            transition: all var(--transition-normal);
+            border: 1px solid var(--border-medium);
+            box-shadow: var(--shadow-soft);
+        }
+
+        .nav-button:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-hover);
+            border-color: var(--accent-warm);
+            color: var(--accent-terracotta);
+        }
+
+        .nav-button::after {
+            content: '→';
+            transition: transform var(--transition-fast);
+        }
+
+        .nav-button:hover::after {
+            transform: translateX(4px);
+        }
+
+        /* ===== 统计区域 ===== */
+        .stats {
+            display: flex;
+            justify-content: center;
+            gap: 60px;
+            margin-top: 48px;
+            flex-wrap: wrap;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 20px 32px;
+            background: var(--bg-card);
+            border-radius: 16px;
+            box-shadow: var(--shadow-soft);
+            border: 1px solid var(--border-light);
+            transition: all var(--transition-normal);
+            min-width: 120px;
+        }
+
+        .stat-item:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-medium);
+        }
+
+        .stat-number {
+            font-family: 'Noto Serif SC', serif;
+            font-size: 2.4rem;
+            font-weight: 700;
+            color: var(--accent-terracotta);
+            margin-bottom: 4px;
+        }
+
+        .stat-label {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            font-weight: 400;
+            letter-spacing: 0.05em;
+        }
+
+        /* ===== 学习路径 ===== */
+        .learning-path {
+            background: var(--bg-secondary);
+            border-radius: 24px;
+            padding: 48px 40px;
+            margin-bottom: 48px;
+            border: 1px solid var(--border-light);
+        }
+
+        .section-title {
+            font-family: 'Noto Serif SC', serif;
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 32px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: var(--text-primary);
+        }
+
+        .section-title::before {
+            content: '';
+            width: 4px;
+            height: 24px;
+            background: var(--accent-warm);
+            border-radius: 2px;
+        }
+
+        .path-steps {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .path-step {
+            flex: 1;
+            min-width: 160px;
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 28px 24px;
+            text-align: center;
+            transition: all var(--transition-normal);
+            border: 1px solid var(--border-light);
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .path-step::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--accent-warm), var(--accent-terracotta));
+            transform: scaleX(0);
+            transition: transform var(--transition-normal);
+        }
+
+        .path-step:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-hover);
+        }
+
+        .path-step:hover::before {
+            transform: scaleX(1);
+        }
+
+        .step-number {
+            font-family: 'Noto Serif SC', serif;
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--accent-warm);
+            margin-bottom: 12px;
+            opacity: 0.6;
+        }
+
+        .step-title {
+            font-weight: 600;
+            font-size: 1.05rem;
+            margin-bottom: 8px;
+            color: var(--text-primary);
+        }
+
+        .step-desc {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            line-height: 1.6;
+        }
+
+        /* ===== 资源导航区域 ===== */
+        .resource-nav {
+            background: var(--bg-card);
+            border-radius: 24px;
+            padding: 32px;
+            margin-bottom: 48px;
+            border: 1px solid var(--border-light);
+            box-shadow: var(--shadow-soft);
+        }
+
+        .nav-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 28px;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .nav-breadcrumb {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+
+        .nav-breadcrumb span {
+            cursor: pointer;
+            transition: color var(--transition-fast);
+            padding: 4px 8px;
+            border-radius: 6px;
+        }
+
+        .nav-breadcrumb span:hover {
+            color: var(--accent-terracotta);
+            background: var(--bg-secondary);
+        }
+
+        .nav-breadcrumb .separator {
+            color: var(--border-medium);
+            cursor: default;
+            padding: 0;
+        }
+
+        .nav-breadcrumb .current {
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+
+        .nav-search {
+            position: relative;
+            flex: 1;
+            max-width: 280px;
+        }
+
+        .nav-search input {
+            width: 100%;
+            padding: 12px 16px 12px 44px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-light);
+            border-radius: 12px;
+            font-size: 0.9rem;
+            color: var(--text-primary);
+            transition: all var(--transition-fast);
+        }
+
+        .nav-search input:focus {
+            outline: none;
+            border-color: var(--accent-warm);
+            background: var(--bg-card);
+        }
+
+        .nav-search::before {
+            content: '🔍';
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 0.9rem;
+            opacity: 0.5;
+        }
+
+        /* ===== 文件树 ===== */
+        .file-tree {
+            list-style: none;
+        }
+
+        .tree-node {
+            position: relative;
+            margin-bottom: 6px;
+        }
+
+        .folder-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px 18px;
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all var(--transition-fast);
+            user-select: none;
+            border: 1px solid transparent;
+        }
+
+        .folder-header:hover {
+            background: var(--bg-primary);
+            border-color: var(--border-medium);
+        }
+
+        .folder-icon {
+            font-size: 1.1rem;
+            transition: transform var(--transition-normal);
+            flex-shrink: 0;
+        }
+
+        .folder-header.active .folder-icon {
+            transform: rotate(90deg);
+        }
+
+        .folder-name {
+            font-weight: 500;
+            flex: 1;
+            text-align: left;
+            color: var(--text-primary);
+        }
+
+        .folder-count {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            background: var(--bg-card);
+            padding: 3px 10px;
+            border-radius: 20px;
+            border: 1px solid var(--border-light);
+        }
+
+        .folder-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height var(--transition-slow), opacity var(--transition-normal);
+            opacity: 0;
+            padding-left: 24px;
+            margin-top: 6px;
+        }
+
+        .folder-content.open {
+            max-height: 2000px;
+            opacity: 1;
+        }
+
+        .file-list {
+            list-style: none;
+        }
+
+        .file-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            margin-bottom: 4px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all var(--transition-fast);
+            position: relative;
+            background: var(--bg-card);
+            border: 1px solid var(--border-light);
+        }
+
+        .file-item::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 3px;
+            height: 0;
+            background: var(--accent-warm);
+            border-radius: 2px;
+            transition: height var(--transition-fast);
+        }
+
+        .file-item:hover {
+            background: var(--bg-primary);
+            padding-left: 20px;
+            border-color: var(--accent-warm);
+        }
+
+        .file-item:hover::before {
+            height: 50%;
+        }
+
+        .file-item.active {
+            background: var(--bg-secondary);
+            border-color: var(--accent-warm);
+        }
+
+        .file-icon {
+            font-size: 1rem;
+            flex-shrink: 0;
+        }
+
+        .file-name {
+            flex: 1;
+            font-size: 0.9rem;
+            color: var(--text-primary);
+        }
+
+        .file-badge {
+            font-size: 0.7rem;
+            padding: 3px 10px;
+            border-radius: 20px;
+            background: var(--bg-secondary);
+            color: var(--text-secondary);
+            border: 1px solid var(--border-light);
+        }
+
+        /* ===== 学习卡片 ===== */
+        .learn-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 24px;
+            margin-bottom: 48px;
+        }
+
+        .learn-card {
+            background: var(--bg-card);
+            border-radius: 20px;
+            padding: 32px;
+            border: 1px solid var(--border-light);
+            transition: all var(--transition-normal);
+            box-shadow: var(--shadow-soft);
+        }
+
+        .learn-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-hover);
+            border-color: var(--border-medium);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .card-icon {
+            width: 52px;
+            height: 52px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.6rem;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-light);
+        }
+
+        .card-title {
+            font-family: 'Noto Serif SC', serif;
+            font-weight: 600;
+            font-size: 1.15rem;
+            color: var(--text-primary);
+        }
+
+        .card-desc {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            margin-bottom: 20px;
+            line-height: 1.7;
+        }
+
+        .learn-list {
+            list-style: none;
+        }
+
+        .learn-item {
+            padding: 12px 16px;
+            background: var(--bg-secondary);
+            border-radius: 10px;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: all var(--transition-fast);
+            border: 1px solid transparent;
+        }
+
+        .learn-item:hover {
+            background: var(--bg-primary);
+            border-color: var(--border-medium);
+            transform: translateX(4px);
+        }
+
+        .learn-item a {
+            color: var(--text-primary);
+            text-decoration: none;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            width: 100%;
+        }
+
+        .learn-item a:hover {
+            color: var(--accent-terracotta);
+        }
+
+        .learn-badge {
+            font-size: 0.7rem;
+            padding: 3px 10px;
+            border-radius: 20px;
+            background: var(--bg-card);
+            color: var(--text-muted);
+            border: 1px solid var(--border-light);
+        }
+
+        /* ===== 技术栈 ===== */
+        .tech-stack {
+            background: var(--bg-secondary);
+            border-radius: 24px;
+            padding: 48px 40px;
+            margin-bottom: 48px;
+            border: 1px solid var(--border-light);
+        }
+
+        .tech-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 20px;
+        }
+
+        .tech-item {
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 24px 16px;
+            text-align: center;
+            transition: all var(--transition-normal);
+            border: 1px solid var(--border-light);
+            cursor: pointer;
+        }
+
+        .tech-item:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-medium);
+            border-color: var(--accent-warm);
+        }
+
+        .tech-icon {
+            font-size: 2rem;
+            margin-bottom: 12px;
+        }
+
+        .tech-name {
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+
+        .tech-desc {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        /* ===== 模型对比表 ===== */
+        .model-comparison {
+            background: var(--bg-card);
+            border-radius: 24px;
+            padding: 48px 40px;
+            margin-bottom: 48px;
+            border: 1px solid var(--border-light);
+            box-shadow: var(--shadow-soft);
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+        }
+
+        th {
+            text-align: left;
+            padding: 16px;
+            font-weight: 600;
+            color: var(--text-primary);
+            border-bottom: 2px solid var(--border-medium);
+            font-family: 'Noto Serif SC', serif;
+        }
+
+        td {
+            padding: 16px;
+            border-bottom: 1px solid var(--border-light);
+            color: var(--text-secondary);
+        }
+
+        tr:hover {
+            background: var(--bg-secondary);
+        }
+
+        .model-type {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .type-ml { 
+            background: rgba(139, 154, 125, 0.15); 
+            color: var(--accent-sage); 
+        }
+        .type-dl { 
+            background: rgba(193, 127, 89, 0.15); 
+            color: var(--accent-terracotta); 
+        }
+
+        .rating {
+            display: flex;
+            gap: 3px;
+        }
+
+        .star {
+            width: 14px;
+            height: 14px;
+            background: var(--border-light);
+            clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
+        }
+
+        .star.filled {
+            background: var(--accent-warm);
+        }
+
+        /* ===== 页脚 ===== */
+        footer {
+            text-align: center;
+            padding: 48px 20px;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            border-top: 1px solid var(--border-light);
+            margin-top: 48px;
+        }
+
+        footer p {
+            margin-bottom: 8px;
+        }
+
+        /* ===== 响应式 ===== */
+        @media (max-width: 768px) {
+            h1 { font-size: 2rem; }
+            .logo { font-size: 3.5rem; }
+            .stats { gap: 16px; }
+            .stat-item { min-width: 100px; padding: 16px 20px; }
+            .stat-number { font-size: 1.8rem; }
+            .learning-path, .tech-stack, .model-comparison { padding: 32px 24px; }
+            .path-steps { gap: 12px; }
+            .path-step { min-width: 140px; padding: 20px 16px; }
+            .learn-grid { grid-template-columns: 1fr; }
+            .nav-header { flex-direction: column; align-items: stretch; }
+            .nav-search { max-width: none; }
+        }
+
+        /* ===== 动画 ===== */
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .animate-fadeInUp {
+            animation: fadeInUp 0.6s ease forwards;
+        }
+
+        .delay-1 { animation-delay: 0.1s; }
+        .delay-2 { animation-delay: 0.2s; }
+        .delay-3 { animation-delay: 0.3s; }
+        .delay-4 { animation-delay: 0.4s; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">🤟</div>
+            <h1>聆心手语识别系统</h1>
+            <p class="subtitle">基于深度学习的实时手语识别系统学习导航，支持多种模型架构</p>
+            <div class="stats">
+                <div class="stat-item">
+                    <div class="stat-number">6</div>
+                    <div class="stat-label">学习模块</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">5</div>
+                    <div class="stat-label">支持模型</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">50</div>
+                    <div class="stat-label">手语词汇</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">71</div>
+                    <div class="stat-label">特征维度</div>
+                </div>
+            </div>
+            <a href="resources.html" class="nav-button">
+                <span>📚</span>
+                <span>资源导航</span>
+            </a>
+        </header>
+
+        <section class="learning-path">
+            <h2 class="section-title">推荐学习路径</h2>
+            <div class="path-steps">
+                <div class="path-step" data-step="1">
+                    <div class="step-number">01</div>
+                    <div class="step-title">项目概述</div>
+                    <div class="step-desc">了解项目背景和架构</div>
+                </div>
+                <div class="path-step" data-step="2">
+                    <div class="step-number">02</div>
+                    <div class="step-title">核心技术</div>
+                    <div class="step-desc">特征提取和模型原理</div>
+                </div>
+                <div class="path-step" data-step="3">
+                    <div class="step-number">03</div>
+                    <div class="step-title">环境配置</div>
+                    <div class="step-desc">搭建开发环境</div>
+                </div>
+                <div class="path-step" data-step="4">
+                    <div class="step-number">04</div>
+                    <div class="step-title">代码实现</div>
+                    <div class="step-desc">深入阅读核心代码</div>
+                </div>
+                <div class="path-step" data-step="5">
+                    <div class="step-number">05</div>
+                    <div class="step-title">常见问题</div>
+                    <div class="step-desc">排查和解决问题</div>
+                </div>
+                <div class="path-step" data-step="6">
+                    <div class="step-number">06</div>
+                    <div class="step-title">设计模式</div>
+                    <div class="step-desc">学习架构设计</div>
+                </div>
+            </div>
+        </section>
+
+        <section class="resource-nav">
+            <div class="nav-header">
+                <div class="nav-breadcrumb">
+                    <span onclick="showRoot()">📁 根目录</span>
+                    <span class="separator">/</span>
+                    <span class="current" id="currentPath">Lingxin</span>
+                </div>
+                <div class="nav-search">
+                    <input type="text" placeholder="搜索文件..." id="searchInput">
+                </div>
+            </div>
+
+            <ul class="file-tree" id="fileTree">
+                <!-- 文件树将通过JavaScript动态生成 -->
+            </ul>
+        </section>
+
+        <section class="learn-grid">
+            <div class="learn-card animate-fadeInUp">
+                <div class="card-header">
+                    <div class="card-icon">📋</div>
+                    <div class="card-title">项目文档</div>
+                </div>
+                <div class="card-desc">系统整体架构设计说明，包含模块划分、数据流和接口定义。</div>
+                <ul class="learn-list">
+                    <li class="learn-item">
+                        <a href="docs/architecture.md" target="_blank">
+                            <span>🏛️ 架构文档</span>
+                            <span class="learn-badge">必读</span>
+                        </a>
+                    </li>
+                    <li class="learn-item">
+                        <a href="docs/data_collection.md" target="_blank">
+                            <span>📊 数据采集指南</span>
+                            <span class="learn-badge">重要</span>
+                        </a>
+                    </li>
+                    <li class="learn-item">
+                        <a href="docs/development.md" target="_blank">
+                            <span>🛠️ 开发指南</span>
+                            <span class="learn-badge">参考</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="learn-card animate-fadeInUp delay-1">
+                <div class="card-header">
+                    <div class="card-icon">📚</div>
+                    <div class="card-title">学习笔记</div>
+                </div>
+                <div class="card-desc">面向国内自学新手的系统性学习资源，通俗易懂。</div>
+                <ul class="learn-list">
+                    <li class="learn-item">
+                        <a href="docs/learning/01-项目概述.md" target="_blank">
+                            <span>📝 项目概述</span>
+                            <span class="learn-badge">入门</span>
+                        </a>
+                    </li>
+                    <li class="learn-item">
+                        <a href="docs/learning/02-核心技术解析.md" target="_blank">
+                            <span>🔬 核心技术</span>
+                            <span class="learn-badge">进阶</span>
+                        </a>
+                    </li>
+                    <li class="learn-item">
+                        <a href="docs/learning/03-环境配置指南.md" target="_blank">
+                            <span>⚙️ 环境配置</span>
+                            <span class="learn-badge">基础</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="learn-card animate-fadeInUp delay-2">
+                <div class="card-header">
+                    <div class="card-icon">💻</div>
+                    <div class="card-title">学习脚本</div>
+                </div>
+                <div class="card-desc">分阶段学习脚本，从Python基础到项目实战。</div>
+                <ul class="learn-list">
+                    <li class="learn-item">
+                        <a href="learning/00_env_setup.py" target="_blank">
+                            <span>🔧 环境检查</span>
+                            <span class="learn-badge">开始</span>
+                        </a>
+                    </li>
+                    <li class="learn-item">
+                        <a href="learning/01_python_basics.py" target="_blank">
+                            <span>🐍 Python基础</span>
+                            <span class="learn-badge">基础</span>
+                        </a>
+                    </li>
+                    <li class="learn-item">
+                        <a href="learning/04_hand_detection_simple.py" target="_blank">
+                            <span>✋ 手部检测</span>
+                            <span class="learn-badge">实战</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section class="tech-stack">
+            <h2 class="section-title">技术栈</h2>
+            <div class="tech-grid">
+                <div class="tech-item" onclick="window.open('https://www.python.org/', '_blank')">
+                    <div class="tech-icon">🐍</div>
+                    <div class="tech-name">Python</div>
+                    <div class="tech-desc">3.9-3.11</div>
+                </div>
+                <div class="tech-item" onclick="window.open('https://pytorch.org/', '_blank')">
+                    <div class="tech-icon">🔥</div>
+                    <div class="tech-name">PyTorch</div>
+                    <div class="tech-desc">深度学习</div>
+                </div>
+                <div class="tech-item" onclick="window.open('https://mediapipe.dev/', '_blank')">
+                    <div class="tech-icon">🤚</div>
+                    <div class="tech-name">MediaPipe</div>
+                    <div class="tech-desc">关键点检测</div>
+                </div>
+                <div class="tech-item" onclick="window.open('https://opencv.org/', '_blank')">
+                    <div class="tech-icon">🖼️</div>
+                    <div class="tech-name">OpenCV</div>
+                    <div class="tech-desc">计算机视觉</div>
+                </div>
+                <div class="tech-item" onclick="window.open('https://scikit-learn.org/', '_blank')">
+                    <div class="tech-icon">📊</div>
+                    <div class="tech-name">scikit-learn</div>
+                    <div class="tech-desc">机器学习</div>
+                </div>
+                <div class="tech-item" onclick="window.open('https://numpy.org/', '_blank')">
+                    <div class="tech-icon">📐</div>
+                    <div class="tech-name">NumPy</div>
+                    <div class="tech-desc">数值计算</div>
+                </div>
+            </div>
+        </section>
+
+        <section class="model-comparison">
+            <h2 class="section-title">模型对比</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>模型</th>
+                        <th>类型</th>
+                        <th>准确率</th>
+                        <th>推理速度</th>
+                        <th>推荐指数</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>SVM</td>
+                        <td><span class="model-type type-ml">传统ML</span></td>
+                        <td>85%</td>
+                        <td>⚡ 极快</td>
+                        <td>
+                            <div class="rating">
+                                <div class="star filled"></div>
+                                <div class="star filled"></div>
+                                <div class="star filled"></div>
+                                <div class="star"></div>
+                                <div class="star"></div>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Random Forest</td>
+                        <td><span class="model-type type-ml">传统ML</span></td>
+                        <td>88%</td>
+                        <td>⚡ 极快</td>
+                        <td>
+                            <div class="rating">
+                                <div class="star filled"></div>
+                                <div class="star filled"></div>
+                                <div class="star filled"></div>
+                                <div class="star filled"></div>
+                                <div class="star"></div>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>MLP</td>
+                        <td><span class="model-type type-dl">深度学习</span></td>
+                        <td>90%</td>
+                        <td>🚀 快</td>
+                        <td>
+                            <div class="rating">
+                                <div class="star filled"></div>
+                                <div class="star filled"></div>
+                                <div class="star filled"></div>
+                                <div class="star filled"></div>
+                                <div class="star"></div>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>LSTM</td>
+                        <td><span class="model-type type-dl">深度学习</span></td>
+                        <td>93%</td>
+                        <td>🚀 快</td>
+                        <td>
+                            <div class="rating">
+                                <div class="star filled"></div>
+                                <div class="star filled"></div>
+                                <div class="star filled"></div>
+                                <div class="star filled"></div>
+                                <div class="star filled"></div>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Transformer</td>
+                        <td><span class="model-type type-dl">深度学习</span></td>
+                        <td>95%</td>
+                        <td>🐢 较慢</td>
+                        <td>
+                            <div class="rating">
+                                <div class="star filled"></div>
+                                <div class="star filled"></div>
+                                <div class="star filled"></div>
+                                <div class="star filled"></div>
+                                <div class="star filled"></div>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <footer>
+            <p>聆心手语识别系统 - 让沟通无障碍</p>
+            <p>Made with 💚 for the deaf community</p>
+        </footer>
+    </div>
+
+    <script>
+        // 文件树数据
+        const fileTreeData = {
+            name: "Lingxin",
+            type: "folder",
+            children: [
+                {
+                    name: "docs",
+                    type: "folder",
+                    children: [
+                        { name: "learning", type: "folder", children: [
+                            { name: "01-项目概述.md", type: "file", badge: "doc" },
+                            { name: "02-核心技术解析.md", type: "file", badge: "doc" },
+                            { name: "03-环境配置指南.md", type: "file", badge: "doc" },
+                            { name: "04-代码实现详解.md", type: "file", badge: "doc" },
+                            { name: "05-常见问题解决方案.md", type: "file", badge: "doc" },
+                            { name: "06-设计模式应用.md", type: "file", badge: "doc" }
+                        ]},
+                        { name: "architecture.md", type: "file", badge: "doc" },
+                        { name: "data_collection.md", type: "file", badge: "doc" },
+                        { name: "development.md", type: "file", badge: "doc" },
+                        { name: "experiments.md", type: "file", badge: "doc" }
+                    ]
+                },
+                {
+                    name: "learning",
+                    type: "folder",
+                    children: [
+                        { name: "00_env_setup.py", type: "file", badge: "py" },
+                        { name: "01_python_basics.py", type: "file", badge: "py" },
+                        { name: "02_opencv_basics.py", type: "file", badge: "py" },
+                        { name: "03_mediapipe_intro.py", type: "file", badge: "py" },
+                        { name: "04_hand_detection.py", type: "file", badge: "py" },
+                        { name: "05_pose_detection.py", type: "file", badge: "py" },
+                        { name: "06_numpy_intro.py", type: "file", badge: "py" },
+                        { name: "07_feature_extraction.py", type: "file", badge: "py" },
+                        { name: "08_svm_intro.py", type: "file", badge: "py" },
+                        { name: "09_lstm_intro.py", type: "file", badge: "py" },
+                        { name: "10_data_collection.py", type: "file", badge: "py" },
+                        { name: "README.md", type: "file", badge: "doc" }
+                    ]
+                },
+                {
+                    name: "src",
+                    type: "folder",
+                    children: [
+                        { name: "detection", type: "folder", children: [
+                            { name: "hand_detector.py", type: "file", badge: "py" },
+                            { name: "holistic_detector.py", type: "file", badge: "py" }
+                        ]},
+                        { name: "models", type: "folder", children: [
+                            { name: "svm_model.py", type: "file", badge: "py" },
+                            { name: "lstm_model.py", type: "file", badge: "py" },
+                            { name: "transformer_model.py", type: "file", badge: "py" }
+                        ]},
+                        { name: "training", type: "folder", children: [
+                            { name: "trainer.py", type: "file", badge: "py" },
+                            { name: "train.py", type: "file", badge: "py" }
+                        ]}
+                    ]
+                },
+                {
+                    name: "tools",
+                    type: "folder",
+                    children: [
+                        { name: "collect_data.py", type: "file", badge: "py" },
+                        { name: "preprocess.py", type: "file", badge: "py" },
+                        { name: "train.py", type: "file", badge: "py" },
+                        { name: "evaluate.py", type: "file", badge: "py" },
+                        { name: "inference.py", type: "file", badge: "py" }
+                    ]
+                },
+                { name: "README.md", type: "file", badge: "doc" },
+                { name: "environment.yml", type: "file", badge: "yml" },
+                { name: "requirements.txt", type: "file", badge: "txt" }
+            ]
+        };
+
+        // 文件类型图标映射
+        const fileIcons = {
+            doc: "📝",
+            py: "🐍",
+            yml: "⚙️",
+            txt: "📄",
+            md: "📝"
+        };
+
+        // 文件类型标签映射
+        const fileTypeLabels = {
+            doc: "文档",
+            py: "Python",
+            yml: "配置",
+            txt: "文本",
+            md: "Markdown"
+        };
+
+        // 生成文件树HTML
+        function generateFileTree(node, depth = 0) {
+            if (node.type === "folder") {
+                const hasChildren = node.children && node.children.length > 0;
+                const childCount = hasChildren ? node.children.length : 0;
+                
+                return `
+                    <li class="tree-node" data-depth="${depth}" data-path="${node.name}">
+                        <div class="folder-header" data-name="${node.name}">
+                            <span class="folder-icon">📁</span>
+                            <span class="folder-name">${node.name}</span>
+                            ${childCount > 0 ? `<span class="folder-count">${childCount}</span>` : ''}
+                        </div>
+                        ${hasChildren ? `
+                            <div class="folder-content">
+                                <ul class="file-list">
+                                    ${node.children.map(child => generateFileTree(child, depth + 1)).join('')}
+                                </ul>
+                            </div>
+                        ` : ''}
+                    </li>
+                `;
+            } else {
+                return `
+                    <li class="file-item" data-name="${node.name}" data-path="${node.name}">
+                        <span class="file-icon">${fileIcons[node.badge] || "📄"}</span>
+                        <span class="file-name">${node.name}</span>
+                        <span class="file-badge">${fileTypeLabels[node.badge] || "文件"}</span>
+                    </li>
+                `;
+            }
+        }
+
+        // 初始化文件树
+        function initFileTree() {
+            const fileTreeElement = document.getElementById('fileTree');
+            fileTreeElement.innerHTML = generateFileTree(fileTreeData);
+            
+            // 添加文件夹点击事件
+            document.querySelectorAll('.folder-header').forEach(header => {
+                header.addEventListener('click', function() {
+                    const content = this.nextElementSibling;
+                    const isOpen = content && content.classList.contains('open');
+                    
+                    // 切换当前文件夹状态
+                    if (content) {
+                        content.classList.toggle('open');
+                    }
+                    this.classList.toggle('active');
+                    
+                    // 更新面包屑
+                    updateBreadcrumb(this.dataset.name);
+                });
+            });
+            
+            // 添加文件点击事件
+            document.querySelectorAll('.file-item').forEach(item => {
+                item.addEventListener('click', function() {
+                    // 移除其他文件的active状态
+                    document.querySelectorAll('.file-item').forEach(f => f.classList.remove('active'));
+                    // 添加当前文件的active状态
+                    this.classList.add('active');
+                    
+                    // 打开文件
+                    const fileName = this.dataset.name;
+                    console.log('打开文件:', fileName);
+                });
+            });
+        }
+
+        // 更新面包屑导航
+        function updateBreadcrumb(folderName) {
+            const currentPath = document.getElementById('currentPath');
+            currentPath.textContent = folderName;
+        }
+
+        // 显示根目录
+        function showRoot() {
+            document.querySelectorAll('.folder-content').forEach(content => {
+                content.classList.remove('open');
+            });
+            document.querySelectorAll('.folder-header').forEach(header => {
+                header.classList.remove('active');
+            });
+            updateBreadcrumb('Lingxin');
+        }
+
+        // 搜索功能
+        function initSearch() {
+            const searchInput = document.getElementById('searchInput');
+            searchInput.addEventListener('input', function() {
+                const query = this.value.toLowerCase();
+                const fileItems = document.querySelectorAll('.file-item');
+                
+                fileItems.forEach(item => {
+                    const fileName = item.dataset.name.toLowerCase();
+                    if (fileName.includes(query)) {
+                        item.style.display = 'flex';
+                        // 展开父文件夹
+                        let parent = item.closest('.folder-content');
+                        while (parent) {
+                            parent.classList.add('open');
+                            parent.previousElementSibling.classList.add('active');
+                            parent = parent.closest('.tree-node').closest('.folder-content');
+                        }
+                    } else {
+                        item.style.display = query ? 'none' : 'flex';
+                    }
+                });
+            });
+        }
+
+        // 页面加载完成后初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            initFileTree();
+            initSearch();
+        });
+    </script>
+</body>
+</html>

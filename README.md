@@ -90,7 +90,7 @@ conda activate lingxin
 python -c "import torch; import mediapipe; print('安装成功')"
 ```
 
-### 方法二：手动创建conda环境
+### 方法二：手动创建conda环境（推荐）
 
 ```bash
 # 1. 克隆项目
@@ -103,14 +103,14 @@ conda create -n lingxin python=3.10 -y
 # 3. 激活环境
 conda activate lingxin
 
-# 4. 安装PyTorch（CPU版本）
-conda install pytorch torchvision cpuonly -c pytorch -y
+# 4. 安装PyTorch（CPU版本，指定版本范围）
+conda install "pytorch>=2.0.0,<2.12.0" torchvision cpuonly -c pytorch -y
 
-# 5. 安装其他依赖（优先使用conda）
-conda install scikit-learn pandas numpy matplotlib seaborn tqdm pillow opencv flask -y
+# 5. 安装其他依赖（优先使用conda，指定版本范围）
+conda install "scikit-learn>=1.3.0,<1.5.0" pandas "numpy>=1.24.0,<1.27.0" matplotlib seaborn tqdm pillow opencv flask -y
 
-# 6. 安装必须用pip的包
-pip install mediapipe==0.10.5 flask-cors
+# 6. 安装必须用pip的包（mediapipe使用新版Task API）
+pip install mediapipe>=0.10.33 flask-cors>=4.0.0
 
 # 7. 验证安装
 python -c "import torch; import mediapipe; print('安装成功')"
@@ -123,11 +123,11 @@ python -c "import torch; import mediapipe; print('安装成功')"
 git clone git@github.com:readant/Lingxin.git
 cd Lingxin
 
-# 2. 安装依赖
+# 2. 安装依赖（requirements.txt已包含所有版本限制）
 pip install -r requirements.txt
 
-# 3. 安装兼容版本的MediaPipe（重要！）
-pip install mediapipe==0.10.5
+# 3. 验证安装
+python -c "import torch; import mediapipe; print('安装成功')"
 ```
 
 ### 依赖版本说明
@@ -135,10 +135,58 @@ pip install mediapipe==0.10.5
 | 依赖包 | 推荐版本 | 说明 |
 |--------|----------|------|
 | Python | 3.9-3.11 | 不支持Python 3.12+ |
-| mediapipe | **0.10.5** | 新版本API不兼容，请务必使用此版本 |
-| torch | >=2.0.0 | 深度学习框架 |
+| mediapipe | **>=0.10.33** | 新版Task API，性能优化，支持WebGPU |
+| torch | >=2.0.0,<2.12.0 | PyTorch深度学习框架 |
+| torchvision | >=0.15.0 | PyTorch视觉工具 |
 | opencv-python | >=4.8.0 | 图像处理 |
-| scikit-learn | >=1.3.0 | 机器学习模型 |
+| scikit-learn | >=1.3.0,<1.5.0 | 传统机器学习模型（SVM、随机森林、MLP） |
+| numpy | >=1.24.0,<1.27.0 | 数值计算 |
+| pandas | >=2.0.0 | 数据处理 |
+| matplotlib | >=3.7.0 | 数据可视化 |
+| seaborn | >=0.12.0 | 统计数据可视化 |
+| tqdm | >=4.65.0 | 进度条 |
+| pillow | >=10.0.0 | 图像处理（中文显示） |
+| flask | >=3.0.0 | Web框架 |
+| flask-cors | >=4.0.0 | 跨域支持 |
+
+### MediaPipe模型下载（新版API必需）
+
+**首次使用前需要下载模型文件**：
+
+```bash
+# 下载MediaPipe预训练模型
+python learning/download_models.py
+```
+
+模型文件会保存到 `models/` 目录：
+- `hand_landmarker.task` - 手部检测模型（约10MB）
+- `pose_landmarker_lite.task` - 姿态检测模型（约20MB）
+
+### API变更说明（MediaPipe升级）
+
+**旧版API（0.10.5及以下）**：使用`mp.solutions`模块
+```python
+hands = mp.solutions.hands.Hands(...)
+results = hands.process(image)
+```
+
+**新版API（0.10.33+）**：使用`mp.tasks`模块（Task API）
+```python
+options = mp.tasks.vision.HandLandmarkerOptions(...)
+detector = mp.tasks.vision.HandLandmarker.create_from_options(options)
+mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=image_rgb)
+results = detector.detect(mp_image)
+```
+
+### 升级优势
+
+| 特性 | 旧版 (0.10.5) | 新版 (0.10.33+) |
+|------|---------------|-----------------|
+| **推理速度** | 一般 | ✅ 优化 |
+| **Web部署** | 一般 | ✅ WebGPU支持 |
+| **API设计** | 旧版solutions | ✅ 现代Task API |
+| **LLM支持** | 不支持 | ✅ 支持 |
+| **内存占用** | 一般 | ✅ 优化 |
 
 ## 快速开始
 
@@ -283,33 +331,66 @@ API接口：
 
 ## 常见问题
 
-### Q1: MediaPipe导入报错
+### Q1: MediaPipe模型文件缺失
 
-**错误**：`AttributeError: module 'mediapipe' has no attribute 'solutions'`
+**错误**：`FileNotFoundError: 模型文件不存在`
+
+**原因**：新版Task API需要本地模型文件。
 
 **解决方案**：
 ```bash
-pip install mediapipe==0.10.5
+python learning/download_models.py
 ```
 
-### Q2: 模块导入失败
+### Q2: MediaPipe版本不兼容
+
+**错误**：`AttributeError: module 'mediapipe' has no attribute 'tasks'`
+
+**原因**：安装了旧版MediaPipe（<0.10.33），不支持新版Task API。
+
+**解决方案**：
+```bash
+pip install --upgrade mediapipe>=0.10.33
+```
+
+### Q3: 旧版API报错
+
+**错误**：`AttributeError: module 'mediapipe' has no attribute 'solutions'`
+
+**原因**：新版MediaPipe（>=0.10.33）移除了旧版`solutions`模块。
+
+**解决方案**：项目已更新为使用新版Task API，请确保安装正确版本：
+```bash
+pip install mediapipe>=0.10.33
+```
+
+### Q3: 模块导入失败
 
 **错误**：`ModuleNotFoundError: No module named 'src'`
 
 **解决方案**：工具脚本已自动添加项目路径，无需手动配置。
 
-### Q3: 中文显示乱码
+### Q4: 中文显示乱码
 
 **现象**：界面显示"???"而非中文
 
 **解决方案**：系统已自动加载Windows中文字体（微软雅黑/黑体），无需额外配置。
 
-### Q4: 摄像头无法打开
+### Q5: 摄像头无法打开
 
 **检查项**：
 1. 摄像头是否被其他程序占用
 2. 摄像头驱动是否正常
 3. OpenCV是否正确安装：`pip install opencv-python`
+
+### Q6: 升级后环境配置
+
+**如果之前安装过旧版环境**，建议重建环境：
+```bash
+conda env remove -n lingxin -y
+conda env create -f environment.yml
+conda activate lingxin
+```
 
 ## 词汇表
 
@@ -346,10 +427,11 @@ pip install mediapipe==0.10.5
 
 ## 更新日志
 
-- **2026-05-15**: 完善README文档，重写环境配置指南
-- **2026-05-14**: 完成代码注释完善
-- **2026-05-13**: 应用设计模式，优化代码结构
-- **2026-05-10**: 完成数据采集工具重写
+- **2026-06-01**: 升级MediaPipe至最新稳定版（>=0.10.33），迁移至Task API
+- **2026-05-15**: 完善README文档，添加conda环境配置文件
+- **2026-05-14**: 完成代码注释完善（src/和tools/目录）
+- **2026-05-13**: 应用设计模式（模板方法模式），优化代码结构
+- **2026-05-10**: 完成数据采集工具重写，支持时序数据录制
 
 ## 贡献指南
 

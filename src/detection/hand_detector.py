@@ -1,7 +1,7 @@
 """
-HandDetector - MediaPipe 手部关键点检测模块
+HandDetector - MediaPipe 手部关键点检测模块（新版Task API）
 
-本文件实现了基于 MediaPipe 的手部和姿态关键点检测功能。
+本文件实现了基于 MediaPipe Task API 的手部和姿态关键点检测功能。
 
 包含三个检测器类：
 1. HandDetector: 手部关键点检测（21个关键点/只手）
@@ -18,42 +18,80 @@ HandDetector - MediaPipe 手部关键点检测模块
 >>> results = detector.detect(frame)
 >>> landmarks = detector.get_landmarks(results, frame.shape)
 >>> frame = detector.draw_landmarks(frame, results)
+
+注意：使用本模块需要安装新版MediaPipe：
+pip install mediapipe>=0.10.33
+
+首次使用需要下载模型文件：
+python learning/download_models.py
 """
 
 import cv2
 import mediapipe as mp
 import numpy as np
+import os
+
+
+def get_model_path():
+    """获取模型文件路径"""
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    project_root = os.path.dirname(os.path.dirname(current_dir))
+    models_dir = os.path.join(project_root, 'models')
+    return models_dir
 
 
 class HandDetector:
     """
-    手部关键点检测器
+    手部关键点检测器（新版Task API）
 
     使用 MediaPipe Hands 模型检测手部关键点。
     支持同时检测多只手（默认最多2只）。
     """
 
-    def __init__(self, static_image_mode=False, max_num_hands=2,
-                 min_detection_confidence=0.5, min_tracking_confidence=0.5):
+    def __init__(self, max_num_hands=2, min_detection_confidence=0.5):
         """
         初始化手部检测器
 
         Args:
-            static_image_mode (bool, optional): 是否为静态图像模式. Defaults to False.
-                - False: 视频流模式，使用跟踪
-                - True: 静态图像模式，每次都重新检测
             max_num_hands (int, optional): 最大检测手数. Defaults to 2.
             min_detection_confidence (float, optional): 检测置信度阈值. Defaults to 0.5.
-            min_tracking_confidence (float, optional): 跟踪置信度阈值. Defaults to 0.5.
         """
-        self.mp_hands = mp.solutions.hands
-        self.hands = self.mp_hands.Hands(
-            static_image_mode=static_image_mode,
-            max_num_hands=max_num_hands,
-            min_detection_confidence=min_detection_confidence,
-            min_tracking_confidence=min_tracking_confidence
+        BaseOptions = mp.tasks.BaseOptions
+        HandLandmarkerOptions = mp.tasks.vision.HandLandmarkerOptions
+        VisionRunningMode = mp.tasks.vision.RunningMode
+
+        # 获取模型文件路径
+        models_dir = get_model_path()
+        model_path = os.path.join(models_dir, 'hand_landmarker.task')
+
+        if not os.path.exists(model_path):
+            raise FileNotFoundError(
+                f"模型文件不存在: {model_path}\n"
+                f"请运行以下命令下载模型:\n"
+                f"python learning/download_models.py"
+            )
+
+        # 使用本地模型文件
+        self.options = HandLandmarkerOptions(
+            base_options=BaseOptions(model_asset_path=model_path),
+            running_mode=VisionRunningMode.IMAGE,
+            num_hands=max_num_hands,
+            min_hand_detection_confidence=min_detection_confidence,
+            min_hand_presence_confidence=min_detection_confidence,
+            min_tracking_confidence=min_detection_confidence
         )
-        self.mp_drawing = mp.solutions.drawing_utils
+
+        self.detector = mp.tasks.vision.HandLandmarker.create_from_options(self.options)
+
+        # 手部关键点连接关系
+        self.hand_connections = [
+            (0, 1), (1, 2), (2, 3), (3, 4),           # 拇指
+            (0, 5), (5, 6), (6, 7), (7, 8),           # 食指
+            (0, 9), (9, 10), (10, 11), (11, 12),      # 中指
+            (0, 13), (13, 14), (14, 15), (15, 16),    # 无名指
+            (0, 17), (17, 18), (18, 19), (19, 20),     # 小指
+            (5, 9), (9, 13), (13, 17), (0, 17)        # 手掌
+        ]
 
     def detect(self, image):
         """
@@ -63,11 +101,11 @@ class HandDetector:
             image: 输入图像（BGR格式）
 
         Returns:
-            mediapipe.framework.formats.landmark_pb2.NormalizedLandmarkList: 检测结果
+            HandLandmarkerResult: 检测结果对象
         """
-        # MediaPipe 要求输入RGB格式
         image_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-        results = self.hands.process(image_rgb)
+        mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=image_rgb)
+        results = self.detector.detect(mp_image)
         return results
 
     def get_landmarks(self, results, image_shape):
@@ -75,21 +113,20 @@ class HandDetector:
         从检测结果中提取关键点坐标
 
         Args:
-            results: 检测结果对象
+            results: HandLandmarkerResult检测结果对象
             image_shape (tuple): 图像形状 (height, width, channels)
 
         Returns:
             np.ndarray: 关键点数组，形状为(n_hands, 21, 3)
         """
         landmarks = []
-        if results.multi_hand_landmarks:
-            for hand_landmarks in results.multi_hand_landmarks:
+        if results.hand_landmarks:
+            for hand_landmarks in results.hand_landmarks:
                 hand_landmark = []
-                for lm in hand_landmarks.landmark:
-                    # 将归一化坐标转换为像素坐标
-                    x = lm.x * image_shape[1]  # 宽度方向
-                    y = lm.y * image_shape[0]  # 高度方向
-                    z = lm.z                    # 深度（相对于手腕）
+                for lm in hand_landmarks:
+                    x = lm.x * image_shape[1]
+                    y = lm.y * image_shape[0]
+                    z = lm.z
                     hand_landmark.append([x, y, z])
                 landmarks.append(hand_landmark)
         return np.array(landmarks)
@@ -100,48 +137,92 @@ class HandDetector:
 
         Args:
             image: 输入图像（BGR格式）
-            results: 检测结果对象
+            results: HandLandmarkerResult检测结果对象
 
         Returns:
             绘制了关键点的图像
         """
-        if results.multi_hand_landmarks:
-            for hand_landmarks in results.multi_hand_landmarks:
-                self.mp_drawing.draw_landmarks(
-                    image, hand_landmarks, self.mp_hands.HAND_CONNECTIONS
-                )
+        if results.hand_landmarks:
+            h, w = image.shape[:2]
+
+            for hand_landmarks in results.hand_landmarks:
+                # 绘制连接线
+                for connection in self.hand_connections:
+                    start_idx, end_idx = connection
+                    if start_idx < len(hand_landmarks) and end_idx < len(hand_landmarks):
+                        start = hand_landmarks[start_idx]
+                        end = hand_landmarks[end_idx]
+
+                        start_x = int(start.x * w)
+                        start_y = int(start.y * h)
+                        end_x = int(end.x * w)
+                        end_y = int(end.y * h)
+
+                        cv2.line(image, (start_x, start_y), (end_x, end_y),
+                                (0, 255, 0), 2)
+
+                # 绘制关键点
+                for lm in hand_landmarks:
+                    x = int(lm.x * w)
+                    y = int(lm.y * h)
+                    cv2.circle(image, (x, y), 3, (0, 0, 255), -1)
+
         return image
 
     def close(self):
         """关闭检测器，释放资源"""
-        self.hands.close()
+        self.detector.close()
 
 
 class PoseDetector:
     """
-    姿态关键点检测器
+    姿态关键点检测器（新版Task API）
 
     使用 MediaPipe Pose 模型检测人体姿态关键点。
     仅提取上半身15个关键点（索引0~14）。
     """
 
-    def __init__(self, static_image_mode=False,
-                 min_detection_confidence=0.5, min_tracking_confidence=0.5):
+    def __init__(self, min_detection_confidence=0.5):
         """
         初始化姿态检测器
 
         Args:
-            static_image_mode (bool, optional): 是否为静态图像模式. Defaults to False.
             min_detection_confidence (float, optional): 检测置信度阈值. Defaults to 0.5.
-            min_tracking_confidence (float, optional): 跟踪置信度阈值. Defaults to 0.5.
         """
-        self.mp_pose = mp.solutions.pose
-        self.pose = self.mp_pose.Pose(
-            static_image_mode=static_image_mode,
-            min_detection_confidence=min_detection_confidence,
-            min_tracking_confidence=min_tracking_confidence
+        BaseOptions = mp.tasks.BaseOptions
+        PoseLandmarkerOptions = mp.tasks.vision.PoseLandmarkerOptions
+        VisionRunningMode = mp.tasks.vision.RunningMode
+
+        # 获取模型文件路径
+        models_dir = get_model_path()
+        model_path = os.path.join(models_dir, 'pose_landmarker_lite.task')
+
+        if not os.path.exists(model_path):
+            raise FileNotFoundError(
+                f"模型文件不存在: {model_path}\n"
+                f"请运行以下命令下载模型:\n"
+                f"python learning/download_models.py"
+            )
+
+        # 使用本地模型文件
+        self.options = PoseLandmarkerOptions(
+            base_options=BaseOptions(model_asset_path=model_path),
+            running_mode=VisionRunningMode.IMAGE,
+            min_pose_detection_confidence=min_detection_confidence,
+            min_pose_presence_confidence=min_detection_confidence,
+            min_tracking_confidence=min_detection_confidence
         )
-        self.mp_drawing = mp.solutions.drawing_utils
+
+        self.detector = mp.tasks.vision.PoseLandmarker.create_from_options(self.options)
+
+        # 上半身姿态关键点连接关系（只使用上半身15个点）
+        self.pose_connections = [
+            (0, 1), (1, 2), (2, 3), (3, 1),     # 头部和颈部
+            (1, 4), (4, 5), (5, 6), (6, 5),     # 左臂
+            (1, 7), (7, 8), (8, 9), (9, 8),     # 右臂
+            (0, 10), (10, 11), (11, 12),        # 左手
+            (0, 13), (13, 14), (14, 15),        # 右手
+        ]
 
     def detect(self, image):
         """
@@ -151,10 +232,11 @@ class PoseDetector:
             image: 输入图像（BGR格式）
 
         Returns:
-            mediapipe.framework.formats.landmark_pb2.NormalizedLandmarkList: 检测结果
+            PoseLandmarkerResult: 检测结果对象
         """
         image_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-        results = self.pose.process(image_rgb)
+        mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=image_rgb)
+        results = self.detector.detect(mp_image)
         return results
 
     def get_landmarks(self, results, image_shape):
@@ -162,7 +244,7 @@ class PoseDetector:
         从检测结果中提取上半身关键点坐标
 
         Args:
-            results: 检测结果对象
+            results: PoseLandmarkerResult检测结果对象
             image_shape (tuple): 图像形状
 
         Returns:
@@ -170,13 +252,14 @@ class PoseDetector:
         """
         landmarks = []
         if results.pose_landmarks:
-            # 只提取上半身15个关键点（索引0~14）
+            pose_landmarks = results.pose_landmarks[0]
             for i in range(15):
-                lm = results.pose_landmarks.landmark[i]
-                x = lm.x * image_shape[1]
-                y = lm.y * image_shape[0]
-                z = lm.z
-                landmarks.append([x, y, z])
+                if i < len(pose_landmarks):
+                    lm = pose_landmarks[i]
+                    x = lm.x * image_shape[1]
+                    y = lm.y * image_shape[0]
+                    z = lm.z
+                    landmarks.append([x, y, z])
         return np.array(landmarks)
 
     def draw_landmarks(self, image, results):
@@ -185,51 +268,66 @@ class PoseDetector:
 
         Args:
             image: 输入图像（BGR格式）
-            results: 检测结果对象
+            results: PoseLandmarkerResult检测结果对象
 
         Returns:
             绘制了关键点的图像
         """
         if results.pose_landmarks:
-            self.mp_drawing.draw_landmarks(
-                image, results.pose_landmarks, self.mp_pose.POSE_CONNECTIONS
-            )
+            h, w = image.shape[:2]
+            pose_landmarks = results.pose_landmarks[0]
+
+            # 绘制连接线
+            for connection in self.pose_connections:
+                start_idx, end_idx = connection
+                if start_idx < len(pose_landmarks) and end_idx < len(pose_landmarks):
+                    start = pose_landmarks[start_idx]
+                    end = pose_landmarks[end_idx]
+
+                    start_x = int(start.x * w)
+                    start_y = int(start.y * h)
+                    end_x = int(end.x * w)
+                    end_y = int(end.y * h)
+
+                    cv2.line(image, (start_x, start_y), (end_x, end_y),
+                            (0, 255, 0), 2)
+
+            # 绘制关键点
+            for i in range(min(15, len(pose_landmarks))):
+                lm = pose_landmarks[i]
+                x = int(lm.x * w)
+                y = int(lm.y * h)
+                cv2.circle(image, (x, y), 3, (0, 0, 255), -1)
+
         return image
 
     def close(self):
         """关闭检测器，释放资源"""
-        self.pose.close()
+        self.detector.close()
 
 
 class HolisticDetector:
     """
-    综合检测器
+    综合检测器（新版Task API）
 
     同时检测手部和姿态关键点，将两者的数据合并为一个特征向量。
     用于手语数据采集场景。
     """
 
-    def __init__(self, static_image_mode=False, max_num_hands=2,
-                 min_detection_confidence=0.5, min_tracking_confidence=0.5):
+    def __init__(self, max_num_hands=2, min_detection_confidence=0.5):
         """
         初始化综合检测器
 
         Args:
-            static_image_mode (bool, optional): 是否为静态图像模式. Defaults to False.
             max_num_hands (int, optional): 最大检测手数. Defaults to 2.
             min_detection_confidence (float, optional): 检测置信度阈值. Defaults to 0.5.
-            min_tracking_confidence (float, optional): 跟踪置信度阈值. Defaults to 0.5.
         """
         self.hand_detector = HandDetector(
-            static_image_mode=static_image_mode,
             max_num_hands=max_num_hands,
-            min_detection_confidence=min_detection_confidence,
-            min_tracking_confidence=min_tracking_confidence
+            min_detection_confidence=min_detection_confidence
         )
         self.pose_detector = PoseDetector(
-            static_image_mode=static_image_mode,
-            min_detection_confidence=min_detection_confidence,
-            min_tracking_confidence=min_tracking_confidence
+            min_detection_confidence=min_detection_confidence
         )
 
     def detect(self, image):
@@ -264,28 +362,24 @@ class HolisticDetector:
         """
         hand_results, pose_results = results
 
-        # 处理手部关键点
         hand_landmarks = self.hand_detector.get_landmarks(hand_results, image_shape)
         left_hand = np.zeros((21, 3))
         right_hand = np.zeros((21, 3))
 
         if len(hand_landmarks) > 0:
-            # 假设第一个是左手，第二个是右手
             if len(hand_landmarks) >= 1:
                 left_hand = hand_landmarks[0]
             if len(hand_landmarks) >= 2:
                 right_hand = hand_landmarks[1]
 
-        # 处理姿态关键点
         pose_landmarks = self.pose_detector.get_landmarks(pose_results, image_shape)
         if len(pose_landmarks) == 0:
             pose_landmarks = np.zeros((15, 3))
 
-        # 组合为171维向量
         combined = np.concatenate([
-            left_hand.flatten(),      # 63维
-            right_hand.flatten(),     # 63维
-            pose_landmarks.flatten()  # 45维
+            left_hand.flatten(),
+            right_hand.flatten(),
+            pose_landmarks.flatten()
         ])
         return combined
 
