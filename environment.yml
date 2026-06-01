@@ -5,28 +5,26 @@ channels:
   - defaults
 dependencies:
   - python=3.10
-  - pip
 
   # PyTorch (CPU版本)
   - pytorch>=2.0.0
   - torchvision>=0.15.0
   - cpuonly
 
-  # 基础依赖
-  - pip>=23.0
-  - numpy>=1.24.0
-  - pandas>=2.0.0
+  # 核心依赖（conda安装）
   - scikit-learn>=1.3.0
+  - pandas>=2.0.0
+  - numpy>=1.24.0
   - matplotlib>=3.7.0
   - seaborn>=0.12.0
   - tqdm>=4.65.0
   - pillow>=10.0.0
+  - opencv>=4.8.0
 
   # Web框架
   - flask>=3.0.0
-  - flask-cors>=4.0.0
 
   # pip专有包（conda中没有的）
   - pip:
-    - opencv-python>=4.8.0
     - mediapipe==0.10.5
+    - flask-cors>=4.0.0

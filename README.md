@@ -106,10 +106,13 @@ conda activate lingxin
 # 4. 安装PyTorch（CPU版本）
 conda install pytorch torchvision cpuonly -c pytorch -y
 
-# 5. 安装其他依赖
-pip install mediapipe==0.10.5 opencv-python scikit-learn pandas numpy matplotlib seaborn tqdm pillow flask flask-cors
+# 5. 安装其他依赖（优先使用conda）
+conda install scikit-learn pandas numpy matplotlib seaborn tqdm pillow opencv flask -y
 
-# 6. 验证安装
+# 6. 安装必须用pip的包
+pip install mediapipe==0.10.5 flask-cors
+
+# 7. 验证安装
 python -c "import torch; import mediapipe; print('安装成功')"
 ```
 
