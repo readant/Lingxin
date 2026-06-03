@@ -34,9 +34,10 @@ models/*
 # 日志
 *.log
 
-# IDE
+# IDE / AI 工具
 .vscode/
 .idea/
+.claude/
 *.swp
 *.swo
 *~
