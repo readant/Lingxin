@@ -142,18 +142,29 @@ class DataCollector:
         """
         加载已录制样本统计
 
-        扫描保存目录，统计每个词汇已录制的样本数量。
+        扫描保存目录，统计每个词汇的样本数量。
+        同时记录当前人员的数量和所有人员的总量。
         用于显示录制进度。
         """
+        # 初始化两个计数器
+        self.recorded_counts = {}       # 当前人员的数量
+        self.total_counts = {}          # 所有人员的总量
+
         for word in self.words:
             word_dir = os.path.join(self.save_dir, word)
             if os.path.exists(word_dir):
-                # 统计当前录制人的.npy文件数量
-                files = [f for f in os.listdir(word_dir)
-                        if f.startswith(self.person_id) and f.endswith('.npy')]
-                self.recorded_counts[word] = len(files)
+                # 统计当前录制人
+                mine = [f for f in os.listdir(word_dir)
+                       if f.startswith(self.person_id) and f.endswith('.npy')]
+                self.recorded_counts[word] = len(mine)
+
+                # 统计所有人员
+                all_files = [f for f in os.listdir(word_dir)
+                           if f.endswith('.npy')]
+                self.total_counts[word] = len(all_files)
             else:
                 self.recorded_counts[word] = 0
+                self.total_counts[word] = 0
 
     def _get_next_index(self, word):
         """
@@ -534,10 +545,14 @@ class DataCollector:
         self._draw_text_pil(pil_frame, f"进度: {self.current_idx + 1}/{len(self.words)}",
                            (10, 45), font_size=22, color=(200, 200, 200))
 
-        # 绘制已录制数量
+        # 绘制已录制数量（个人 / 总计）
         recorded = self.recorded_counts.get(word, 0)
+        total = self.total_counts.get(word, 0)
         self._draw_text_pil(pil_frame, f"已录: {recorded}/{self.target_samples}",
                            (w - 160, 10), font_size=22, color=(100, 255, 100))
+        if total != recorded:
+            self._draw_text_pil(pil_frame, f"总计: {total}",
+                               (w - 160, 38), font_size=16, color=(255, 255, 150))
 
         # 绘制状态文本
         if status_text:
@@ -715,18 +730,25 @@ class DataCollector:
         self.logger.info("录制统计")
         self.logger.info("=" * 50)
 
-        total_recorded = 0
+        total_mine = 0
+        total_all = 0
         total_target = len(self.words) * self.target_samples
 
         for word in self.words:
-            recorded = self.recorded_counts.get(word, 0)
-            total_recorded += recorded
+            mine = self.recorded_counts.get(word, 0)
+            all_count = self.total_counts.get(word, 0)
+            total_mine += mine
+            total_all += all_count
             category = self.vocab_df[self.vocab_df['word'] == word]['category'].values[0]
-            status = "V" if recorded >= self.target_samples else "X"
-            self.logger.info(f"  {status} {word} ({category}): {recorded}/{self.target_samples}")
+            status = "V" if mine >= self.target_samples else "X"
+            if all_count != mine:
+                self.logger.info(f"  {status} {word} ({category}): 个人{mine}/{self.target_samples} | 总计{all_count}")
+            else:
+                self.logger.info(f"  {status} {word} ({category}): {mine}/{self.target_samples}")
 
         self.logger.info("-" * 50)
-        self.logger.info(f"总计: {total_recorded}/{total_target} ({total_recorded/total_target*100:.1f}%)")
+        self.logger.info(f"个人: {total_mine}/{total_target} ({total_mine/total_target*100:.1f}%)")
+        self.logger.info(f"总计: {total_all} (含所有人员)")
         self.logger.info("=" * 50)
 
 

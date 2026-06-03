@@ -88,50 +88,63 @@ class Trainer:
     def train_deep_learning(X, y, model_class, test_size=0.2, epochs=50,
                             batch_size=32, lr=0.001, device='auto',
                             early_stopping_patience=10, save_best_path=None,
+                            X_val=None, y_val=None,
                             **kwargs):
         """
         训练深度学习模型
 
         Args:
-            X (np.ndarray): 特征矩阵，形状为(n_samples, seq_len, n_features)
-            y (np.ndarray): 标签向量，形状为(n_samples,)
+            X (np.ndarray): 训练特征矩阵，形状为(n_samples, seq_len, n_features)
+            y (np.ndarray): 训练标签向量
             model_class (class): 模型类（如LSTMModel、TransformerModel）
-            test_size (float, optional): 测试集比例. Defaults to 0.2.
-            epochs (int, optional): 训练轮数. Defaults to 50.
-            batch_size (int, optional): 批次大小. Defaults to 32.
-            lr (float, optional): 学习率. Defaults to 0.001.
-            device (str, optional): 训练设备. Defaults to 'auto'.
-            early_stopping_patience (int, optional): 早停容忍轮数. Defaults to 10.
-            save_best_path (str, optional): 最佳模型保存路径.
-            **kwargs: 其他参数（预留）
+            test_size (float, optional): X_val为空时，从X中划分的比例. Defaults to 0.2.
+            epochs (int, optional): 训练轮数
+            batch_size (int, optional): 批次大小
+            lr (float, optional): 学习率
+            device (str, optional): 训练设备
+            early_stopping_patience (int, optional): 早停容忍轮数
+            save_best_path (str, optional): 最佳模型保存路径
+            X_val (np.ndarray, optional): 预划分的验证集特征（独立于训练集的人员）
+            y_val (np.ndarray, optional): 预划分的验证集标签
+            **kwargs: 其他参数
 
         Returns:
-            tuple: (训练好的模型, 测试准确率)
+            tuple: (训练好的模型, 验证集准确率)
         """
-        # 步骤1：划分训练集和测试集
-        X_train, X_test, y_train, y_test = train_test_split(
-            X, y, test_size=test_size, random_state=42
-        )
+        import torch
+        from torch.utils.data import DataLoader, TensorDataset
 
-        # 步骤2：转换为PyTorch张量
-        X_train = torch.tensor(X_train, dtype=torch.float32)
-        y_train = torch.tensor(y_train, dtype=torch.long)
-        X_test = torch.tensor(X_test, dtype=torch.float32)
-        y_test = torch.tensor(y_test, dtype=torch.long)
+        # 转换为PyTorch张量
+        X_train = torch.tensor(X, dtype=torch.float32)
+        y_train_t = torch.tensor(y, dtype=torch.long)
 
-        # 步骤3：创建数据集和数据加载器
-        train_dataset = TensorDataset(X_train, y_train)
-        val_dataset = TensorDataset(X_test, y_test)
+        # 如果提供了独立验证集，直接使用；否则从训练集自动划分
+        if X_val is not None and y_val is not None:
+            X_val_t = torch.tensor(X_val, dtype=torch.float32)
+            y_val_t = torch.tensor(y_val, dtype=torch.long)
+        else:
+            # 自动划分
+            X_train_np, X_val_np, y_train_np, y_val_np = train_test_split(
+                X, y, test_size=test_size, random_state=42
+            )
+            X_train = torch.tensor(X_train_np, dtype=torch.float32)
+            y_train_t = torch.tensor(y_train_np, dtype=torch.long)
+            X_val_t = torch.tensor(X_val_np, dtype=torch.float32)
+            y_val_t = torch.tensor(y_val_np, dtype=torch.long)
+
+        # 创建数据加载器
+        train_dataset = TensorDataset(X_train, y_train_t)
+        val_dataset = TensorDataset(X_val_t, y_val_t)
 
         train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
         val_loader = DataLoader(val_dataset, batch_size=batch_size)
 
-        # 步骤4：获取输入形状和类别数
-        input_shape = (X_train.shape[1], X_train.shape[2])
-        num_classes = len(np.unique(y))
+        # 获取输入形状和类别数
+        input_size = (X_train.shape[1], X_train.shape[2])
+        num_classes = len(np.unique(np.concatenate([y, y_val if y_val is not None else []])))
 
-        # 步骤5：创建并训练模型
-        model = model_class(input_shape, num_classes)
+        # 创建并训练模型
+        model = model_class(input_size, num_classes)
         model.train_model(
             train_loader, val_loader,
             epochs=epochs, lr=lr, device=device,
@@ -139,16 +152,52 @@ class Trainer:
             save_best_path=save_best_path
         )
 
-        # 步骤6：评估模型（在最佳模型状态下评估）
+        # 在验证集上评估
         model.eval()
         with torch.no_grad():
-            X_test = X_test.to(model.device)
-            y_test = y_test.to(model.device)
-            y_pred = model(X_test)
-            _, y_pred = torch.max(y_pred, 1)
-            accuracy = (y_pred == y_test).float().mean().item()
+            X_val_t = X_val_t.to(model.device)
+            y_val_t = y_val_t.to(model.device)
+            outputs = model(X_val_t)
+            _, y_pred = torch.max(outputs, 1)
+            accuracy = (y_pred == y_val_t).float().mean().item()
 
         return model, accuracy
+
+    @staticmethod
+    def evaluate_model(model, X_test, y_test):
+        """
+        在独立测试集上评估模型（用于预划分场景）
+
+        Args:
+            model: 训练好的深度学习模型
+            X_test (np.ndarray): 测试集特征
+            y_test (np.ndarray): 测试集标签
+
+        Returns:
+            float: 测试准确率
+        """
+        import torch
+        from torch.utils.data import DataLoader, TensorDataset
+
+        X_t = torch.tensor(X_test, dtype=torch.float32)
+        y_t = torch.tensor(y_test, dtype=torch.long)
+
+        test_dataset = TensorDataset(X_t, y_t)
+        test_loader = DataLoader(test_dataset, batch_size=32)
+
+        model.eval()
+        correct = 0
+        total = 0
+        with torch.no_grad():
+            for inputs, labels in test_loader:
+                inputs = inputs.to(model.device)
+                labels = labels.to(model.device)
+                outputs = model(inputs)
+                _, predicted = torch.max(outputs, 1)
+                correct += (predicted == labels).sum().item()
+                total += labels.size(0)
+
+        return correct / total
 
     @staticmethod
     def save_classifier(model_data, path):

@@ -7,25 +7,46 @@ DataLoader - 数据加载器
 
 同时还提供标准 PyTorch Dataset 类，可直接用于 torch.utils.data.DataLoader。
 
-数据目录结构要求：
-data/
-├── vocab.csv              # 词汇表
-└── processed/
-    └── csl_isolated/
-        ├── 你/
-        │   ├── sample1.npy
-        │   ├── sample2.npy
-        │   └── ...
-        ├── 我/
-        │   ├── sample1.npy
-        │   └── ...
-        └── ...
+数据目录结构要求（按人员命名）：
+data/raw/collected/
+└── {word}/
+    ├── {person_id}_{index:03d}.npy       # F_001.npy, L_001.npy
+    └── {person_id}_{index:03d}_meta.json  # F_001_meta.json (可选)
+
+文件命名规范：
+  {person_id}_{序号}.npy  → person_id 从第一个 '_' 前提取
 """
 
 import os
 import numpy as np
 import torch
 from torch.utils.data import Dataset as TorchDataset
+from collections import defaultdict
+
+
+def parse_person_id(filename):
+    """
+    从文件名解析人员ID
+
+    支持格式：
+      F_001.npy       → 'F'
+      L_010.npy       → 'L'
+      user001_005.npy → 'user001'
+
+    Args:
+        filename (str): 文件名
+
+    Returns:
+        str: 人员ID，解析失败返回 'unknown'
+    """
+    name = os.path.splitext(filename)[0]           # 去掉扩展名 → 'F_001'
+    # 去掉 _meta 后缀（如果有）
+    if name.endswith('_meta'):
+        return None
+    parts = name.split('_')
+    if len(parts) >= 2:
+        return parts[0]                             # 第一个 '_' 之前 = person_id
+    return 'unknown'
 
 
 class DataLoader:
@@ -33,28 +54,28 @@ class DataLoader:
     手语数据加载器
 
     负责从磁盘加载预处理后的手语数据，支持特征数据和序列数据两种格式。
+    可从文件名自动解析人员ID，支持按人员划分数据集。
     """
 
     def __init__(self):
         """初始化数据加载器"""
         pass
 
-    def load_data(self, data_dir):
+    def load_data(self, data_dir, return_persons=False):
         """
         加载特征数据（用于传统机器学习模型）
 
         Args:
             data_dir (str): 数据目录路径，包含各个词汇的子目录
+            return_persons (bool): 是否同时返回人员ID列表
 
         Returns:
-            tuple: (X, y, class_labels)
-                   X: 特征矩阵，形状为(n_samples, n_features)
-                   y: 标签向量，形状为(n_samples,)
-                   class_labels: 类别标签字典，{类别名: 类别索引}
+            tuple: (X, y, class_labels) 或 (X, y, class_labels, person_ids)
         """
         X = []
         y = []
         class_labels = {}
+        person_ids = []
         label_idx = 0
 
         for word_dir in sorted(os.listdir(data_dir)):
@@ -67,32 +88,38 @@ class DataLoader:
                 class_labels[word_dir] = label_idx
                 label_idx += 1
 
-            for file_name in os.listdir(word_path):
-                if file_name.endswith('.npy'):
+            for file_name in sorted(os.listdir(word_path)):
+                if file_name.endswith('.npy') and not file_name.endswith('_meta.npy'):
                     file_path = os.path.join(word_path, file_name)
                     data = np.load(file_path)
                     X.append(data)
                     y.append(class_labels[word_dir])
+                    if return_persons:
+                        person_ids.append(parse_person_id(file_name))
 
         X = np.array(X)
         y = np.array(y)
 
+        if return_persons:
+            return X, y, class_labels, np.array(person_ids)
         return X, y, class_labels
 
-    def load_sequence_data(self, data_dir, max_length=30):
+    def load_sequence_data(self, data_dir, max_length=30, return_persons=False):
         """
         加载序列数据（用于深度学习模型）
 
         Args:
             data_dir (str): 数据目录路径
             max_length (int, optional): 最大序列长度. Defaults to 30.
+            return_persons (bool): 是否同时返回人员ID列表
 
         Returns:
-            tuple: (X, y, class_labels)
+            tuple: (X, y, class_labels) 或 (X, y, class_labels, person_ids)
         """
         X = []
         y = []
         class_labels = {}
+        person_ids = []
         label_idx = 0
 
         for word_dir in sorted(os.listdir(data_dir)):
@@ -105,8 +132,8 @@ class DataLoader:
                 class_labels[word_dir] = label_idx
                 label_idx += 1
 
-            for file_name in os.listdir(word_path):
-                if file_name.endswith('.npy'):
+            for file_name in sorted(os.listdir(word_path)):
+                if file_name.endswith('.npy') and not file_name.endswith('_meta.npy'):
                     file_path = os.path.join(word_path, file_name)
                     data = np.load(file_path)
 
@@ -118,11 +145,93 @@ class DataLoader:
 
                     X.append(data)
                     y.append(class_labels[word_dir])
+                    if return_persons:
+                        person_ids.append(parse_person_id(file_name))
 
         X = np.array(X)
         y = np.array(y)
 
+        if return_persons:
+            return X, y, class_labels, np.array(person_ids)
         return X, y, class_labels
+
+    def split_by_person(self, X, y, person_ids, train_persons, val_persons=None, test_persons=None):
+        """
+        按人员划分数据集
+
+        同一人员的数据保证不会出现在多个集合中。
+
+        Args:
+            X (np.ndarray): 特征矩阵
+            y (np.ndarray): 标签向量
+            person_ids (np.ndarray): 人员ID数组
+            train_persons (list): 训练集人员ID列表
+            val_persons (list, optional): 验证集人员ID列表
+            test_persons (list, optional): 测试集人员ID列表
+
+        Returns:
+            dict: {
+                'train': (X_train, y_train),
+                'val': (X_val, y_val) or None,
+                'test': (X_test, y_test) or None,
+            }
+        """
+        result = {}
+
+        for split_name, persons in [
+            ('train', train_persons),
+            ('val', val_persons),
+            ('test', test_persons),
+        ]:
+            if not persons:
+                result[split_name] = None
+                continue
+
+            mask = np.isin(person_ids, persons)
+            if not mask.any():
+                result[split_name] = None
+                continue
+
+            result[split_name] = (X[mask].copy(), y[mask].copy())
+
+        return result
+
+    def auto_split_persons(self, person_ids, val_ratio=0.15, test_ratio=0.15, random_state=42):
+        """
+        自动按人员随机划分 train/val/test
+
+        Args:
+            person_ids (np.ndarray): 所有样本的人员ID
+            val_ratio (float): 验证集人员比例
+            test_ratio (float): 测试集人员比例
+            random_state (int): 随机种子
+
+        Returns:
+            dict: {'train': [...], 'val': [...], 'test': [...]}
+        """
+        unique_persons = sorted(set(person_ids))
+        n_total = len(unique_persons)
+
+        if n_total < 3:
+            # 人员太少，全部放训练集
+            return {'train': unique_persons, 'val': [], 'test': []}
+
+        np.random.seed(random_state)
+        indices = np.random.permutation(n_total)
+
+        n_test = max(1, int(n_total * test_ratio))
+        n_val = max(1, int(n_total * val_ratio))
+        n_train = n_total - n_val - n_test
+
+        train_idx = indices[:n_train]
+        val_idx = indices[n_train:n_train + n_val]
+        test_idx = indices[n_train + n_val:]
+
+        return {
+            'train': [unique_persons[i] for i in train_idx],
+            'val': [unique_persons[i] for i in val_idx] if n_val > 0 else [],
+            'test': [unique_persons[i] for i in test_idx] if n_test > 0 else [],
+        }
 
 
 class SignLanguageDataset(TorchDataset):
