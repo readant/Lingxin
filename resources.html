@@ -41,7 +41,7 @@
             min-height: 100vh;
             color: var(--text-primary);
             line-height: 1.7;
-            background-image: 
+            background-image:
                 radial-gradient(circle at 80% 20%, rgba(212, 165, 116, 0.04) 0%, transparent 50%),
                 radial-gradient(circle at 20% 80%, rgba(139, 154, 125, 0.03) 0%, transparent 50%);
             scroll-behavior: smooth;
@@ -731,10 +731,10 @@
         @media (max-width: 768px) {
             h1 { font-size: 1.8rem; }
             .logo { font-size: 3rem; }
-            .back-link { 
-                position: relative; 
-                top: 0; 
-                left: 0; 
+            .back-link {
+                position: relative;
+                top: 0;
+                left: 0;
                 margin-bottom: 16px;
                 display: inline-flex;
             }
@@ -1584,15 +1584,15 @@
 
         searchInput.addEventListener('input', function(e) {
             const searchTerm = e.target.value.toLowerCase();
-            
+
             categorySections.forEach(section => {
                 const resourceItems = section.querySelectorAll('.resource-item, .dataset-card, .github-card, .book-card');
                 let hasVisibleItems = false;
-                
+
                 resourceItems.forEach(item => {
                     const title = item.querySelector('.resource-title, .dataset-name, .github-name, .book-title')?.textContent.toLowerCase() || '';
                     const desc = item.querySelector('.resource-desc, .dataset-desc, .github-desc, .book-desc')?.textContent.toLowerCase() || '';
-                    
+
                     if (title.includes(searchTerm) || desc.includes(searchTerm)) {
                         item.style.display = '';
                         hasVisibleItems = true;
@@ -1600,7 +1600,7 @@
                         item.style.display = 'none';
                     }
                 });
-                
+
                 if (searchTerm === '') {
                     section.style.display = '';
                 } else if (hasVisibleItems) {
@@ -1615,7 +1615,7 @@
             link.addEventListener('click', function(e) {
                 navLinks.forEach(l => l.classList.remove('active'));
                 this.classList.add('active');
-                
+
                 const targetId = this.getAttribute('href');
                 if (targetId.startsWith('#')) {
                     e.preventDefault();

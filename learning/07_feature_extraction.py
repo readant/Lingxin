@@ -11,7 +11,7 @@ def section_1_relative_coordinates():
     print("\n" + "=" * 50)
     print("7.1 相对坐标计算")
     print("=" * 50)
-    
+
     print("""
 为什么需要相对坐标？
 -------------------
@@ -22,7 +22,7 @@ def section_1_relative_coordinates():
 
 相对坐标可以消除这些影响，使特征更具鲁棒性。
 """)
-    
+
     # 模拟手部关键点数据 (21个关键点)
     hand_landmarks = np.array([
         [100, 200, 0],   # 手腕 (索引0)
@@ -36,10 +36,10 @@ def section_1_relative_coordinates():
         [95, 85, -18],   # 食指指尖 (索引8)
         # ... 省略其他关键点
     ])
-    
+
     print(f"原始关键点形状: {hand_landmarks.shape}")
     print(f"手腕坐标: {hand_landmarks[0]}")
-    
+
     # 计算相对坐标（相对于手腕）
     wrist = hand_landmarks[0]
     relative_coords = hand_landmarks - wrist
@@ -53,7 +53,7 @@ def section_2_finger_lengths():
     print("\n" + "=" * 50)
     print("7.2 手指长度计算")
     print("=" * 50)
-    
+
     # 手指关键点索引
     finger_indices = {
         'thumb': [0, 1, 2, 3, 4],    # 拇指
@@ -62,10 +62,10 @@ def section_2_finger_lengths():
         'ring': [0, 13, 14, 15, 16],  # 无名指
         'pinky': [0, 17, 18, 19, 20], # 小指
     }
-    
+
     # 模拟手部关键点
     hand_landmarks = np.random.rand(21, 3) * 100
-    
+
     print("手指长度计算:")
     for finger, indices in finger_indices.items():
         # 计算手指长度（根部到指尖的欧氏距离）
@@ -73,11 +73,11 @@ def section_2_finger_lengths():
         tip = hand_landmarks[indices[-1]]  # 手指指尖
         length = np.linalg.norm(tip - root)
         print(f"  {finger}: {length:.2f}")
-    
+
     # 计算手掌大小
     palm_width = np.linalg.norm(hand_landmarks[17] - hand_landmarks[5])
     print(f"\n手掌宽度: {palm_width:.2f}")
-    
+
     # 计算归一化手指长度
     print("\n归一化手指长度（相对于手掌宽度）:")
     for finger, indices in finger_indices.items():
@@ -91,44 +91,44 @@ def section_3_joint_angles():
     print("\n" + "=" * 50)
     print("7.3 关节角度计算")
     print("=" * 50)
-    
+
     print("""
 关节角度是手部姿态的重要特征。
 我们可以通过计算向量之间的夹角来得到关节角度。
 """)
-    
+
     def calculate_angle(a, b, c):
         """
         计算关节角度（点b处的角度）
-        
+
         参数:
             a: 第一个点坐标
             b: 关节点坐标
             c: 第三个点坐标
-        
+
         返回:
             角度（弧度）
         """
         # 计算向量
         vec1 = a - b
         vec2 = c - b
-        
+
         # 计算夹角
         dot_product = np.dot(vec1, vec2)
         norm1 = np.linalg.norm(vec1)
         norm2 = np.linalg.norm(vec2)
-        
+
         # 防止除零错误
         if norm1 == 0 or norm2 == 0:
             return 0
-        
+
         cos_angle = dot_product / (norm1 * norm2)
         # 限制在[-1, 1]范围内
         cos_angle = np.clip(cos_angle, -1, 1)
         angle = np.arccos(cos_angle)
-        
+
         return angle
-    
+
     # 模拟手指关键点
     # 食指: 根部(5) -> 第一关节(6) -> 中间关节(7) -> 指尖(8)
     finger_points = np.array([
@@ -137,15 +137,15 @@ def section_3_joint_angles():
         [100, 100, -10], # 中间关节 (点7)
         [100, 50, -15],  # 指尖 (点8)
     ])
-    
+
     # 计算关节角度
     angle1 = calculate_angle(finger_points[0], finger_points[1], finger_points[2])
     angle2 = calculate_angle(finger_points[1], finger_points[2], finger_points[3])
-    
+
     print(f"食指关节角度:")
     print(f"  第一关节角度: {np.degrees(angle1):.1f} 度")
     print(f"  中间关节角度: {np.degrees(angle2):.1f} 度")
-    
+
     # 弯曲手指时的角度变化
     print("\n模拟手指弯曲:")
     finger_bent = np.array([
@@ -154,10 +154,10 @@ def section_3_joint_angles():
         [90, 110, -10],  # 中间关节（弯曲）
         [80, 80, -15],   # 指尖（弯曲）
     ])
-    
+
     angle1_bent = calculate_angle(finger_bent[0], finger_bent[1], finger_bent[2])
     angle2_bent = calculate_angle(finger_bent[1], finger_bent[2], finger_bent[3])
-    
+
     print(f"  弯曲后第一关节角度: {np.degrees(angle1_bent):.1f} 度")
     print(f"  弯曲后中间关节角度: {np.degrees(angle2_bent):.1f} 度")
 
@@ -166,7 +166,7 @@ def section_4_feature_vector_construction():
     print("\n" + "=" * 50)
     print("7.4 构建特征向量")
     print("=" * 50)
-    
+
     print("""
 完整的特征向量构建流程：
 ----------------------
@@ -176,40 +176,40 @@ def section_4_feature_vector_construction():
 -----------------------------------------
 总计: 171维特征向量
 """)
-    
+
     # 模拟数据
     left_hand = np.random.rand(21, 3)
     right_hand = np.random.rand(21, 3)
     pose = np.random.rand(15, 3)
-    
+
     # 构建特征向量
     feature_vector = np.concatenate([
         left_hand.flatten(),
         right_hand.flatten(),
         pose.flatten()
     ])
-    
+
     print(f"左手形状: {left_hand.shape} -> 展平后: {left_hand.flatten().shape}")
     print(f"右手形状: {right_hand.shape} -> 展平后: {right_hand.flatten().shape}")
     print(f"姿态形状: {pose.shape} -> 展平后: {pose.flatten().shape}")
     print(f"特征向量总维度: {feature_vector.shape[0]}")
-    
+
     # 添加更多特征（可选）
     # 计算手指长度特征
     finger_lengths = []
     for i in range(5):  # 5根手指
         finger_lengths.extend([np.random.rand() for _ in range(3)])  # 每根手指3个特征
-    
+
     # 计算关节角度特征
     joint_angles = [np.random.rand() for _ in range(20)]  # 20个关节角度
-    
+
     # 扩展特征向量
     extended_feature = np.concatenate([
         feature_vector,
         finger_lengths,
         joint_angles
     ])
-    
+
     print(f"\n扩展特征向量维度: {extended_feature.shape[0]}")
 
 def section_5_practical_demo():
@@ -217,27 +217,27 @@ def section_5_practical_demo():
     print("\n" + "=" * 50)
     print("7.5 实战演示")
     print("=" * 50)
-    
+
     # 添加项目路径
     import sys
     import os
     current_dir = os.path.dirname(os.path.abspath(__file__))
     project_root = os.path.dirname(current_dir)
     sys.path.insert(0, project_root)
-    
+
     try:
         from src.detection.hand_detector import HolisticDetector
         print("[OK] 成功导入HolisticDetector")
     except ImportError as e:
         print(f"[ERROR] 无法导入HolisticDetector: {e}")
         return
-    
+
     print("\n特征提取流程演示:")
     print("1. 初始化检测器")
     print("2. 检测图像获取关键点")
     print("3. 使用get_landmarks()获取171维特征向量")
     print("4. 用于模型训练或预测")
-    
+
     print("\n示例代码:")
     print("""
 detector = HolisticDetector()
@@ -250,13 +250,13 @@ def main():
     print("=" * 60)
     print("第7阶段：特征工程入门")
     print("=" * 60)
-    
+
     section_1_relative_coordinates()
     section_2_finger_lengths()
     section_3_joint_angles()
     section_4_feature_vector_construction()
     section_5_practical_demo()
-    
+
     print("\n" + "=" * 60)
     print("特征工程学习完成！")
     print("下一步：运行 08_svm_intro.py 学习机器学习")

@@ -39,6 +39,10 @@ from PIL import Image, ImageDraw, ImageFont
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from src.detection.hand_detector import HolisticDetector
+from src.constants import HAND_CONNECTIONS, POSE_CONNECTIONS_HOLISTIC
+from src.utils.logger import get_logger
+import json
+from datetime import datetime
 
 
 class DataCollector:
@@ -72,6 +76,7 @@ class DataCollector:
             save_dir (str, optional): 数据保存目录. Defaults to 'data/raw/collected'.
             target_samples (int, optional): 每个词汇的目标录制数量. Defaults to 30.
         """
+        self.logger = get_logger(self.__class__.__name__)
         self.detector = HolisticDetector()
         self.person_id = person_id
         self.save_dir = save_dir
@@ -199,6 +204,24 @@ class DataCollector:
         save_path = os.path.join(self.save_dir, word, file_name)
         np.save(save_path, sequence_array)
 
+        # 保存元信息
+        metadata = {
+            'person_id': self.person_id,
+            'word': word,
+            'category': self.vocab_df[self.vocab_df['word'] == word]['category'].values[0]
+                if word in self.vocab_df['word'].values else '',
+            'num_frames': len(sequence_array),
+            'feature_dim': sequence_array.shape[1] if sequence_array.ndim > 1 else 0,
+            'timestamp': datetime.now().isoformat(),
+            'file_name': file_name,
+        }
+        meta_path = save_path.replace('.npy', '_meta.json')
+        try:
+            with open(meta_path, 'w', encoding='utf-8') as f_meta:
+                json.dump(metadata, f_meta, ensure_ascii=False, indent=2)
+        except Exception:
+            pass  # 元信息保存失败不影响主流程
+
         # 更新统计信息
         self.recorded_counts[word] = self.recorded_counts.get(word, 0) + 1
         self.last_saved_sequence = sequence_array.copy()
@@ -277,11 +300,7 @@ class DataCollector:
         Returns:
             numpy.ndarray: 空白帧图像
         """
-        frame = np.zeros((h, w, 3), dtype=np.uint8)
-        for i in range(h):
-            for j in range(w):
-                frame[i][j] = color
-        return frame
+        return np.full((h, w, 3), color, dtype=np.uint8)
 
     def _draw_landmarks_on_frame(self, frame, landmarks):
         """
@@ -301,15 +320,8 @@ class DataCollector:
         right_hand = landmarks[63:126].reshape(21, 3)  # 右手21个点
         pose = landmarks[126:].reshape(15, 3)        # 姿态15个点
 
-        # 手部骨架连接定义（MediaPipe标准）
-        hand_connections = [
-            (0, 1), (1, 2), (2, 3), (3, 4),             # 拇指
-            (0, 5), (5, 6), (6, 7), (7, 8),             # 食指
-            (0, 9), (9, 10), (10, 11), (11, 12),       # 中指
-            (0, 13), (13, 14), (14, 15), (15, 16),     # 无名指
-            (0, 17), (17, 18), (18, 19), (19, 20),     # 小指
-            (5, 9), (9, 13), (13, 17),                 # 手掌
-        ]
+        # 手部骨架连接定义（从共享常量导入）
+        hand_connections = HAND_CONNECTIONS
 
         # 绘制左手（蓝色）
         for start, end in hand_connections:
@@ -333,13 +345,8 @@ class DataCollector:
             if 0 <= x < w and 0 <= y < h:
                 cv2.circle(frame, (x, y), 4, (0, 255, 0), -1)
 
-        # 绘制姿态骨架（黄色）
-        pose_connections = [
-            (0, 1), (1, 2), (2, 3), (3, 4),  # 左臂
-            (0, 5), (5, 6), (6, 7), (7, 8),  # 右臂
-            (0, 9), (9, 10), (10, 11), (11, 12),  # 躯干
-            (0, 13), (13, 14),               # 头部
-        ]
+        # 绘制姿态骨架（从共享常量导入）
+        pose_connections = POSE_CONNECTIONS_HOLISTIC
         for start, end in pose_connections:
             x1, y1 = int(pose[start][0]), int(pose[start][1])
             x2, y2 = int(pose[end][0]), int(pose[end][1])
@@ -364,10 +371,10 @@ class DataCollector:
         """
         h, w = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT)), int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
 
-        print(f"预览序列长度: {len(sequence)}")
+        self.logger.info(f"预览序列长度: {len(sequence)}")
         if len(sequence) > 0:
-            print(f"第一帧关键点数据: {sequence[0][:10]}...")
-            print(f"是否有手部数据: {not np.all(sequence[0][:126] == 0)}")
+            self.logger.debug(f"第一帧关键点数据: {sequence[0][:10]}...")
+            self.logger.debug(f"是否有手部数据: {not np.all(sequence[0][:126] == 0)}")
 
         for idx, landmarks in enumerate(sequence):
             # 创建深灰色背景
@@ -429,9 +436,6 @@ class DataCollector:
             pil_frame = self._cv2_to_pil(frame)
             h, w = frame.shape[:2]
 
-            # 绘制黄色边框
-            cv2.rectangle(frame, (0, 0), (w - 1, h - 1), (0, 255, 255), 4)
-
             # 绘制倒计时数字
             countdown_text = f"{i}"
             text_x = w // 2 - 50
@@ -445,6 +449,8 @@ class DataCollector:
                                (w // 2 - 80, h // 2 + 120), font_size=20, color=(200, 200, 200))
 
             frame = self._pil_to_cv2(pil_frame)
+            # 绘制黄色边框（在PIL转换后进行，确保可见）
+            cv2.rectangle(frame, (0, 0), (w - 1, h - 1), (0, 255, 255), 4)
             cv2.imshow('Data Collection', frame)
 
             key = cv2.waitKey(1000) & 0xFF
@@ -476,14 +482,14 @@ class DataCollector:
         pil_frame = self._cv2_to_pil(frame)
         h, w = frame.shape[:2]
 
-        cv2.rectangle(frame, (0, 0), (w - 1, h - 1), (255, 255, 0), 4)
-
         self._draw_text_pil(pil_frame, f"录制完成，共 {len(sequence)} 帧",
                            (w // 2 - 150, h // 2 - 60), font_size=28, color=(255, 255, 0))
         self._draw_text_pil(pil_frame, "[SPACE] 保存  [R] 重录  [D] 预览回放  [ESC] 取消",
                            (w // 2 - 220, h // 2 + 10), font_size=22, color=(255, 255, 255))
 
         frame = self._pil_to_cv2(pil_frame)
+        # 绘制黄色边框（在PIL转换后进行，确保可见）
+        cv2.rectangle(frame, (0, 0), (w - 1, h - 1), (255, 255, 0), 4)
         cv2.imshow('Data Collection', frame)
 
         while True:
@@ -514,14 +520,11 @@ class DataCollector:
         pil_frame = self._cv2_to_pil(frame)
         h, w = frame.shape[:2]
 
-        # 根据录制状态绘制不同颜色的边框
+        # 绘制文字（全部在PIL上完成，支持中文显示）
         if self.is_recording:
-            cv2.rectangle(frame, (0, 0), (w - 1, h - 1), (0, 0, 255), 3)
             rec_text = f"RECORDING: {len(self.current_sequence)} frames"
             self._draw_text_pil(pil_frame, rec_text, (10, h - 35),
                                font_size=20, color=(255, 0, 0))
-        else:
-            cv2.rectangle(frame, (0, 0), (w - 1, h - 1), (0, 255, 0), 2)
 
         # 绘制词汇和类别信息
         word = self.words[self.current_idx]
@@ -546,7 +549,14 @@ class DataCollector:
                            "[SPACE]录制 [N]下一个 [P]上一个 [R]删除 [Q]统计退出 [ESC]直接退出",
                            (10, h - 30), font_size=16, color=(150, 150, 150))
 
-        return self._pil_to_cv2(pil_frame)
+        # 转换回cv2，然后绘制状态边框（在PIL转换后进行，确保可见）
+        frame = self._pil_to_cv2(pil_frame)
+        if self.is_recording:
+            cv2.rectangle(frame, (0, 0), (w - 1, h - 1), (0, 0, 255), 3)
+        else:
+            cv2.rectangle(frame, (0, 0), (w - 1, h - 1), (0, 255, 0), 2)
+
+        return frame
 
     def _draw_warning(self, frame, message):
         """
@@ -574,18 +584,18 @@ class DataCollector:
         """
         cap = cv2.VideoCapture(0)
         if not cap.isOpened():
-            print("错误：无法打开摄像头")
+            self.logger.error("错误：无法打开摄像头")
             return
 
-        print(f"开始数据采集，当前录制人: {self.person_id}")
-        print(f"词汇表共 {len(self.words)} 个词，每个词目标录制 {self.target_samples} 次")
-        print("操作说明：")
-        print("  [空格] 开始录制（3秒倒计时）")
-        print("  [N] 下一个词")
-        print("  [P] 上一个词")
-        print("  [R] 删除刚才录制的样本")
-        print("  [Q] 显示统计后退出")
-        print("  [ESC] 直接退出")
+        self.logger.info(f"开始数据采集，当前录制人: {self.person_id}")
+        self.logger.info(f"词汇表共 {len(self.words)} 个词，每个词目标录制 {self.target_samples} 次")
+        self.logger.info("操作说明：")
+        self.logger.info("  [空格] 开始录制（3秒倒计时）")
+        self.logger.info("  [N] 下一个词")
+        self.logger.info("  [P] 上一个词")
+        self.logger.info("  [R] 删除刚才录制的样本")
+        self.logger.info("  [Q] 显示统计后退出")
+        self.logger.info("  [ESC] 直接退出")
 
         status_message = ""   # 状态消息
         status_timer = 0      # 状态消息显示时间
@@ -636,7 +646,7 @@ class DataCollector:
                         if proceed and choice == 'save':
                             success, msg = self._save_sequence(
                                 self.words[self.current_idx], self.current_sequence)
-                            print(msg)
+                            self.logger.info(msg)
                             if success:
                                 status_message = f"保存成功！({len(self.current_sequence)}帧)"
                                 status_timer = 60
@@ -682,7 +692,7 @@ class DataCollector:
                     status_timer = 60
             elif key in (ord('r'), ord('R')):  # 删除最后样本
                 success, msg = self._delete_last_sequence(self.words[self.current_idx])
-                print(msg)
+                self.logger.info(msg)
                 status_message = msg
                 status_timer = 60
             elif key in (ord('q'), ord('Q')):  # 退出
@@ -701,9 +711,9 @@ class DataCollector:
 
         显示每个词汇的录制进度和总体完成率。
         """
-        print("\n" + "=" * 50)
-        print("录制统计")
-        print("=" * 50)
+        self.logger.info("\n" + "=" * 50)
+        self.logger.info("录制统计")
+        self.logger.info("=" * 50)
 
         total_recorded = 0
         total_target = len(self.words) * self.target_samples
@@ -713,11 +723,11 @@ class DataCollector:
             total_recorded += recorded
             category = self.vocab_df[self.vocab_df['word'] == word]['category'].values[0]
             status = "V" if recorded >= self.target_samples else "X"
-            print(f"  {status} {word} ({category}): {recorded}/{self.target_samples}")
+            self.logger.info(f"  {status} {word} ({category}): {recorded}/{self.target_samples}")
 
-        print("-" * 50)
-        print(f"总计: {total_recorded}/{total_target} ({total_recorded/total_target*100:.1f}%)")
-        print("=" * 50)
+        self.logger.info("-" * 50)
+        self.logger.info(f"总计: {total_recorded}/{total_target} ({total_recorded/total_target*100:.1f}%)")
+        self.logger.info("=" * 50)
 
 
 def main():
@@ -726,13 +736,14 @@ def main():
 
     提示用户输入录制人ID，然后启动数据采集器。
     """
-    print("=" * 50)
-    print("聆心手语数据采集工具")
-    print("=" * 50)
+    logger = get_logger("DataCollector")
+    logger.info("=" * 50)
+    logger.info("聆心手语数据采集工具")
+    logger.info("=" * 50)
 
     person_id = input("请输入录制人ID: ").strip()
     if not person_id:
-        print("错误：录制人ID不能为空")
+        logger.error("错误：录制人ID不能为空")
         return
 
     collector = DataCollector(person_id=person_id)

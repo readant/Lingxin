@@ -1,0 +1,60 @@
+[build-system]
+requires = ["setuptools>=68.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "lingxin"
+version = "0.2.0"
+description = "聆心 — 实时手语识别系统"
+readme = "README.md"
+requires-python = ">=3.10"
+license = {text = "MIT"}
+authors = [
+    {name = "Lingxin Team"}
+]
+keywords = ["sign-language", "deep-learning", "mediapipe", "pytorch", "computer-vision"]
+
+dependencies = [
+    "numpy>=1.24.0,<1.27.0",
+    "pandas>=2.0.0",
+    "scikit-learn>=1.3.0,<1.5.0",
+    "torch>=2.0.0,<2.12.0",
+    "opencv-python>=4.8.0",
+    "mediapipe>=0.10.33",
+    "matplotlib>=3.7.0",
+    "seaborn>=0.12.0",
+    "tqdm>=4.65.0",
+    "pillow>=10.0.0",
+    "flask>=3.0.0",
+    "flask-cors>=4.0.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.4.0",
+    "black>=23.0.0",
+    "isort>=5.12.0",
+    "flake8>=6.0.0",
+]
+
+[project.scripts]
+lingxin-collect = "tools.collect_data:main"
+lingxin-train = "tools.train:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["src*", "tools*", "api*"]
+
+[tool.black]
+line-length = 100
+target-version = ["py310"]
+
+[tool.isort]
+profile = "black"
+line_length = 100
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]

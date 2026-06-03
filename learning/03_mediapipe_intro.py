@@ -11,7 +11,7 @@ def section_1_introduction():
     print("\n" + "=" * 50)
     print("3.1 MediaPipe简介")
     print("=" * 50)
-    
+
     print("""
 什么是MediaPipe？
 ----------------
@@ -42,7 +42,7 @@ def section_2_api_comparison():
     print("\n" + "=" * 50)
     print("3.2 API版本对比")
     print("=" * 50)
-    
+
     print("""
 旧版API (Solutions API) vs 新版API (Task API)
 ---------------------------------------------
@@ -78,7 +78,7 @@ def section_3_model_files():
     print("\n" + "=" * 50)
     print("3.3 模型文件说明")
     print("=" * 50)
-    
+
     print("""
 模型文件格式：.task
 ------------------
@@ -118,7 +118,7 @@ def section_4_key_points_intro():
     print("\n" + "=" * 50)
     print("3.4 关键点数据结构")
     print("=" * 50)
-    
+
     print("""
 手部关键点（21个）
 -----------------
@@ -174,11 +174,11 @@ def section_5_check_mediapipe():
     print("\n" + "=" * 50)
     print("3.5 检查MediaPipe安装")
     print("=" * 50)
-    
+
     try:
         import mediapipe as mp
         print(f"[OK] MediaPipe 已安装，版本: {mp.__version__}")
-        
+
         # 检查是否支持Task API
         if hasattr(mp, 'tasks'):
             print("[OK] 支持新版Task API")
@@ -186,16 +186,16 @@ def section_5_check_mediapipe():
             print("[ERROR] 不支持Task API，请升级MediaPipe")
             print("       运行: pip install --upgrade mediapipe>=0.10.33")
             return False
-        
+
         # 检查模型文件
         import os
         current_dir = os.path.dirname(os.path.abspath(__file__))
         project_root = os.path.dirname(current_dir)
         models_dir = os.path.join(project_root, 'models')
-        
+
         required_models = ['hand_landmarker.task', 'pose_landmarker_lite.task']
         all_found = True
-        
+
         for model in required_models:
             model_path = os.path.join(models_dir, model)
             if os.path.exists(model_path):
@@ -204,9 +204,9 @@ def section_5_check_mediapipe():
                 print(f"[ERROR] 模型文件缺失: {model}")
                 print(f"       请运行: python learning/download_models.py")
                 all_found = False
-        
+
         return all_found
-        
+
     except ImportError:
         print("[ERROR] MediaPipe 未安装")
         print("       运行: pip install mediapipe>=0.10.33")
@@ -216,13 +216,13 @@ def main():
     print("=" * 60)
     print("第3阶段：MediaPipe概念入门")
     print("=" * 60)
-    
+
     section_1_introduction()
     section_2_api_comparison()
     section_3_model_files()
     section_4_key_points_intro()
     section_5_check_mediapipe()
-    
+
     print("\n" + "=" * 60)
     print("MediaPipe概念学习完成！")
     print("下一步：运行 04_hand_detection_simple.py 学习手部检测")

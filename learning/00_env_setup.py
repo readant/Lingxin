@@ -11,7 +11,7 @@ def check_python_version():
     """检查Python版本"""
     version = sys.version_info
     print(f"[检查] Python版本: {version.major}.{version.minor}.{version.micro}")
-    
+
     if version.major == 3 and 9 <= version.minor <= 11:
         print("[OK] Python版本符合要求 (3.9-3.11)")
         return True
@@ -41,13 +41,13 @@ def main():
     print("=" * 60)
     print("聆心项目 - 环境检查")
     print("=" * 60)
-    
+
     # 检查Python版本
     if not check_python_version():
         return
-    
+
     print("\n[开始检查项目依赖...]")
-    
+
     # 检查核心依赖
     packages = [
         'mediapipe',
@@ -59,21 +59,21 @@ def main():
         'matplotlib',
         'tqdm'
     ]
-    
+
     all_passed = True
     for package in packages:
         if not check_package_installed(package):
             all_passed = False
-    
+
     # 检查模型文件
     print("\n[检查模型文件...]")
     import os
     current_dir = os.path.dirname(os.path.abspath(__file__))
     project_root = os.path.dirname(current_dir)
     models_dir = os.path.join(project_root, 'models')
-    
+
     required_models = ['hand_landmarker.task', 'pose_landmarker_lite.task']
-    
+
     for model in required_models:
         model_path = os.path.join(models_dir, model)
         if os.path.exists(model_path):
@@ -82,7 +82,7 @@ def main():
             print(f"[ERROR] 模型文件缺失: {model}")
             print(f"       请运行: python learning/download_models.py")
             all_passed = False
-    
+
     print("\n" + "=" * 60)
     if all_passed:
         print("[SUCCESS] 所有检查通过！环境配置正确。")

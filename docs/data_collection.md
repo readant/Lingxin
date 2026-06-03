@@ -49,7 +49,7 @@ python tools/collect_data.py
 
 启动后会提示输入：
 ```
-请输入采集人员ID（如：user001）: 
+请输入采集人员ID（如：user001）:
 请输入目标录制数量（每个词）: 30
 ```
 

@@ -42,7 +42,7 @@
             min-height: 100vh;
             color: var(--text-primary);
             line-height: 1.7;
-            background-image: 
+            background-image:
                 radial-gradient(circle at 20% 50%, rgba(212, 165, 116, 0.03) 0%, transparent 50%),
                 radial-gradient(circle at 80% 80%, rgba(139, 154, 125, 0.03) 0%, transparent 50%);
         }
@@ -676,13 +676,13 @@
             font-weight: 500;
         }
 
-        .type-ml { 
-            background: rgba(139, 154, 125, 0.15); 
-            color: var(--accent-sage); 
+        .type-ml {
+            background: rgba(139, 154, 125, 0.15);
+            color: var(--accent-sage);
         }
-        .type-dl { 
-            background: rgba(193, 127, 89, 0.15); 
-            color: var(--accent-terracotta); 
+        .type-dl {
+            background: rgba(193, 127, 89, 0.15);
+            color: var(--accent-terracotta);
         }
 
         .rating {
@@ -1150,7 +1150,7 @@
             if (node.type === "folder") {
                 const hasChildren = node.children && node.children.length > 0;
                 const childCount = hasChildren ? node.children.length : 0;
-                
+
                 return `
                     <li class="tree-node" data-depth="${depth}" data-path="${node.name}">
                         <div class="folder-header" data-name="${node.name}">
@@ -1182,24 +1182,24 @@
         function initFileTree() {
             const fileTreeElement = document.getElementById('fileTree');
             fileTreeElement.innerHTML = generateFileTree(fileTreeData);
-            
+
             // 添加文件夹点击事件
             document.querySelectorAll('.folder-header').forEach(header => {
                 header.addEventListener('click', function() {
                     const content = this.nextElementSibling;
                     const isOpen = content && content.classList.contains('open');
-                    
+
                     // 切换当前文件夹状态
                     if (content) {
                         content.classList.toggle('open');
                     }
                     this.classList.toggle('active');
-                    
+
                     // 更新面包屑
                     updateBreadcrumb(this.dataset.name);
                 });
             });
-            
+
             // 添加文件点击事件
             document.querySelectorAll('.file-item').forEach(item => {
                 item.addEventListener('click', function() {
@@ -1207,7 +1207,7 @@
                     document.querySelectorAll('.file-item').forEach(f => f.classList.remove('active'));
                     // 添加当前文件的active状态
                     this.classList.add('active');
-                    
+
                     // 打开文件
                     const fileName = this.dataset.name;
                     console.log('打开文件:', fileName);
@@ -1238,7 +1238,7 @@
             searchInput.addEventListener('input', function() {
                 const query = this.value.toLowerCase();
                 const fileItems = document.querySelectorAll('.file-item');
-                
+
                 fileItems.forEach(item => {
                     const fileName = item.dataset.name.toLowerCase();
                     if (fileName.includes(query)) {

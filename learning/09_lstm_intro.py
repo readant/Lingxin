@@ -11,7 +11,7 @@ def section_1_sequence_intro():
     print("\n" + "=" * 50)
     print("9.1 时序数据介绍")
     print("=" * 50)
-    
+
     print("""
 什么是时序数据？
 ---------------
@@ -48,7 +48,7 @@ def section_2_lstm_principle():
     print("\n" + "=" * 50)
     print("9.2 LSTM原理")
     print("=" * 50)
-    
+
     print("""
 什么是LSTM？
 -----------
@@ -120,10 +120,10 @@ def section_3_pytorch_lstm():
     print("\n" + "=" * 50)
     print("9.3 使用PyTorch实现LSTM")
     print("=" * 50)
-    
+
     import torch
     import torch.nn as nn
-    
+
     print("PyTorch LSTM参数说明:")
     print("""
 nn.LSTM(
@@ -134,12 +134,12 @@ nn.LSTM(
     bidirectional: bool=False  # 是否双向LSTM
 )
 """)
-    
+
     # 创建LSTM示例
     input_size = 171  # 每帧特征维度
     hidden_size = 128  # 隐藏层维度
     num_layers = 2     # 层数
-    
+
     lstm = nn.LSTM(
         input_size=input_size,
         hidden_size=hidden_size,
@@ -147,17 +147,17 @@ nn.LSTM(
         batch_first=True,
         bidirectional=False
     )
-    
+
     print(f"LSTM结构:\n{lstm}")
-    
+
     # 模拟输入数据
     batch_size = 32      # 批次大小
     seq_len = 30         # 序列长度（帧数）
-    
+
     # 输入形状: (batch_size, seq_len, input_size)
     x = torch.randn(batch_size, seq_len, input_size)
     print(f"\n输入形状: {x.shape}")
-    
+
     # 前向传播
     output, (h_n, c_n) = lstm(x)
     print(f"输出形状: {output.shape}")
@@ -169,16 +169,16 @@ def section_4_lstm_classifier():
     print("\n" + "=" * 50)
     print("9.4 LSTM分类器实现")
     print("=" * 50)
-    
+
     import torch
     import torch.nn as nn
-    
+
     class LSTMClassifier(nn.Module):
         """用于手语识别的LSTM分类器"""
-        
+
         def __init__(self, input_size, hidden_size, num_layers, num_classes):
             super(LSTMClassifier, self).__init__()
-            
+
             # LSTM层
             self.lstm = nn.LSTM(
                 input_size=input_size,
@@ -186,48 +186,48 @@ def section_4_lstm_classifier():
                 num_layers=num_layers,
                 batch_first=True
             )
-            
+
             # 全连接层
             self.fc = nn.Linear(hidden_size, num_classes)
-            
+
             # 激活函数
             self.softmax = nn.Softmax(dim=1)
-        
+
         def forward(self, x):
             """
             参数:
                 x: 输入张量，形状为(batch_size, seq_len, input_size)
-            
+
             返回:
                 预测概率，形状为(batch_size, num_classes)
             """
             # LSTM前向传播
             _, (h_n, _) = self.lstm(x)
-            
+
             # 取最后一层的隐藏状态
             last_hidden = h_n[-1]  # (batch_size, hidden_size)
-            
+
             # 全连接层
             logits = self.fc(last_hidden)
-            
+
             # Softmax激活
             probabilities = self.softmax(logits)
-            
+
             return probabilities
-    
+
     # 创建模型
     input_size = 171    # 171维特征
     hidden_size = 128   # 隐藏层维度
     num_layers = 2      # LSTM层数
     num_classes = 10    # 手势类别数量
-    
+
     model = LSTMClassifier(input_size, hidden_size, num_layers, num_classes)
     print(f"模型结构:\n{model}")
-    
+
     # 计算参数数量
     total_params = sum(p.numel() for p in model.parameters())
     print(f"\n总参数数量: {total_params:,}")
-    
+
     # 测试前向传播
     batch_size = 16
     seq_len = 30
@@ -242,10 +242,10 @@ def section_5_training_example():
     print("\n" + "=" * 50)
     print("9.5 训练示例")
     print("=" * 50)
-    
+
     import torch
     import torch.nn as nn
-    
+
     # 超参数
     input_size = 171
     hidden_size = 128
@@ -254,73 +254,73 @@ def section_5_training_example():
     batch_size = 32
     seq_len = 30
     epochs = 10
-    
+
     # 创建模型
     model = LSTMClassifier(input_size, hidden_size, num_layers, num_classes)
-    
+
     # 损失函数和优化器
     criterion = nn.CrossEntropyLoss()
     optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
-    
+
     print("训练循环流程:")
     print("""
 for epoch in range(epochs):
     model.train()
-    
+
     # 前向传播
     outputs = model(inputs)
-    
+
     # 计算损失
     loss = criterion(outputs, labels)
-    
+
     # 反向传播
     optimizer.zero_grad()
     loss.backward()
-    
+
     # 更新参数
     optimizer.step()
-    
+
     # 评估
     model.eval()
     with torch.no_grad():
         predictions = model(test_inputs)
         accuracy = calculate_accuracy(predictions, test_labels)
 """)
-    
+
     # 模拟训练数据
     print("\n模拟训练:")
     for epoch in range(epochs):
         # 生成模拟数据
         inputs = torch.randn(batch_size, seq_len, input_size)
         labels = torch.randint(0, num_classes, (batch_size,))
-        
+
         # 前向传播
         outputs = model(inputs)
-        
+
         # 计算损失
         loss = criterion(outputs, labels)
-        
+
         # 反向传播
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
-        
+
         if (epoch + 1) % 5 == 0:
             print(f"Epoch [{epoch+1}/{epochs}], Loss: {loss.item():.4f}")
-    
+
     print("\n训练完成！")
 
 def main():
     print("=" * 60)
     print("第9阶段：深度学习入门 - LSTM时序模型")
     print("=" * 60)
-    
+
     section_1_sequence_intro()
     section_2_lstm_principle()
     section_3_pytorch_lstm()
     section_4_lstm_classifier()
     section_5_training_example()
-    
+
     print("\n" + "=" * 60)
     print("LSTM学习完成！")
     print("下一步：运行 10_data_collection.py 进行项目实战")

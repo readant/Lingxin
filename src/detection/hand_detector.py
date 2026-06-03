@@ -31,6 +31,8 @@ import mediapipe as mp
 import numpy as np
 import os
 
+from src.constants import HAND_CONNECTIONS, POSE_CONNECTIONS_UPPER_BODY
+
 
 def get_model_path():
     """获取模型文件路径"""
@@ -83,15 +85,8 @@ class HandDetector:
 
         self.detector = mp.tasks.vision.HandLandmarker.create_from_options(self.options)
 
-        # 手部关键点连接关系
-        self.hand_connections = [
-            (0, 1), (1, 2), (2, 3), (3, 4),           # 拇指
-            (0, 5), (5, 6), (6, 7), (7, 8),           # 食指
-            (0, 9), (9, 10), (10, 11), (11, 12),      # 中指
-            (0, 13), (13, 14), (14, 15), (15, 16),    # 无名指
-            (0, 17), (17, 18), (18, 19), (19, 20),     # 小指
-            (5, 9), (9, 13), (13, 17), (0, 17)        # 手掌
-        ]
+        # 手部关键点连接关系（从共享常量导入）
+        self.hand_connections = HAND_CONNECTIONS
 
     def detect(self, image):
         """
@@ -215,14 +210,8 @@ class PoseDetector:
 
         self.detector = mp.tasks.vision.PoseLandmarker.create_from_options(self.options)
 
-        # 上半身姿态关键点连接关系（只使用上半身15个点）
-        self.pose_connections = [
-            (0, 1), (1, 2), (2, 3), (3, 1),     # 头部和颈部
-            (1, 4), (4, 5), (5, 6), (6, 5),     # 左臂
-            (1, 7), (7, 8), (8, 9), (9, 8),     # 右臂
-            (0, 10), (10, 11), (11, 12),        # 左手
-            (0, 13), (13, 14), (14, 15),        # 右手
-        ]
+        # 上半身姿态关键点连接关系（从共享常量导入）
+        self.pose_connections = POSE_CONNECTIONS_UPPER_BODY
 
     def detect(self, image):
         """

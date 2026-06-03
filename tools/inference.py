@@ -23,6 +23,9 @@ import cv2
 import numpy as np
 from src.detection.hand_detector import HandDetector
 from src.features.feature_extractor import FeatureExtractor
+from src.models.lstm_model import LSTMModel
+from src.models.transformer_model import TransformerModel
+from src.utils.logger import get_logger
 
 
 class InferenceRunner:
@@ -66,6 +69,7 @@ class InferenceRunner:
 
     def __init__(self):
         """初始化推理运行器"""
+        self.logger = get_logger(self.__class__.__name__)
         # 初始化检测器和特征提取器
         self.detector = HandDetector()
         self.extractor = FeatureExtractor()
@@ -86,7 +90,7 @@ class InferenceRunner:
         """
         # 验证模型类型
         if model_type not in self.MODEL_CONFIG:
-            print(f'未知模型类型: {model_type}，可选类型: {", ".join(self.MODEL_CONFIG.keys())}')
+            self.logger.error(f'未知模型类型: {model_type}，可选类型: {", ".join(self.MODEL_CONFIG.keys())}')
             return
 
         config = self.MODEL_CONFIG[model_type]
@@ -122,8 +126,10 @@ class InferenceRunner:
 
         if model_category == 'classifier':
             # 传统机器学习分类器（预留，当前版本未实现加载）
-            print(f'创建 {model_type} 分类器')
-            return None
+            raise NotImplementedError(
+                f'{model_type} 分类器的推理功能尚未实现。'
+                f'请使用深度学习模型（lstm/transformer）。'
+            )
         else:
             # 深度学习模型
             model_class = self._get_model_class(model_type)
@@ -161,10 +167,10 @@ class InferenceRunner:
         """
         cap = cv2.VideoCapture(0)
         if not cap.isOpened():
-            print('错误：无法打开摄像头')
+            self.logger.error('错误：无法打开摄像头')
             return
 
-        print(f'开始 {model_type} 实时推理，按 q 退出')
+        self.logger.info(f'开始 {model_type} 实时推理，按 q 退出')
 
         uses_sequence = config['uses_sequence']
 
@@ -228,8 +234,7 @@ class InferenceRunner:
 
             # 模型预测
             y_pred = model.predict(input_data)
-            y_pred = np.argmax(y_pred, axis=1)[0]
-            predicted_class = class_names[y_pred]
+            predicted_class = class_names[int(y_pred[0])]
 
             # 在帧上显示预测结果
             cv2.putText(
