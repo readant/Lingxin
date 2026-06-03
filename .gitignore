@@ -28,8 +28,6 @@ data/processed/*
 !data/processed/.gitkeep
 data/videos/*
 !data/videos/.gitkeep
-CSL_basic_dataset/
-CSL_common_dataset/
 
 # 模型文件（需单独下载）
 models/*
