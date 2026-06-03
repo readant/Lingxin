@@ -114,12 +114,14 @@ class VideoCollector:
         min_confidence: float = 0.5,
         frame_skip: int = 1,
         person_id: str = None,
+        vocab_path: str = None,
     ):
         """
         Args:
             min_confidence: MediaPipe 检测最低置信度
             frame_skip: 跳帧间隔（1=全部帧，2=每隔1帧，3=每隔2帧...）
             person_id: 默认人员ID（文件名中未包含时使用）
+            vocab_path: 词汇表路径（默认使用 config.vocab_path）
         """
         self.detector = HolisticDetector(
             min_detection_confidence=min_confidence
@@ -129,10 +131,14 @@ class VideoCollector:
         self.default_person_id = person_id
 
         # 加载词汇表
-        vocab_path = config.vocab_path
+        if vocab_path:
+            vocab_path = Path(vocab_path)
+        else:
+            vocab_path = config.vocab_path
         if vocab_path.exists():
             self.vocab_df = pd.read_csv(str(vocab_path))
             self.valid_words = set(self.vocab_df['word'].tolist())
+            logger.info(f"词汇表: {vocab_path} ({len(self.valid_words)} 个词)")
         else:
             logger.warning(f"词汇表不存在: {vocab_path}，将不校验词汇")
             self.vocab_df = None
@@ -406,6 +412,10 @@ def main():
         '--min-confidence', type=float, default=0.5,
         help='MediaPipe 检测最低置信度（默认: 0.5）'
     )
+    parser.add_argument(
+        '--vocab', type=str, default=None,
+        help='词汇表路径（默认: data/vocab.csv）'
+    )
 
     args = parser.parse_args()
 
@@ -420,6 +430,7 @@ def main():
         min_confidence=args.min_confidence,
         frame_skip=args.frame_skip,
         person_id=args.person_id,
+        vocab_path=args.vocab,
     )
 
     try:
