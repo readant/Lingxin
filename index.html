@@ -754,60 +754,70 @@
             <p class="subtitle">基于深度学习的实时手语识别系统学习导航，支持多种模型架构</p>
             <div class="stats">
                 <div class="stat-item">
-                    <div class="stat-number">6</div>
-                    <div class="stat-label">学习模块</div>
+                    <div class="stat-number">8</div>
+                    <div class="stat-label">学习文档</div>
                 </div>
                 <div class="stat-item">
                     <div class="stat-number">5</div>
                     <div class="stat-label">支持模型</div>
                 </div>
                 <div class="stat-item">
-                    <div class="stat-number">50</div>
+                    <div class="stat-number">1058</div>
                     <div class="stat-label">手语词汇</div>
                 </div>
                 <div class="stat-item">
-                    <div class="stat-number">71</div>
+                    <div class="stat-number">171</div>
                     <div class="stat-label">特征维度</div>
                 </div>
             </div>
-            <a href="resources.html" class="nav-button">
+            <a href="docs-viewer.html?file=docs/01-quickstart.md" class="nav-button">
                 <span>📚</span>
-                <span>资源导航</span>
+                <span>文档阅读</span>
             </a>
         </header>
 
         <section class="learning-path">
             <h2 class="section-title">推荐学习路径</h2>
             <div class="path-steps">
-                <div class="path-step" data-step="1">
+                <div class="path-step" onclick="window.open('docs-viewer.html?file=docs/01-quickstart.md', '_blank')">
                     <div class="step-number">01</div>
-                    <div class="step-title">项目概述</div>
-                    <div class="step-desc">了解项目背景和架构</div>
+                    <div class="step-title">快速入门</div>
+                    <div class="step-desc">项目简介与环境搭建</div>
                 </div>
-                <div class="path-step" data-step="2">
+                <div class="path-step" onclick="window.open('docs-viewer.html?file=docs/02-architecture.md', '_blank')">
                     <div class="step-number">02</div>
-                    <div class="step-title">核心技术</div>
-                    <div class="step-desc">特征提取和模型原理</div>
+                    <div class="step-title">架构设计</div>
+                    <div class="step-desc">系统架构与技术选型</div>
                 </div>
-                <div class="path-step" data-step="3">
+                <div class="path-step" onclick="window.open('docs-viewer.html?file=docs/03-data-collection.md', '_blank')">
                     <div class="step-number">03</div>
-                    <div class="step-title">环境配置</div>
-                    <div class="step-desc">搭建开发环境</div>
+                    <div class="step-title">数据采集</div>
+                    <div class="step-desc">摄像头与视频采集</div>
                 </div>
-                <div class="path-step" data-step="4">
+                <div class="path-step" onclick="window.open('docs-viewer.html?file=docs/04-training.md', '_blank')">
                     <div class="step-number">04</div>
-                    <div class="step-title">代码实现</div>
-                    <div class="step-desc">深入阅读核心代码</div>
+                    <div class="step-title">模型训练</div>
+                    <div class="step-desc">训练评估推理流程</div>
                 </div>
-                <div class="path-step" data-step="5">
+                <div class="path-step" onclick="window.open('docs-viewer.html?file=docs/05-code-guide.md', '_blank')">
                     <div class="step-number">05</div>
-                    <div class="step-title">常见问题</div>
-                    <div class="step-desc">排查和解决问题</div>
+                    <div class="step-title">代码导读</div>
+                    <div class="step-desc">源码结构与扩展指南</div>
                 </div>
-                <div class="path-step" data-step="6">
+                <div class="path-step" onclick="window.open('docs-viewer.html?file=docs/06-design-patterns.md', '_blank')">
                     <div class="step-number">06</div>
                     <div class="step-title">设计模式</div>
-                    <div class="step-desc">学习架构设计</div>
+                    <div class="step-desc">架构与设计实践</div>
+                </div>
+                <div class="path-step" onclick="window.open('docs-viewer.html?file=docs/07-faq.md', '_blank')">
+                    <div class="step-number">07</div>
+                    <div class="step-title">常见问题</div>
+                    <div class="step-desc">环境/数据/模型排查</div>
+                </div>
+                <div class="path-step" onclick="window.open('docs-viewer.html?file=docs/08-testing.md', '_blank')">
+                    <div class="step-number">08</div>
+                    <div class="step-title">测试指南</div>
+                    <div class="step-desc">pytest与测试编写</div>
                 </div>
             </div>
         </section>
@@ -833,26 +843,32 @@
             <div class="learn-card animate-fadeInUp">
                 <div class="card-header">
                     <div class="card-icon">📋</div>
-                    <div class="card-title">项目文档</div>
+                    <div class="card-title">学习文档</div>
                 </div>
-                <div class="card-desc">系统整体架构设计说明，包含模块划分、数据流和接口定义。</div>
+                <div class="card-desc">从入门到进阶的系统性学习路径，按编号顺序阅读效果最佳。</div>
                 <ul class="learn-list">
                     <li class="learn-item">
-                        <a href="docs/architecture.md" target="_blank">
-                            <span>🏛️ 架构文档</span>
+                        <a href="docs-viewer.html?file=docs/01-quickstart.md" target="_blank">
+                            <span>🚀 快速入门</span>
+                            <span class="learn-badge">开始</span>
+                        </a>
+                    </li>
+                    <li class="learn-item">
+                        <a href="docs-viewer.html?file=docs/02-architecture.md" target="_blank">
+                            <span>🏛️ 架构设计</span>
                             <span class="learn-badge">必读</span>
                         </a>
                     </li>
                     <li class="learn-item">
-                        <a href="docs/data_collection.md" target="_blank">
-                            <span>📊 数据采集指南</span>
-                            <span class="learn-badge">重要</span>
+                        <a href="docs-viewer.html?file=docs/04-training.md" target="_blank">
+                            <span>🎯 模型训练</span>
+                            <span class="learn-badge">实战</span>
                         </a>
                     </li>
                     <li class="learn-item">
-                        <a href="docs/development.md" target="_blank">
-                            <span>🛠️ 开发指南</span>
-                            <span class="learn-badge">参考</span>
+                        <a href="docs-viewer.html?file=docs/07-faq.md" target="_blank">
+                            <span>❓ 常见问题</span>
+                            <span class="learn-badge">排错</span>
                         </a>
                     </li>
                 </ul>
@@ -861,26 +877,32 @@
             <div class="learn-card animate-fadeInUp delay-1">
                 <div class="card-header">
                     <div class="card-icon">📚</div>
-                    <div class="card-title">学习笔记</div>
+                    <div class="card-title">进阶阅读</div>
                 </div>
-                <div class="card-desc">面向国内自学新手的系统性学习资源，通俗易懂。</div>
+                <div class="card-desc">深入理解源码实现、设计模式和项目开发历程。</div>
                 <ul class="learn-list">
                     <li class="learn-item">
-                        <a href="docs/learning/01-项目概述.md" target="_blank">
-                            <span>📝 项目概述</span>
-                            <span class="learn-badge">入门</span>
+                        <a href="docs-viewer.html?file=docs/05-code-guide.md" target="_blank">
+                            <span>💻 核心代码导读</span>
+                            <span class="learn-badge">深入</span>
                         </a>
                     </li>
                     <li class="learn-item">
-                        <a href="docs/learning/02-核心技术解析.md" target="_blank">
-                            <span>🔬 核心技术</span>
+                        <a href="docs-viewer.html?file=docs/06-design-patterns.md" target="_blank">
+                            <span>🎨 设计模式</span>
                             <span class="learn-badge">进阶</span>
                         </a>
                     </li>
                     <li class="learn-item">
-                        <a href="docs/learning/03-环境配置指南.md" target="_blank">
-                            <span>⚙️ 环境配置</span>
-                            <span class="learn-badge">基础</span>
+                        <a href="docs-viewer.html?file=docs/journal/development.md" target="_blank">
+                            <span>🛠️ 开发历程</span>
+                            <span class="learn-badge">参考</span>
+                        </a>
+                    </li>
+                    <li class="learn-item">
+                        <a href="docs-viewer.html?file=docs/journal/experiments.md" target="_blank">
+                            <span>📊 实验记录</span>
+                            <span class="learn-badge">参考</span>
                         </a>
                     </li>
                 </ul>
@@ -1046,6 +1068,11 @@
         <footer>
             <p>聆心手语识别系统 - 让沟通无障碍</p>
             <p>Made with 💚 for the deaf community</p>
+            <p style="margin-top:16px;font-size:0.75rem;color:var(--text-muted);max-width:500px;margin-left:auto;margin-right:auto;line-height:1.8;">
+                💡 <strong>提示：</strong>直接用浏览器打开 HTML 文件可能无法加载 Markdown 文档（CORS 限制）。
+                推荐在项目根目录运行 <code style="background:var(--bg-secondary);padding:2px 6px;border-radius:4px;">python -m http.server 8080</code>
+                然后访问 <code style="background:var(--bg-secondary);padding:2px 6px;border-radius:4px;">http://localhost:8080</code> 获得完整体验。
+            </p>
         </footer>
     </div>
 
@@ -1059,18 +1086,19 @@
                     name: "docs",
                     type: "folder",
                     children: [
-                        { name: "learning", type: "folder", children: [
-                            { name: "01-项目概述.md", type: "file", badge: "doc" },
-                            { name: "02-核心技术解析.md", type: "file", badge: "doc" },
-                            { name: "03-环境配置指南.md", type: "file", badge: "doc" },
-                            { name: "04-代码实现详解.md", type: "file", badge: "doc" },
-                            { name: "05-常见问题解决方案.md", type: "file", badge: "doc" },
-                            { name: "06-设计模式应用.md", type: "file", badge: "doc" }
-                        ]},
-                        { name: "architecture.md", type: "file", badge: "doc" },
-                        { name: "data_collection.md", type: "file", badge: "doc" },
-                        { name: "development.md", type: "file", badge: "doc" },
-                        { name: "experiments.md", type: "file", badge: "doc" }
+                        { name: "README.md", type: "file", badge: "doc" },
+                        { name: "01-quickstart.md", type: "file", badge: "doc" },
+                        { name: "02-architecture.md", type: "file", badge: "doc" },
+                        { name: "03-data-collection.md", type: "file", badge: "doc" },
+                        { name: "04-training.md", type: "file", badge: "doc" },
+                        { name: "05-code-guide.md", type: "file", badge: "doc" },
+                        { name: "06-design-patterns.md", type: "file", badge: "doc" },
+                        { name: "07-faq.md", type: "file", badge: "doc" },
+                        { name: "08-testing.md", type: "file", badge: "doc" },
+                        { name: "journal", type: "folder", children: [
+                            { name: "development.md", type: "file", badge: "doc" },
+                            { name: "experiments.md", type: "file", badge: "doc" }
+                        ]}
                     ]
                 },
                 {
@@ -1095,18 +1123,29 @@
                     name: "src",
                     type: "folder",
                     children: [
+                        { name: "config.py", type: "file", badge: "py" },
+                        { name: "constants.py", type: "file", badge: "py" },
                         { name: "detection", type: "folder", children: [
-                            { name: "hand_detector.py", type: "file", badge: "py" },
-                            { name: "holistic_detector.py", type: "file", badge: "py" }
+                            { name: "hand_detector.py", type: "file", badge: "py" }
+                        ]},
+                        { name: "features", type: "folder", children: [
+                            { name: "feature_extractor.py", type: "file", badge: "py" },
+                            { name: "augmentation.py", type: "file", badge: "py" }
                         ]},
                         { name: "models", type: "folder", children: [
-                            { name: "svm_model.py", type: "file", badge: "py" },
+                            { name: "base_model.py", type: "file", badge: "py" },
+                            { name: "classifiers.py", type: "file", badge: "py" },
                             { name: "lstm_model.py", type: "file", badge: "py" },
                             { name: "transformer_model.py", type: "file", badge: "py" }
                         ]},
                         { name: "training", type: "folder", children: [
-                            { name: "trainer.py", type: "file", badge: "py" },
-                            { name: "train.py", type: "file", badge: "py" }
+                            { name: "trainer.py", type: "file", badge: "py" }
+                        ]},
+                        { name: "utils", type: "folder", children: [
+                            { name: "data_loader.py", type: "file", badge: "py" },
+                            { name: "logger.py", type: "file", badge: "py" },
+                            { name: "metrics.py", type: "file", badge: "py" },
+                            { name: "visualization.py", type: "file", badge: "py" }
                         ]}
                     ]
                 },
@@ -1115,6 +1154,7 @@
                     type: "folder",
                     children: [
                         { name: "collect_data.py", type: "file", badge: "py" },
+                        { name: "collect_from_video.py", type: "file", badge: "py" },
                         { name: "preprocess.py", type: "file", badge: "py" },
                         { name: "train.py", type: "file", badge: "py" },
                         { name: "evaluate.py", type: "file", badge: "py" },
@@ -1122,6 +1162,8 @@
                     ]
                 },
                 { name: "README.md", type: "file", badge: "doc" },
+                { name: "index.html", type: "file", badge: "doc" },
+                { name: "resources.html", type: "file", badge: "doc" },
                 { name: "environment.yml", type: "file", badge: "yml" },
                 { name: "requirements.txt", type: "file", badge: "txt" }
             ]

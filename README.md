@@ -419,14 +419,22 @@ conda activate lingxin
 
 | 文档 | 内容 |
 |------|------|
-| [架构设计](docs/architecture.md) | 系统架构、模块设计、技术选型 |
-| [数据采集指南](docs/data_collection.md) | 采集工具使用、常见问题 |
-| [开发记录](docs/development.md) | 项目历程、问题解决 |
-| [实验记录](docs/experiments.md) | 模型对比、参数调优 |
-| [学习笔记](docs/learning/) | 新手学习资料 |
+| [📖 文档中心](docs/README.md) | 文档导航、推荐学习路径 |
+| [01-快速入门](docs/01-quickstart.md) | 项目简介、环境搭建、5分钟体验 |
+| [02-架构设计](docs/02-architecture.md) | 系统架构、模块设计、技术选型 |
+| [03-数据采集指南](docs/03-data-collection.md) | 摄像头与视频批量采集全流程 |
+| [04-模型训练](docs/04-training.md) | 训练、评估、推理完整流程 |
+| [05-核心代码导读](docs/05-code-guide.md) | 源码结构、模块详解、扩展指南 |
+| [06-设计模式实践](docs/06-design-patterns.md) | 模板方法、字典映射、架构实践 |
+| [07-常见问题](docs/07-faq.md) | 环境/数据/模型问题排查 |
+| [08-测试指南](docs/08-testing.md) | pytest使用、测试编写、最佳实践 |
+| [开发历程](docs/journal/development.md) | 项目开发大事记 |
+| [实验记录](docs/journal/experiments.md) | 模型性能对比与调优 |
 
 ## 更新日志
 
+- **2026-06-11**: 新增测试指南文档（08-testing.md），包含 pytest 使用、测试编写、最佳实践
+- **2026-06-10**: 文档结构重组，新增7篇学习路径文档，优化阅读体验
 - **2026-06-01**: 升级MediaPipe至最新稳定版（>=0.10.33），迁移至Task API
 - **2026-05-15**: 完善README文档，添加conda环境配置文件
 - **2026-05-14**: 完成代码注释完善（src/和tools/目录）
