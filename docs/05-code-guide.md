@@ -38,7 +38,7 @@ from src.config import config
 
 # 路径访问
 print(config.raw_data_dir)        # data/raw/collected
-print(config.processed_data_dir)  # data/processed/csl_isolated
+print(config.processed_data_dir)  # data/processed
 
 # 训练参数
 print(config.default_epochs)      # 50
@@ -198,7 +198,6 @@ logger.error("模型加载失败")
 from src.utils.data_loader import DataLoader, parse_person_id
 
 # parse_person_id('J_001.npy') → 'J'
-# parse_person_id('CSL_001.npy') → 'CSL'
 # parse_person_id('user001_005.npy') → 'user001'
 
 loader = DataLoader(config.raw_data_dir)

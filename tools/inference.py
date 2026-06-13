@@ -79,7 +79,7 @@ class InferenceRunner:
         self.max_sequence_length = 30
 
     def run(self, model_type='svm', model_path=None,
-            class_labels_path='data/processed/csl_isolated/class_labels.npy'):
+            class_labels_path='data/processed/class_labels.npy'):
         """
         执行实时推理
 

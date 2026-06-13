@@ -102,7 +102,7 @@ class ProjectConfig:
         if self.raw_data_dir is None:
             self.raw_data_dir = self.data_dir / 'raw' / 'collected'
         if self.processed_data_dir is None:
-            self.processed_data_dir = self.data_dir / 'processed' / 'csl_isolated'
+            self.processed_data_dir = self.data_dir / 'processed'
         if self.vocab_path is None:
             self.vocab_path = self.data_dir / 'vocab.csv'
 

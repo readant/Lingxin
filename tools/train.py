@@ -16,7 +16,7 @@ TrainRunner - 训练入口
   python tools/train.py --model svm
 
   # 指定数据目录
-  python tools/train.py --model lstm --data data/processed/csl_isolated
+  python tools/train.py --model lstm --data data/processed
 """
 
 import os

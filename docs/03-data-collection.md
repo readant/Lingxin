@@ -20,14 +20,9 @@
 ```
 data/
 ├── vocab.csv                           # 自建词汇表（50个词）
-├── csl_vocab.csv                       # CSL数据集词汇表（~1058个词）
 ├── videos/                             # 待处理的视频文件（不被 git 追踪）
 │   ├── 你好_A_001.mp4                  # 自录视频（自由命名）
-│   ├── 谢谢_B_001.mp4
-│   └── CSL_basic_dataset/              # CSL公开数据集视频
-│       ├── 你好.mp4
-│       ├── 谢谢.mp4
-│       └── ...
+│   └── 谢谢_B_001.mp4
 └── raw/
     └── collected/                      # 采集输出目录
         ├── 你好/
@@ -38,8 +33,6 @@ data/
         │   └── ...
         ├── 谢谢/
         │   └── ...
-        ├── 三明治/                     # CSL数据集词汇
-        │   └── CSL_001.npy             # CSL表示来源为CSL数据集
         └── ...
 ```
 
@@ -229,7 +222,7 @@ data/videos/你好_A.mp4
 python tools/preprocess.py --summary
 ```
 
-输出示例（混合自采 + CSL数据集）：
+输出示例：
 
 ```
 ============================================================
@@ -238,13 +231,10 @@ python tools/preprocess.py --summary
   A: 50 samples (你好:10, 谢谢:10, 再见:10, ...)
   J: 2 samples (你好:2)
   L: 10 samples (你好:10)
-  CSL: 120 samples (三明治:1, 上午:1, 书:1, ...)
 
-总计: 4 人, 182 个样本
+总计: 3 人, 62 个样本
 ============================================================
 ```
-
-> **提示**：CSL 数据集视频采集后，人员ID默认为 `CSL`（可在 `collect_from_video.py` 中用 `--person-id` 覆盖），便于在数据分布中区分数据来源。
 
 ---
 
@@ -255,11 +245,8 @@ python tools/preprocess.py --summary
 #   方式A：摄像头手动采集
 python tools/collect_data.py
 
-#   方式B：视频文件批量导入（自录视频）
+#   方式B：视频文件批量导入
 python tools/collect_from_video.py -i data/videos/
-
-#   方式C：CSL公开数据集导入
-python tools/collect_from_video.py -i data/videos/CSL_basic_dataset/ -p CSL
 
 # 第2步：查看数据分布（可选）
 python tools/preprocess.py --summary
@@ -268,7 +255,7 @@ python tools/preprocess.py --summary
 #   --train-persons: 训练集人员（量多、来源广）
 #   --test-persons:  测试集人员（训练集中未出现过的人）
 python tools/preprocess.py --split-by-person \
-    --train-persons J L CSL \
+    --train-persons J L \
     --test-persons F
 
 # 第4步：训练
@@ -278,7 +265,7 @@ python tools/train.py --model lstm
 预处理输出：
 
 ```
-data/processed/csl_isolated/
+data/processed/
 ├── X_train.npy / y_train.npy      # 训练集（J + L 的数据）
 ├── X_test.npy / y_test.npy        # 测试集（F 的数据）
 ├── sequence_X_train.npy / ...     # 序列版本（深度学习用）

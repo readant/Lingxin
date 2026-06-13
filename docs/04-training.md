@@ -24,7 +24,7 @@ python tools/preprocess.py
 
 # 按人员划分（推荐：防止数据泄露）
 python tools/preprocess.py --split-by-person \
-    --train-persons J L CSL \
+    --train-persons J L \
     --test-persons F
 ```
 
@@ -33,7 +33,7 @@ python tools/preprocess.py --split-by-person \
 | 参数 | 说明 |
 |------|------|
 | `--input` | 原始数据目录（默认 `data/raw/collected`） |
-| `--output` | 输出目录（默认 `data/processed/csl_isolated`） |
+| `--output` | 输出目录（默认 `data/processed`） |
 | `--split-by-person` | 启用按人员划分模式 |
 | `--train-persons` | 训练集人员ID（空格分隔） |
 | `--val-persons` | 验证集人员ID（可选） |
@@ -43,7 +43,7 @@ python tools/preprocess.py --split-by-person \
 ### 输出文件
 
 ```
-data/processed/csl_isolated/
+data/processed/
 ├── X_train.npy / y_train.npy       # 训练集（普通特征，传统ML用）
 ├── X_val.npy / y_val.npy           # 验证集
 ├── X_test.npy / y_test.npy         # 测试集
@@ -69,7 +69,7 @@ python tools/train.py --model lstm
 python tools/train.py --model transformer
 
 # 指定数据目录
-python tools/train.py --model lstm --data data/processed/csl_isolated
+python tools/train.py --model lstm --data data/processed
 ```
 
 ### 工作机制
@@ -107,7 +107,7 @@ python tools/train.py --model lstm --data data/processed/csl_isolated
 python tools/evaluate.py --model lstm --checkpoint models/lstm_model.pth
 
 # 指定测试数据
-python tools/evaluate.py --model svm --checkpoint models/svm_model.pkl --data data/processed/csl_isolated
+python tools/evaluate.py --model svm --checkpoint models/svm_model.pkl --data data/processed
 ```
 
 ### 评估指标

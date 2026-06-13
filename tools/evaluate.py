@@ -237,6 +237,6 @@ class MetricsCalculator:
 
 if __name__ == '__main__':
     runner = EvaluateRunner()
-    data_dir = 'data/processed/csl_isolated'
+    data_dir = 'data/processed'
     model_type = input('请选择模型类型 (svm/rf/mlp/lstm/transformer): ')
     runner.run(data_dir, model_type)

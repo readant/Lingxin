@@ -13,13 +13,10 @@ Lingxin/                              # 项目根目录
 ├── config/                           # 配置文件（预留）
 ├── data/                             # 数据目录
 │   ├── vocab.csv                     # 自建词汇表（50个常用词汇）
-│   ├── csl_vocab.csv                 # CSL数据集词汇表（~1058个词汇）
 │   ├── videos/                       # 待处理视频文件（不被 git 追踪）
-│   │   └── CSL_basic_dataset/        # CSL公开数据集视频
 │   ├── raw/                          # 原始数据
 │   │   └── collected/                # 采集输出（按词汇分目录）
 │   └── processed/                    # 预处理后的训练数据
-│       └── csl_isolated/             # CSL孤立词预处理输出
 ├── docs/                             # 文档目录
 │   ├── learning/                     # 新手学习笔记
 │   ├── architecture.md               # 架构设计文档
@@ -71,9 +68,8 @@ Lingxin/                              # 项目根目录
 - **原始数据**：采集的手语视频和关键点数据
 - **词汇表**：
   - `data/vocab.csv`：自建词汇表，50个常用词汇（7大类别）
-  - `data/csl_vocab.csv`：CSL公开数据集词汇表，~1058个词汇
-- **视频文件**：`data/videos/` 目录，存放待处理的视频素材（CSL公开数据集等）
-- **预处理数据**：`data/processed/csl_isolated/`，按人员划分的训练/验证/测试集
+- **视频文件**：`data/videos/` 目录，存放待处理的视频素材
+- **预处理数据**：`data/processed/`，按人员划分的训练/验证/测试集
 
 ### 2. 检测层（Detection Layer）
 
