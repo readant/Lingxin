@@ -146,12 +146,12 @@ def section_4_hand_sign_example():
     # 模拟手语数据
     print("模拟手语数据:")
     print("- 100个样本")
-    print("- 每个样本171维特征（左手63 + 右手63 + 姿态45）")
+    print("- 每个样本71维特征（相对坐标63 + 手指长度4 + 关节角度4）")
     print("- 5个手势类别")
 
     np.random.seed(42)
     n_samples = 100
-    n_features = 171
+    n_features = 71  # 项目中SVM/RF/MLP使用71维提取特征
     n_classes = 5
 
     # 生成模拟数据（每个类别有不同的特征模式）

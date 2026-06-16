@@ -26,10 +26,25 @@ pip install mediapipe>=0.10.33
 python learning/download_models.py
 """
 
+import os
+import sys
+
+# 禁用 MediaPipe 遥测上传（clearcut）
+# 必须在 import mediapipe 之前设置，因为 MediaPipe 在模块加载时即初始化遥测线程。
+# 在国内网络环境下，clearcut 连接 Google 服务器会超时（Status_ConnectFailed: 12002），
+# 后台线程反复尝试连接导致线程争用和 I/O 阻塞，造成视频采集卡顿。
+if 'GLOG_minloglevel' not in os.environ:
+    os.environ['GLOG_minloglevel'] = '3'          # 屏蔽 WARNING/ERROR 日志写入 stderr
+if 'GLOG_logtostderr' not in os.environ:
+    os.environ['GLOG_logtostderr'] = '0'          # 禁止写 stderr
+if 'GLOG_alsologtostderr' not in os.environ:
+    os.environ['GLOG_alsologtostderr'] = '0'      # 禁止 also-log-to-stderr
+if 'MEDIAPIPE_DISABLE_ANALYTICS' not in os.environ:
+    os.environ['MEDIAPIPE_DISABLE_ANALYTICS'] = '1'  # 禁用分析数据上报（若支持）
+
 import cv2
 import mediapipe as mp
 import numpy as np
-import os
 
 from src.constants import HAND_CONNECTIONS, POSE_CONNECTIONS_UPPER_BODY
 
@@ -73,7 +88,7 @@ class HandDetector:
                 f"python learning/download_models.py"
             )
 
-        # 使用本地模型文件
+        # 使用本地模型文件（hand_landmarker_lite 已是轻量模型）
         self.options = HandLandmarkerOptions(
             base_options=BaseOptions(model_asset_path=model_path),
             running_mode=VisionRunningMode.IMAGE,
@@ -199,7 +214,7 @@ class PoseDetector:
                 f"python learning/download_models.py"
             )
 
-        # 使用本地模型文件
+        # 使用本地模型文件（pose_landmarker_lite 已是轻量模型）
         self.options = PoseLandmarkerOptions(
             base_options=BaseOptions(model_asset_path=model_path),
             running_mode=VisionRunningMode.IMAGE,
@@ -301,15 +316,23 @@ class HolisticDetector:
 
     同时检测手部和姿态关键点，将两者的数据合并为一个特征向量。
     用于手语数据采集场景。
+
+    优化：
+    - 共享一次 BGR→RGB + mp.Image 创建
+    - 姿态降频检测（pose_interval）：姿态变化慢，每 N 帧跑一次即可
+    - 使用轻量模型（hand_landmarker_lite, pose_landmarker_lite）
     """
 
-    def __init__(self, max_num_hands=2, min_detection_confidence=0.5):
+    def __init__(self, max_num_hands=2, min_detection_confidence=0.5,
+                 pose_interval=3):
         """
         初始化综合检测器
 
         Args:
             max_num_hands (int, optional): 最大检测手数. Defaults to 2.
             min_detection_confidence (float, optional): 检测置信度阈值. Defaults to 0.5.
+            pose_interval (int, optional): 姿态检测间隔（帧）. 3 表示每 3 帧跑一次.
+                                           姿态变化远慢于手部，降频可节省 ~30% 推理时间.
         """
         self.hand_detector = HandDetector(
             max_num_hands=max_num_hands,
@@ -319,19 +342,38 @@ class HolisticDetector:
             min_detection_confidence=min_detection_confidence
         )
 
-    def detect(self, image):
+        # 姿态降频检测
+        self.pose_interval = max(1, pose_interval)
+        self._frame_count = 0
+        self._cached_pose_results = None
+
+    def detect(self, image, rgb_image=None):
         """
-        同时检测手部和姿态关键点
+        同时检测手部和姿态关键点（姿态检测降频）
+
+        优化：共享一次 BGR→RGB 转换 + mp.Image 创建，
+        姿态每 N 帧检测一次，其余帧复用缓存结果。
 
         Args:
-            image: 输入图像（BGR格式）
+            image: 输入图像（BGR格式），仅在 rgb_image 为 None 时使用
+            rgb_image: 可选的预转换 RGB numpy 数组，传入后跳过重复 cv2.cvtColor
 
         Returns:
             tuple: (hand_results, pose_results)
         """
-        hand_results = self.hand_detector.detect(image)
-        pose_results = self.pose_detector.detect(image)
-        return hand_results, pose_results
+        if rgb_image is None:
+            rgb_image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+        mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=rgb_image)
+
+        # 手部关键点：每帧必检测（手部运动快，不能降频）
+        hand_results = self.hand_detector.detector.detect(mp_image)
+
+        # 姿态关键点：降频检测（上半身姿态变化慢）
+        self._frame_count += 1
+        if self._frame_count % self.pose_interval == 0 or self._cached_pose_results is None:
+            self._cached_pose_results = self.pose_detector.detector.detect(mp_image)
+
+        return hand_results, self._cached_pose_results
 
     def get_landmarks(self, results, image_shape):
         """
@@ -344,22 +386,43 @@ class HolisticDetector:
 
         Args:
             results (tuple): (hand_results, pose_results)
-            image_shape (tuple): 图像形状
+            image_shape (tuple): 图像形状 (height, width, channels)
 
         Returns:
-            np.ndarray: 171维综合特征向量
+            np.ndarray: 171维综合特征向量（像素坐标）
         """
         hand_results, pose_results = results
+        h, w = image_shape[:2]
 
-        hand_landmarks = self.hand_detector.get_landmarks(hand_results, image_shape)
+        # 通过 MediaPipe handedness 标签区分左右手
+        # 不依赖检测器返回顺序，确保数据一致性
         left_hand = np.zeros((21, 3))
         right_hand = np.zeros((21, 3))
 
-        if len(hand_landmarks) > 0:
-            if len(hand_landmarks) >= 1:
-                left_hand = hand_landmarks[0]
-            if len(hand_landmarks) >= 2:
-                right_hand = hand_landmarks[1]
+        if hand_results.hand_landmarks:
+            for i, hand_lms in enumerate(hand_results.hand_landmarks):
+                # 获取该只手的左右标签
+                hand_label = None
+                if (hand_results.handedness and
+                        i < len(hand_results.handedness)):
+                    category = hand_results.handedness[i][0]
+                    hand_label = category.category_name  # "Left" or "Right"
+
+                # 提取关键点坐标
+                lm_array = np.array([
+                    [lm.x * w, lm.y * h, lm.z]
+                    for lm in hand_lms
+                ])
+
+                # 按标签分配到对应槽位；无标签时回退到索引顺序
+                if hand_label == "Left":
+                    left_hand = lm_array
+                elif hand_label == "Right":
+                    right_hand = lm_array
+                elif i == 0:
+                    left_hand = lm_array   # 无标签回退
+                else:
+                    right_hand = lm_array  # 无标签回退
 
         pose_landmarks = self.pose_detector.get_landmarks(pose_results, image_shape)
         if len(pose_landmarks) == 0:

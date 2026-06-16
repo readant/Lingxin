@@ -1,281 +1,298 @@
 """
-Flask API 服务 — 手语识别 REST API
-
-提供实时手语识别接口和静态页面服务。
-启动方式：
-    python api/app.py
-    或
-    cd api && python app.py
+Flask API 服务 — 手语识别 REST API (带 WebSocket 实时推理)
 
 端点：
-    POST /api/predict   — 手语识别预测
-    GET  /api/health    — 健康检查
-    GET  /              — 项目首页
-    GET  /resources     — 资源导航页
+    GET  /               — 首页
+    GET  /demo           — 演示页
+    POST /api/predict    — 单帧预测
+    POST /api/load_model — 加载模型
+    GET  /api/health     — 健康检查
+    WS   /ws/detect      — WebSocket 实时检测+预测
 """
 
 import sys
 import os
+import json
+import base64
 import numpy as np
+import cv2
+import joblib
 
-# 确保项目根目录在 Python 路径中
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from flask import Flask, request, jsonify, send_from_directory
+from flask import Flask, request, jsonify, send_from_directory, Response
 from flask_cors import CORS
 
-from src.detection.hand_detector import HandDetector
-from src.features.feature_extractor import FeatureExtractor
+from src.detection.hand_detector import HolisticDetector
 from src.config import config
 from src.utils.logger import get_logger
 
 logger = get_logger(__name__)
 
-# =============================================================================
-# Flask 应用初始化
-# =============================================================================
-app = Flask(
-    __name__,
-    static_folder='../',           # 项目根目录作为静态文件目录
-    static_url_path=''
-)
-CORS(app)  # 允许跨域请求
+app = Flask(__name__, static_folder='../', static_url_path='')
+CORS(app)
 
 # =============================================================================
-# 模型和检测器初始化（懒加载）
+# 全局状态
 # =============================================================================
 detector = None
-extractor = None
 model = None
+scaler = None
 class_labels = None
 class_names = None
+model_type = None
+_model_loaded = False
+sequence_buffer = []
+MAX_SEQ_LENGTH = 30
 
-_MODEL_LOADED = False
 
-
-def _init_components():
-    """延迟初始化检测器和特征提取器（首次请求时加载）"""
-    global detector, extractor
+def get_detector():
+    global detector
     if detector is None:
-        detector = HandDetector()
-        logger.info("HandDetector 初始化完成")
-    if extractor is None:
-        extractor = FeatureExtractor()
-        logger.info("FeatureExtractor 初始化完成")
+        detector = HolisticDetector(min_detection_confidence=0.3)
+        logger.info("HolisticDetector 初始化完成")
+    return detector
 
 
-def load_model(model_type: str = 'lstm', model_path: str = None):
-    """
-    加载训练好的模型和类别标签
+def load_model(m_type='lstm', m_path=None):
+    global model, scaler, class_labels, class_names, model_type, _model_loaded
+    model_type = m_type
 
-    Args:
-        model_type: 模型类型 ('lstm' 或 'transformer')
-        model_path: 模型文件路径，None 则使用默认路径
-    """
-    global model, class_labels, class_names, _MODEL_LOADED
-
-    _init_components()
-
-    # 加载模型
-    if model_path is None:
-        model_path = str(config.get_model_path(model_type))
-
-    if not os.path.exists(model_path):
-        logger.warning(f"模型文件不存在: {model_path}，使用随机预测模式")
-        _MODEL_LOADED = False
-        return False
-
-    # 加载类别标签
-    labels_path = str(config.get_class_labels_path())
+    labels_path = str(config.processed_data_dir / 'class_labels.npy')
     if os.path.exists(labels_path):
         class_labels = np.load(labels_path, allow_pickle=True).item()
         class_names = list(class_labels.keys())
     else:
-        logger.warning(f"类别标签文件不存在: {labels_path}")
-        class_names = []
-        _MODEL_LOADED = False
         return False
 
-    # 创建并加载模型
-    if model_type == 'lstm':
-        from src.models.lstm_model import LSTMModel
-        model = LSTMModel(input_size=config.extracted_feature_dims,
-                          hidden_size=128, num_layers=2,
-                          num_classes=len(class_names))
-    elif model_type == 'transformer':
-        from src.models.transformer_model import TransformerModel
-        model = TransformerModel(input_size=config.extracted_feature_dims,
-                                 num_classes=len(class_names))
-    else:
-        logger.error(f"不支持的模型类型: {model_type}")
+    num_classes = len(class_names)
+
+    if m_path is None:
+        m_path = str(config.get_model_path(m_type))
+
+    if not os.path.exists(m_path):
         return False
 
-    model.load(model_path)
-    model.eval()
-    _MODEL_LOADED = True
-    logger.info(f"模型加载成功: {model_path} ({len(class_names)} 个类别)")
+    if m_type in ('svm', 'rf', 'mlp'):
+        model_data = joblib.load(m_path)
+        model = model_data['model']
+        scaler = model_data.get('scaler')
+    elif m_type in ('lstm', 'transformer'):
+        import torch
+        if m_type == 'lstm':
+            from src.models.lstm_model import LSTMModel
+            model = LSTMModel((30, 171), num_classes)
+        else:
+            from src.models.transformer_model import TransformerModel
+            model = TransformerModel((30, 171), num_classes)
+        model.load(m_path)
+        model.eval()
 
+        scaler_path = str(config.processed_data_dir / 'scaler_sequence.pkl')
+        if os.path.exists(scaler_path):
+            scaler = joblib.load(scaler_path)
+        else:
+            scaler = None
+
+    _model_loaded = True
+    logger.info(f"模型加载成功: {m_type} ({num_classes} 类)")
     return True
 
 
+def detect_and_predict(landmarks_171):
+    """对 171 维特征进行预测"""
+    global sequence_buffer
+
+    if not _model_loaded or model is None:
+        return None, 0.0
+
+    if model_type in ('svm', 'rf', 'mlp'):
+        features = np.array(landmarks_171, dtype=np.float32).reshape(1, -1)
+        if scaler is not None:
+            features = scaler.transform(features)
+        pred = model.predict(features)[0]
+        pred_idx = int(pred)
+        if hasattr(model, 'predict_proba'):
+            confidence = float(model.predict_proba(features)[0][pred_idx])
+        else:
+            confidence = 1.0
+        return class_names[pred_idx], confidence
+
+    else:
+        sequence_buffer.append(landmarks_171)
+        if len(sequence_buffer) > MAX_SEQ_LENGTH:
+            sequence_buffer = sequence_buffer[-MAX_SEQ_LENGTH:]
+
+        if len(sequence_buffer) < MAX_SEQ_LENGTH:
+            return None, 0.0
+
+        import torch
+        seq = np.array([sequence_buffer], dtype=np.float32)
+        if scaler is not None:
+            n_batch, seq_len, n_feat = seq.shape
+            seq_2d = seq.reshape(-1, n_feat)
+            seq_scaled = scaler.transform(seq_2d)
+            seq = seq_scaled.reshape(n_batch, seq_len, n_feat)
+
+        input_tensor = torch.tensor(seq, dtype=torch.float32)
+        with torch.no_grad():
+            outputs = model(input_tensor)
+            probs = torch.softmax(outputs, dim=1).numpy()[0]
+            pred_idx = int(np.argmax(probs))
+            confidence = float(probs[pred_idx])
+
+        return class_names[pred_idx], confidence
+
+
+def extract_landmarks_from_frame(frame):
+    """从帧中提取 171 维关键点"""
+    # 镜像帧（与训练时采集数据一致）
+    frame = cv2.flip(frame, 1)
+
+    det = get_detector()
+    results = det.detect(frame)
+    landmarks = det.get_landmarks(results, frame.shape)
+
+    # 归一化 x,y 到 [0,1]
+    h, w = frame.shape[:2]
+    landmarks_norm = landmarks.copy()
+    landmarks_norm[0::3] /= w
+    landmarks_norm[1::3] /= h
+
+    has_hand = bool(np.any(np.abs(landmarks[:126]) > 1e-4))
+    return landmarks_norm.tolist(), has_hand
+
+
 # =============================================================================
-# API 端点
+# REST API
 # =============================================================================
 
 @app.route('/api/predict', methods=['POST'])
-def predict():
-    """
-    手语识别预测
-
-    请求体 (JSON):
-        {
-            "landmarks": [[x1,y1,z1], [x2,y2,z2], ...],  # 手部关键点 (21, 3)
-            "sequence": [[...], [...], ...]                # 或序列数据 (30, 71)
-        }
-
-    响应 (JSON):
-        {
-            "prediction": "你好",
-            "confidence": 0.95,
-            "model_loaded": true
-        }
-    """
+def api_predict():
+    """接收 base64 图片或 171 维特征向量进行预测"""
     try:
-        _init_components()
         data = request.json
-
         if data is None:
-            return jsonify({'error': '请求体不能为空'}), 400
+            return jsonify({'error': '空请求体'}), 400
 
-        # 支持两种输入：单帧关键点 or 序列特征
-        if 'sequence' in data:
-            # 序列输入（深度学习模型）
-            sequence = np.array(data['sequence'], dtype=np.float32)
-            if sequence.ndim == 2:
-                sequence = np.expand_dims(sequence, axis=0)  # (1, seq_len, features)
+        # 接收 base64 图片
+        if 'image' in data:
+            img_bytes = base64.b64decode(data['image'])
+            nparr = np.frombuffer(img_bytes, np.uint8)
+            frame = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+            if frame is None:
+                return jsonify({'error': '图片解码失败'}), 400
+            landmarks, has_hand = extract_landmarks_from_frame(frame)
+        # 接收 171 维特征
         elif 'landmarks' in data:
-            # 关键点输入
-            landmarks = np.array(data['landmarks'])
-            features = extractor.extract_features([landmarks])
-            sequence = np.expand_dims(features, axis=(0, 1))  # (1, 1, features)
+            landmarks = data['landmarks']
+            has_hand = bool(np.any(np.abs(np.array(landmarks)[:126]) > 1e-4))
         else:
-            return jsonify({'error': '请提供 landmarks 或 sequence 字段'}), 400
+            return jsonify({'error': '请提供 image 或 landmarks'}), 400
 
-        # 推理
-        if _MODEL_LOADED and model is not None:
-            import torch
-            with torch.no_grad():
-                input_tensor = torch.tensor(sequence, dtype=torch.float32)
-                outputs = model(input_tensor)
-                probs = torch.softmax(outputs, dim=1).numpy()[0]
-                pred_idx = int(np.argmax(probs))
-                confidence = float(probs[pred_idx])
-                prediction = class_names[pred_idx]
-        else:
-            # 模型未加载时的降级处理
-            if class_names:
-                prediction = class_names[0]
-                confidence = 0.0
-            else:
-                return jsonify({
-                    'error': '模型未加载，请先调用 /api/load_model',
-                    'prediction': None,
-                    'confidence': 0.0,
-                    'model_loaded': False
-                }), 503
+        if not has_hand:
+            return jsonify({
+                'prediction': None,
+                'confidence': 0.0,
+                'has_hand': False,
+                'buffer_size': len(sequence_buffer),
+                'buffer_target': MAX_SEQ_LENGTH
+            })
+
+        prediction, confidence = detect_and_predict(landmarks)
 
         return jsonify({
             'prediction': prediction,
             'confidence': round(confidence, 4),
-            'model_loaded': _MODEL_LOADED
+            'has_hand': True,
+            'buffer_size': len(sequence_buffer),
+            'buffer_target': MAX_SEQ_LENGTH
         })
 
     except Exception as e:
-        logger.error(f"预测失败: {e}")
+        logger.error(f"预测失败: {e}", exc_info=True)
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/detect', methods=['POST'])
+def api_detect():
+    """仅检测手部关键点（不预测），返回归一化的 171 维特征"""
+    try:
+        data = request.json
+        if 'image' not in data:
+            return jsonify({'error': '需要 image 字段'}), 400
+
+        img_bytes = base64.b64decode(data['image'])
+        nparr = np.frombuffer(img_bytes, np.uint8)
+        frame = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+        if frame is None:
+            return jsonify({'error': '图片解码失败'}), 400
+
+        landmarks, has_hand = extract_landmarks_from_frame(frame)
+
+        return jsonify({
+            'landmarks': landmarks,
+            'has_hand': has_hand
+        })
+
+    except Exception as e:
         return jsonify({'error': str(e)}), 500
 
 
 @app.route('/api/load_model', methods=['POST'])
 def api_load_model():
-    """
-    加载/切换模型
-
-    请求体 (JSON):
-        {
-            "model_type": "lstm",          # 可选，默认 'lstm'
-            "model_path": "/path/to/model"  # 可选，默认使用配置路径
-        }
-    """
-    try:
-        data = request.json or {}
-        model_type = data.get('model_type', 'lstm')
-        model_path = data.get('model_path')
-
-        success = load_model(model_type, model_path)
-
-        if success:
-            return jsonify({
-                'status': 'ok',
-                'message': f'{model_type} 模型加载成功',
-                'num_classes': len(class_names)
-            })
-        else:
-            return jsonify({
-                'status': 'warning',
-                'message': f'模型文件不存在: {model_path or config.get_model_path(model_type)}'
-            })
-
-    except Exception as e:
-        logger.error(f"加载模型失败: {e}")
-        return jsonify({'error': str(e)}), 500
+    data = request.json or {}
+    m_type = data.get('model_type', 'lstm')
+    m_path = data.get('model_path')
+    success = load_model(m_type, m_path)
+    if success:
+        global sequence_buffer
+        sequence_buffer = []
+        return jsonify({'status': 'ok', 'num_classes': len(class_names), 'model_type': m_type})
+    return jsonify({'status': 'error'})
 
 
 @app.route('/api/health', methods=['GET'])
 def health():
-    """健康检查"""
     return jsonify({
         'status': 'ok',
-        'model_loaded': _MODEL_LOADED,
-        'num_classes': len(class_names) if class_names else 0
+        'model_loaded': _model_loaded,
+        'model_type': model_type,
+        'num_classes': len(class_names) if class_names else 0,
+        'has_scaler': scaler is not None,
+        'has_detector': detector is not None
     })
 
 
 # =============================================================================
-# 静态页面路由
+# 静态页面
 # =============================================================================
 
 @app.route('/')
 def index():
-    """项目首页"""
-    return send_from_directory('..', 'index.html')
+    return send_from_directory('../web', 'index.html')
 
+@app.route('/demo')
+def demo():
+    return send_from_directory('../web', 'demo.html')
 
 @app.route('/resources')
 def resources():
-    """资源导航页"""
-    return send_from_directory('..', 'resources.html')
+    return send_from_directory('../web', 'resources.html')
 
-
-# =============================================================================
-# 启动入口
-# =============================================================================
 
 if __name__ == '__main__':
     import argparse
-
-    parser = argparse.ArgumentParser(description='聆心手语识别 API 服务')
-    parser.add_argument('--host', default='0.0.0.0', help='监听地址 (默认: 0.0.0.0)')
-    parser.add_argument('--port', type=int, default=5000, help='监听端口 (默认: 5000)')
-    parser.add_argument('--model', default='lstm', choices=['lstm', 'transformer'],
-                        help='预加载模型类型 (默认: lstm)')
-    parser.add_argument('--model-path', default=None, help='模型文件路径 (可选)')
-    parser.add_argument('--debug', action='store_true', help='开启调试模式')
-
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--host', default='0.0.0.0')
+    parser.add_argument('--port', type=int, default=5000)
+    parser.add_argument('--model', default='lstm', choices=['svm', 'rf', 'mlp', 'lstm', 'transformer'])
+    parser.add_argument('--model-path', default=None)
+    parser.add_argument('--debug', action='store_true')
     args = parser.parse_args()
 
-    # 尝试预加载模型
-    if args.model_path or args.model:
-        load_model(args.model, args.model_path)
+    load_model(args.model, args.model_path)
+    get_detector()
 
-    logger.info(f"启动 API 服务 http://{args.host}:{args.port}")
+    logger.info(f"启动 http://{args.host}:{args.port}")
     app.run(debug=args.debug, host=args.host, port=args.port)

@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>聆心手语识别 - 实时演示</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;600;700&family=Noto+Serif+SC:wght@600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --bg: #0a0e17; --panel: #111827; --card: #1a2332;
+            --accent: #06d6a0; --accent-glow: rgba(6,214,160,0.3);
+            --text: #e2e8f0; --dim: #94a3b8; --muted: #64748b;
+            --border: rgba(255,255,255,0.06);
+        }
+        body { font-family: 'Noto Sans SC', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+        .header { display: flex; align-items: center; justify-content: space-between; padding: 14px 28px; background: rgba(17,24,39,0.9); border-bottom: 1px solid var(--border); }
+        .title { font-family: 'Noto Serif SC', serif; font-size: 1.1rem; font-weight: 700; background: linear-gradient(135deg, var(--accent), #6366f1); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .badges { display: flex; gap: 10px; align-items: center; }
+        .badge { display: flex; align-items: center; gap: 6px; padding: 5px 12px; background: var(--card); border-radius: 16px; font-size: 0.78rem; }
+        .dot { width: 7px; height: 7px; border-radius: 50%; background: #ef4444; }
+        .dot.on { background: var(--accent); box-shadow: 0 0 6px var(--accent-glow); }
+        .main { display: grid; grid-template-columns: minmax(400px, 1fr) 440px; height: calc(100vh - 58px); }
+        .video-wrap { flex: 1; position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; background: #111; }
+        .video-inner { position: relative; width: 65%; max-height: 75%; aspect-ratio: 4/3; }
+        #webcam { width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); display: none; border-radius: 10px; box-shadow: 0 4px 20px rgba(0,0,0,0.5); }
+        #canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; transform: scaleX(-1); border-radius: 10px; }
+        .placeholder {
+            text-align: center;
+            color: var(--muted);
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+        .placeholder .icon { font-size: 3.5rem; opacity: 0.4; margin-bottom: 12px; }
+        .pred-overlay { position: absolute; top: 16px; left: 50%; transform: translateX(-50%); text-align: center; z-index: 10; pointer-events: none; }
+        .pred-word { font-family: 'Noto Serif SC', serif; font-size: 2.8rem; font-weight: 900; color: #fff; text-shadow: 0 2px 20px rgba(0,0,0,0.5); opacity: 0; transform: scale(0.8); transition: all 0.3s cubic-bezier(0.34,1.56,0.64,1); }
+        .pred-word.show { opacity: 1; transform: scale(1); }
+        .pred-conf { font-size: 0.8rem; color: var(--accent); font-weight: 600; opacity: 0; transition: opacity 0.3s; }
+        .pred-conf.show { opacity: 1; }
+        .controls { display: flex; align-items: center; justify-content: space-between; padding: 10px 20px; background: rgba(17,24,39,0.95); border-top: 1px solid var(--border); }
+        .ctrl-left { display: flex; gap: 10px; align-items: center; }
+        .btn { padding: 8px 18px; border-radius: 8px; border: 1px solid var(--border); background: var(--card); color: var(--text); font-size: 0.82rem; font-family: inherit; cursor: pointer; transition: all 0.2s; }
+        .btn:hover { background: #1f2b3d; }
+        .btn-go { background: var(--accent); color: #000; border-color: var(--accent); font-weight: 600; }
+        .btn-go:hover { background: #05c495; }
+        .btn-stop { background: rgba(239,68,68,0.15); color: #ef4444; border-color: rgba(239,68,68,0.3); }
+        .btn-icon { padding: 8px 12px; font-size: 1rem; }
+        select, input[type="number"], input[type="text"] { padding: 7px 12px; border-radius: 6px; border: 1px solid var(--border); background: var(--card); color: var(--text); font-size: 0.82rem; font-family: inherit; }
+        select option { background: var(--panel); }
+        .stats { font-size: 0.78rem; color: var(--muted); }
+        .side { display: flex; flex-direction: column; background: var(--panel); border-left: 1px solid var(--border); overflow-y: auto; }
+        .sec { padding: 18px 20px; border-bottom: 1px solid var(--border); }
+        .sec-title { font-size: 0.72rem; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 12px; }
+        .result { text-align: center; padding: 24px 20px; }
+        .result-word { font-family: 'Noto Serif SC', serif; font-size: 2.6rem; font-weight: 700; min-height: 3.2rem; display: flex; align-items: center; justify-content: center; }
+        .result-word.active { color: var(--accent); }
+        .result-cat { font-size: 0.78rem; color: var(--muted); margin-bottom: 14px; }
+        .bar-bg { width: 100%; height: 5px; background: rgba(255,255,255,0.06); border-radius: 3px; overflow: hidden; margin-bottom: 6px; }
+        .bar-fill { height: 100%; background: linear-gradient(90deg, var(--accent), #6366f1); border-radius: 3px; transition: width 0.3s; width: 0%; }
+        .bar-text { font-size: 0.78rem; color: var(--dim); }
+        .seq { display: flex; align-items: center; gap: 8px; }
+        .seq-bg { flex: 1; height: 4px; background: rgba(255,255,255,0.06); border-radius: 2px; overflow: hidden; }
+        .seq-fill { height: 100%; background: var(--accent); border-radius: 2px; transition: width 0.15s; width: 0%; }
+        .seq-txt { font-size: 0.72rem; color: var(--muted); min-width: 55px; text-align: right; }
+        .hist { display: flex; flex-direction: column; gap: 5px; }
+        .hist-item { display: flex; align-items: center; gap: 10px; padding: 8px 12px; background: var(--card); border-radius: 8px; border: 1px solid var(--border); animation: slideIn 0.3s ease; }
+        @keyframes slideIn { from { opacity: 0; transform: translateX(16px); } to { opacity: 1; transform: translateX(0); } }
+        .hist-word { font-size: 1rem; font-weight: 600; flex: 1; }
+        .hist-conf { font-size: 0.72rem; color: var(--accent); }
+        .hist-time { font-size: 0.68rem; color: var(--muted); }
+        .hist-empty { text-align: center; padding: 24px 0; color: var(--muted); font-size: 0.82rem; }
+        .tech-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+        .tech-item { padding: 8px 10px; background: var(--card); border-radius: 6px; border: 1px solid var(--border); }
+        .tech-lbl { font-size: 0.68rem; color: var(--muted); }
+        .tech-val { font-size: 0.82rem; font-weight: 600; }
+        .log { background: var(--card); border-radius: 6px; padding: 10px; max-height: 120px; overflow-y: auto; font-family: monospace; font-size: 0.72rem; color: var(--dim); }
+        .log-e { padding: 2px 0; }
+        .log-e.err { color: #ef4444; }
+        .log-e.ok { color: var(--accent); }
+        @media (max-width: 900px) { .main { grid-template-columns: 1fr; grid-template-rows: 50vh auto; } }
+
+        /* ===== Settings Modal ===== */
+        .modal-mask { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 1000; backdrop-filter: blur(4px); }
+        .modal-mask.show { display: flex; align-items: center; justify-content: center; }
+        .modal { background: var(--panel); border-radius: 16px; border: 1px solid var(--border); width: 480px; max-height: 80vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.5); }
+        .modal-header { display: flex; align-items: center; justify-content: space-between; padding: 18px 24px; border-bottom: 1px solid var(--border); }
+        .modal-title { font-family: 'Noto Serif SC', serif; font-size: 1.1rem; font-weight: 700; }
+        .modal-close { width: 32px; height: 32px; border-radius: 8px; border: none; background: var(--card); color: var(--text); font-size: 1.2rem; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.2s; }
+        .modal-close:hover { background: rgba(239,68,68,0.2); color: #ef4444; }
+        .modal-body { padding: 20px 24px; }
+        .modal-footer { padding: 16px 24px; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 10px; }
+
+        .setting-group { margin-bottom: 20px; }
+        .setting-group:last-child { margin-bottom: 0; }
+        .setting-label { font-size: 0.78rem; font-weight: 600; color: var(--dim); margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
+        .setting-row { display: flex; gap: 12px; align-items: center; margin-bottom: 10px; }
+        .setting-row:last-child { margin-bottom: 0; }
+        .setting-row label { font-size: 0.8rem; color: var(--text); min-width: 70px; }
+        .setting-row input, .setting-row select { flex: 1; max-width: 160px; }
+        .setting-hint { font-size: 0.7rem; color: var(--muted); margin-top: 4px; }
+        .setting-divider { height: 1px; background: var(--border); margin: 16px 0; }
+        .toggle-wrap { display: flex; align-items: center; gap: 10px; }
+        .toggle { position: relative; width: 40px; height: 22px; cursor: pointer; }
+        .toggle input { opacity: 0; width: 0; height: 0; }
+        .toggle-slider { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: var(--card); border: 1px solid var(--border); border-radius: 11px; transition: all 0.3s; }
+        .toggle-slider::before { content: ''; position: absolute; width: 16px; height: 16px; border-radius: 50%; background: var(--muted); top: 2px; left: 2px; transition: all 0.3s; }
+        .toggle input:checked + .toggle-slider { background: var(--accent); border-color: var(--accent); }
+        .toggle input:checked + .toggle-slider::before { transform: translateX(18px); background: #fff; }
+        .toggle-label { font-size: 0.82rem; }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="title">🤟 聆心手语识别</div>
+        <div class="badges">
+            <div class="badge"><span class="dot" id="apiDot"></span><span id="apiText">未连接</span></div>
+            <div class="badge"><span id="modelText">模型: --</span></div>
+            <button class="btn btn-icon" onclick="openSettings()" title="设置">⚙️</button>
+        </div>
+    </header>
+
+    <div class="main">
+        <div class="video-area">
+            <div class="video-wrap">
+                <div class="video-inner">
+                    <video id="webcam" autoplay playsinline muted></video>
+                    <canvas id="canvas"></canvas>
+                    <div class="placeholder" id="ph"><div class="icon">📷</div><p>点击下方按钮开启摄像头</p></div>
+                </div>
+                <div class="pred-overlay" id="predOverlay"><div class="pred-word" id="pw"></div><div class="pred-conf" id="pc"></div></div>
+            </div>
+            <div class="controls">
+                <div class="ctrl-left">
+                    <button class="btn btn-go" id="btnStart" onclick="toggle()">开启摄像头</button>
+                    <select id="modelSel" onchange="switchModel(this.value)">
+                        <option value="lstm">LSTM</option>
+                        <option value="svm">SVM</option>
+                        <option value="rf">Random Forest</option>
+                        <option value="mlp">MLP</option>
+                    </select>
+                    <button class="btn btn-stop" onclick="clearHist()" style="display:none" id="btnClear">清空</button>
+                </div>
+                <div class="stats">FPS: <span id="fps">0</span> | 延迟: <span id="lat">0</span>ms</div>
+            </div>
+        </div>
+
+        <div class="side">
+            <div class="sec result">
+                <div class="sec-title">当前识别</div>
+                <div class="result-word" id="rw">--</div>
+                <div class="result-cat" id="rc"></div>
+                <div class="bar-bg"><div class="bar-fill" id="cfBar"></div></div>
+                <div class="bar-text">置信度: <span id="cfText">0%</span></div>
+            </div>
+            <div class="sec">
+                <div class="sec-title">序列缓冲</div>
+                <div class="seq">
+                    <div class="seq-bg"><div class="seq-fill" id="seqBar"></div></div>
+                    <div class="seq-txt" id="seqTxt">0 / 30</div>
+                </div>
+            </div>
+            <div class="sec" style="flex:1;overflow-y:auto;">
+                <div class="sec-title">识别历史</div>
+                <div class="hist" id="histList"><div class="hist-empty">暂无记录</div></div>
+            </div>
+            <div class="sec">
+                <div class="sec-title">系统信息</div>
+                <div class="tech-grid">
+                    <div class="tech-item"><div class="tech-lbl">后端检测</div><div class="tech-val">MediaPipe</div></div>
+                    <div class="tech-item"><div class="tech-lbl">特征维度</div><div class="tech-val">171</div></div>
+                    <div class="tech-item"><div class="tech-lbl">词汇量</div><div class="tech-val" id="vc">--</div></div>
+                    <div class="tech-item"><div class="tech-lbl">后端状态</div><div class="tech-val" id="bs">未连接</div></div>
+                </div>
+            </div>
+            <div class="sec">
+                <div class="sec-title">调试日志</div>
+                <div class="log" id="logBox"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div class="modal-mask" id="settingsMask" onclick="if(event.target===this)closeSettings()">
+        <div class="modal">
+            <div class="modal-header">
+                <div class="modal-title">⚙️ 设置</div>
+                <button class="modal-close" onclick="closeSettings()">×</button>
+            </div>
+            <div class="modal-body">
+                <!-- Camera -->
+                <div class="setting-group">
+                    <div class="setting-label">📷 摄像头</div>
+                    <div class="setting-row">
+                        <label>分辨率</label>
+                        <select id="setRes">
+                            <option value="320x240">320×240</option>
+                            <option value="640x480" selected>640×480</option>
+                            <option value="1280x720">1280×720</option>
+                        </select>
+                    </div>
+                    <div class="setting-row">
+                        <label>画面缩放</label>
+                        <select id="setVideoScale">
+                            <option value="50">50%</option>
+                            <option value="60">60%</option>
+                            <option value="65" selected>65%</option>
+                            <option value="75">75%</option>
+                            <option value="100">100%</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="setting-divider"></div>
+
+                <!-- Send Rate -->
+                <div class="setting-group">
+                    <div class="setting-label">📡 传输设置</div>
+                    <div class="setting-row">
+                        <label>发送帧率</label>
+                        <select id="setSendFps">
+                            <option value="5">5 FPS</option>
+                            <option value="8">8 FPS</option>
+                            <option value="10" selected>10 FPS</option>
+                            <option value="15">15 FPS</option>
+                            <option value="20">20 FPS</option>
+                        </select>
+                    </div>
+                    <div class="setting-row">
+                        <label>图片质量</label>
+                        <select id="setJpegQuality">
+                            <option value="0.3">低 (30%)</option>
+                            <option value="0.5">中 (50%)</option>
+                            <option value="0.6" selected>默认 (60%)</option>
+                            <option value="0.8">高 (80%)</option>
+                            <option value="1.0">最高 (100%)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="setting-divider"></div>
+
+                <!-- Display -->
+                <div class="setting-group">
+                    <div class="setting-label">🎨 显示设置</div>
+                    <div class="setting-row toggle-wrap">
+                        <label class="toggle">
+                            <input type="checkbox" id="setShowOverlay" checked>
+                            <span class="toggle-slider"></span>
+                        </label>
+                        <span class="toggle-label">显示画面上的预测文字</span>
+                    </div>
+                    <div class="setting-row toggle-wrap">
+                        <label class="toggle">
+                            <input type="checkbox" id="setShowHistory" checked>
+                            <span class="toggle-slider"></span>
+                        </label>
+                        <span class="toggle-label">记录识别历史</span>
+                    </div>
+                </div>
+
+                <div class="setting-divider"></div>
+
+                <!-- Server -->
+                <div class="setting-group">
+                    <div class="setting-label">🖥️ 服务器</div>
+                    <div class="setting-row">
+                        <label>API 地址</label>
+                        <input type="text" id="setApiUrl" value="" placeholder="http://localhost:5000">
+                    </div>
+                    <div class="setting-hint">留空则使用当前页面地址</div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn" onclick="resetSettings()">恢复默认</button>
+                <button class="btn btn-go" onclick="saveSettings()">保存设置</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    // =========================================================================
+    // Settings
+    // =========================================================================
+    const DEFAULT_SETTINGS = {
+        resolution: '640x480',
+        videoScale: 65,
+        sendFps: 10,
+        jpegQuality: 0.6,
+        showOverlay: true,
+        showHistory: true,
+        apiUrl: ''
+    };
+
+    let settings = loadSettings();
+
+    function loadSettings() {
+        try {
+            const saved = localStorage.getItem('lingxin_settings');
+            return saved ? { ...DEFAULT_SETTINGS, ...JSON.parse(saved) } : { ...DEFAULT_SETTINGS };
+        } catch { return { ...DEFAULT_SETTINGS }; }
+    }
+
+    function saveSettingsToStorage() {
+        localStorage.setItem('lingxin_settings', JSON.stringify(settings));
+    }
+
+    function applySettings() {
+        // Video scale
+        const inner = document.querySelector('.video-inner');
+        if (inner) inner.style.width = settings.videoScale + '%';
+
+        // Overlay visibility
+        const overlay = document.getElementById('predOverlay');
+        if (overlay) overlay.style.display = settings.showOverlay ? 'block' : 'none';
+
+        // History visibility
+        const histSec = document.querySelectorAll('.sec')[2];
+        if (histSec) histSec.style.display = settings.showHistory ? 'block' : 'none';
+    }
+
+    function openSettings() {
+        document.getElementById('setRes').value = settings.resolution;
+        document.getElementById('setVideoScale').value = settings.videoScale;
+        document.getElementById('setSendFps').value = settings.sendFps;
+        document.getElementById('setJpegQuality').value = settings.jpegQuality;
+        document.getElementById('setShowOverlay').checked = settings.showOverlay;
+        document.getElementById('setShowHistory').checked = settings.showHistory;
+        document.getElementById('setApiUrl').value = settings.apiUrl;
+        document.getElementById('settingsMask').classList.add('show');
+    }
+
+    function closeSettings() {
+        document.getElementById('settingsMask').classList.remove('show');
+    }
+
+    function saveSettings() {
+        settings.resolution = document.getElementById('setRes').value;
+        settings.videoScale = parseInt(document.getElementById('setVideoScale').value);
+        settings.sendFps = parseInt(document.getElementById('setSendFps').value);
+        settings.jpegQuality = parseFloat(document.getElementById('setJpegQuality').value);
+        settings.showOverlay = document.getElementById('setShowOverlay').checked;
+        settings.showHistory = document.getElementById('setShowHistory').checked;
+        settings.apiUrl = document.getElementById('setApiUrl').value.trim();
+        saveSettingsToStorage();
+        applySettings();
+        closeSettings();
+        log('设置已保存', 'ok');
+    }
+
+    function resetSettings() {
+        settings = { ...DEFAULT_SETTINGS };
+        saveSettingsToStorage();
+        applySettings();
+        openSettings(); // refresh modal
+        log('设置已恢复默认', 'ok');
+    }
+
+    // =========================================================================
+    // Core Logic
+    // =========================================================================
+    function getApiUrl() { return settings.apiUrl || window.location.origin; }
+    const CATS = {'你好':'问候','谢谢':'问候','对不起':'问候','没关系':'问候','再见':'问候','你好吗':'问候','欢迎':'问候','我':'人称','你':'人称','一':'数字','二':'数字','三':'数字','四':'数字','五':'数字','六':'数字','七':'数字','八':'数字','九':'数字','十':'数字'};
+
+    let running = false, sending = false;
+    let history = [], fc = 0, lastFpsT = Date.now(), sendTimer = null;
+
+    const video = document.getElementById('webcam');
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+
+    function log(m, t='') { const b=document.getElementById('logBox'); const time=new Date().toLocaleTimeString('zh-CN'); b.innerHTML=`<div class="log-e ${t}">[${time}] ${m}</div>`+b.innerHTML; if(b.children.length>40) b.removeChild(b.lastChild); }
+
+    function toggle() { running ? stop() : start(); }
+
+    async function start() {
+        const btn = document.getElementById('btnStart');
+        try {
+            btn.textContent = '启动中...';
+            btn.disabled = true;
+            log('请求摄像头权限...');
+
+            if (!window.isSecureContext) throw new Error('需要 HTTPS 或 localhost');
+            if (!navigator.mediaDevices?.getUserMedia) throw new Error('浏览器不支持摄像头');
+
+            const [w, h] = settings.resolution.split('x').map(Number);
+            const stream = await navigator.mediaDevices.getUserMedia({ video: { width: w, height: h, facingMode: 'user' } });
+            video.srcObject = stream;
+            video.style.display = 'block';
+            await video.play();
+
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+
+            running = true;
+            document.getElementById('ph').style.display = 'none';
+            btn.textContent = '关闭摄像头';
+            btn.disabled = false;
+            btn.className = 'btn btn-stop';
+            document.getElementById('btnClear').style.display = 'inline-flex';
+            document.getElementById('apiDot').classList.add('on');
+            document.getElementById('apiText').textContent = '运行中';
+
+            log(`摄像头已开启 (${video.videoWidth}×${video.videoHeight})`, 'ok');
+            startSendLoop();
+
+        } catch(e) {
+            log('启动失败: ' + e.message, 'err');
+            btn.textContent = '开启摄像头';
+            btn.disabled = false;
+        }
+    }
+
+    function stop() {
+        running = false;
+        if (sendTimer) { clearTimeout(sendTimer); sendTimer = null; }
+        if (video.srcObject) { video.srcObject.getTracks().forEach(t => t.stop()); video.srcObject = null; }
+        video.style.display = 'none';
+        document.getElementById('ph').style.display = 'block';
+        document.getElementById('btnStart').textContent = '开启摄像头';
+        document.getElementById('btnStart').className = 'btn btn-go';
+        document.getElementById('btnClear').style.display = 'none';
+        document.getElementById('apiDot').classList.remove('on');
+        document.getElementById('apiText').textContent = '已停止';
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        log('摄像头已关闭');
+    }
+
+    function startSendLoop() {
+        const interval = 1000 / settings.sendFps;
+        function loop() {
+            if (!running) return;
+            sendFrame();
+            sendTimer = setTimeout(loop, interval);
+        }
+        loop();
+    }
+
+    function sendFrame() {
+        if (!running || sending) return;
+
+        const tempCanvas = document.createElement('canvas');
+        tempCanvas.width = video.videoWidth;
+        tempCanvas.height = video.videoHeight;
+        tempCanvas.getContext('2d').drawImage(video, 0, 0);
+        const base64 = tempCanvas.toDataURL('image/jpeg', settings.jpegQuality).split(',')[1];
+
+        fc++;
+        const now = Date.now();
+        if (now - lastFpsT >= 1000) {
+            document.getElementById('fps').textContent = fc;
+            fc = 0;
+            lastFpsT = now;
+        }
+
+        sending = true;
+        const t0 = performance.now();
+        fetch(`${getApiUrl()}/api/predict`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ image: base64 })
+        })
+        .then(r => r.json())
+        .then(data => {
+            document.getElementById('lat').textContent = Math.round(performance.now() - t0);
+            sending = false;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            if (data.error) { log('API: ' + data.error, 'err'); return; }
+            if (data.prediction) showResult(data.prediction, data.confidence);
+            if (data.buffer_size !== undefined) {
+                document.getElementById('seqBar').style.width = (data.buffer_size / data.buffer_target * 100) + '%';
+                document.getElementById('seqTxt').textContent = `${data.buffer_size} / ${data.buffer_target}`;
+            }
+        })
+        .catch(e => { sending = false; log('网络: ' + e.message, 'err'); });
+    }
+
+    function showResult(word, conf) {
+        const pct = Math.round(conf * 100);
+        document.getElementById('rw').textContent = word;
+        document.getElementById('rw').classList.add('active');
+        document.getElementById('rc').textContent = CATS[word] || '';
+        document.getElementById('cfBar').style.width = pct + '%';
+        document.getElementById('cfText').textContent = pct + '%';
+        if (settings.showOverlay) {
+            document.getElementById('pw').textContent = word;
+            document.getElementById('pw').classList.add('show');
+            document.getElementById('pc').textContent = pct + '%';
+            document.getElementById('pc').classList.add('show');
+        }
+        if (settings.showHistory) {
+            const last = history[0];
+            const now = Date.now();
+            if (!last || last.word !== word || now - last.time > 1500) {
+                history.unshift({ word, conf: pct, time: now, ts: new Date().toLocaleTimeString('zh-CN') });
+                if (history.length > 30) history.pop();
+                renderHist();
+            }
+        }
+    }
+
+    function renderHist() {
+        const el = document.getElementById('histList');
+        if (!history.length) { el.innerHTML = '<div class="hist-empty">暂无记录</div>'; return; }
+        el.innerHTML = history.map(h => `<div class="hist-item"><span class="hist-word">${h.word}</span><span class="hist-conf">${h.conf}%</span><span class="hist-time">${h.ts}</span></div>`).join('');
+    }
+
+    function clearHist() {
+        history = [];
+        renderHist();
+        document.getElementById('rw').textContent = '--';
+        document.getElementById('rw').classList.remove('active');
+        document.getElementById('rc').textContent = '';
+        document.getElementById('cfBar').style.width = '0%';
+        document.getElementById('cfText').textContent = '0%';
+        document.getElementById('pw').classList.remove('show');
+        document.getElementById('pc').classList.remove('show');
+    }
+
+    async function switchModel(t) {
+        try {
+            log('切换模型: ' + t + '...');
+            const r = await fetch(`${getApiUrl()}/api/load_model`, {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ model_type: t })
+            });
+            const d = await r.json();
+            if (d.status === 'ok') {
+                document.getElementById('modelText').textContent = '模型: ' + t.toUpperCase();
+                log('模型切换成功: ' + t, 'ok');
+            } else { log('切换失败', 'err'); }
+        } catch(e) { log('切换失败: ' + e.message, 'err'); }
+    }
+
+    async function checkHealth() {
+        try {
+            const r = await fetch(`${getApiUrl()}/api/health`);
+            const d = await r.json();
+            if (d.model_loaded) {
+                document.getElementById('apiDot').classList.add('on');
+                document.getElementById('apiText').textContent = '已连接';
+                document.getElementById('modelText').textContent = `模型: ${(d.model_type||'--').toUpperCase()} (${d.num_classes}类)`;
+                document.getElementById('vc').textContent = d.num_classes;
+                document.getElementById('bs').textContent = '正常';
+                document.getElementById('bs').style.color = 'var(--accent)';
+                log(`API已连接, ${d.model_type} ${d.num_classes}类`, 'ok');
+            } else { document.getElementById('apiText').textContent = '模型未加载'; }
+        } catch(e) {
+            document.getElementById('apiText').textContent = 'API未连接';
+            document.getElementById('bs').textContent = '未连接';
+            document.getElementById('bs').style.color = '#ef4444';
+            log('API未连接, 请启动: python api/app.py', 'err');
+        }
+    }
+
+    // Init
+    applySettings();
+    checkHealth();
+    </script>
+</body>
+</html>

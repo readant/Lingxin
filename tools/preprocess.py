@@ -124,11 +124,23 @@ class Preprocessor:
 
     def _preprocess_simple(self, X, y, class_labels, output_dir, prefix=''):
         """简单预处理：所有数据一起标准化（旧行为，不做划分）"""
-        X_scaled = self.scaler.fit_transform(X)
+        import joblib
+        # 对于序列数据(3D)，需要reshape为2D进行标准化，再reshape回来
+        if X.ndim == 3:
+            n_samples, seq_len, n_features = X.shape
+            X_2d = X.reshape(-1, n_features)
+            X_scaled_2d = self.scaler.fit_transform(X_2d)
+            X_scaled = X_scaled_2d.reshape(n_samples, seq_len, n_features)
+        else:
+            X_scaled = self.scaler.fit_transform(X)
 
         np.save(os.path.join(output_dir, f'{prefix}X.npy'), X_scaled)
         np.save(os.path.join(output_dir, f'{prefix}y.npy'), y)
         np.save(os.path.join(output_dir, 'class_labels.npy'), class_labels)
+
+        # 保存 scaler 供推理时使用
+        scaler_path = os.path.join(output_dir, f'{prefix}scaler.pkl')
+        joblib.dump(self.scaler, scaler_path)
 
         logger.info(f"保存到 {output_dir}: {prefix}X.npy (shape={X_scaled.shape})")
         logger.info(f"  类别: {len(class_labels)}, 无数据划分")

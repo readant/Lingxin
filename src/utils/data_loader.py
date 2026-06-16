@@ -84,18 +84,27 @@ class DataLoader:
             if not os.path.isdir(word_path):
                 continue
 
+            # 只处理有.npy文件的目录
+            npy_files = [f for f in os.listdir(word_path)
+                        if f.endswith('.npy') and not f.endswith('_meta.npy')]
+            if not npy_files:
+                continue
+
             if word_dir not in class_labels:
                 class_labels[word_dir] = label_idx
                 label_idx += 1
 
-            for file_name in sorted(os.listdir(word_path)):
-                if file_name.endswith('.npy') and not file_name.endswith('_meta.npy'):
-                    file_path = os.path.join(word_path, file_name)
-                    data = np.load(file_path)
-                    X.append(data)
-                    y.append(class_labels[word_dir])
-                    if return_persons:
-                        person_ids.append(parse_person_id(file_name))
+            for file_name in sorted(npy_files):
+                file_path = os.path.join(word_path, file_name)
+                data = np.load(file_path)
+                # 如果是序列数据(n_frames, n_features)，提取中间帧作为单帧特征
+                if data.ndim == 2:
+                    mid_idx = len(data) // 2
+                    data = data[mid_idx]
+                X.append(data)
+                y.append(class_labels[word_dir])
+                if return_persons:
+                    person_ids.append(parse_person_id(file_name))
 
         X = np.array(X)
         y = np.array(y)
@@ -128,25 +137,30 @@ class DataLoader:
             if not os.path.isdir(word_path):
                 continue
 
+            # 只处理有.npy文件的目录
+            npy_files = [f for f in os.listdir(word_path)
+                        if f.endswith('.npy') and not f.endswith('_meta.npy')]
+            if not npy_files:
+                continue
+
             if word_dir not in class_labels:
                 class_labels[word_dir] = label_idx
                 label_idx += 1
 
-            for file_name in sorted(os.listdir(word_path)):
-                if file_name.endswith('.npy') and not file_name.endswith('_meta.npy'):
-                    file_path = os.path.join(word_path, file_name)
-                    data = np.load(file_path)
+            for file_name in sorted(npy_files):
+                file_path = os.path.join(word_path, file_name)
+                data = np.load(file_path)
 
-                    if len(data) < max_length:
-                        pad = np.zeros((max_length - len(data), data.shape[1]))
-                        data = np.vstack([data, pad])
-                    else:
-                        data = data[:max_length]
+                if len(data) < max_length:
+                    pad = np.zeros((max_length - len(data), data.shape[1]))
+                    data = np.vstack([data, pad])
+                else:
+                    data = data[:max_length]
 
-                    X.append(data)
-                    y.append(class_labels[word_dir])
-                    if return_persons:
-                        person_ids.append(parse_person_id(file_name))
+                X.append(data)
+                y.append(class_labels[word_dir])
+                if return_persons:
+                    person_ids.append(parse_person_id(file_name))
 
         X = np.array(X)
         y = np.array(y)

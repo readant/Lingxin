@@ -1,0 +1,818 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>文档阅读 — 聆心手语识别系统</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700&family=Noto+Sans+SC:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <script src="../assets/marked.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --bg-primary: #FAF7F2;
+            --bg-secondary: #F5F0E8;
+            --bg-card: #FFFFFF;
+            --text-primary: #2C2420;
+            --text-secondary: #6B5E54;
+            --text-muted: #9B8B7A;
+            --accent-warm: #D4A574;
+            --accent-terracotta: #C17F59;
+            --accent-sage: #8B9A7D;
+            --border-light: #E8E0D5;
+            --border-medium: #D4C8B8;
+            --shadow-soft: 0 2px 12px rgba(44, 36, 32, 0.06);
+            --shadow-medium: 0 4px 24px rgba(44, 36, 32, 0.08);
+            --transition-fast: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            --transition-normal: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        body {
+            font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.7;
+        }
+
+        /* ===== 顶部栏 ===== */
+        .topbar {
+            background: var(--bg-card);
+            border-bottom: 1px solid var(--border-light);
+            padding: 12px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: var(--shadow-soft);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .topbar-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .topbar-logo { font-size: 1.5rem; }
+
+        .topbar-title {
+            font-family: 'Noto Serif SC', serif;
+            font-weight: 600;
+            font-size: 1.1rem;
+            color: var(--text-primary);
+        }
+
+        .topbar-right { display: flex; align-items: center; gap: 12px; }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 18px;
+            background: var(--bg-secondary);
+            color: var(--text-secondary);
+            text-decoration: none;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            border: 1px solid var(--border-light);
+            cursor: pointer;
+            transition: all var(--transition-fast);
+            font-family: 'Noto Sans SC', sans-serif;
+        }
+
+        .btn:hover { border-color: var(--accent-warm); color: var(--accent-terracotta); }
+        .btn.primary { background: var(--accent-warm); color: white; border: none; }
+        .btn.primary:hover { background: var(--accent-terracotta); }
+
+        #toggleSidebar { display: none; }
+
+        .breadcrumb {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .breadcrumb span { color: var(--text-secondary); }
+
+        /* ===== 布局 ===== */
+        .layout {
+            display: flex;
+            height: calc(100vh - 57px);
+        }
+
+        /* ===== 侧边栏 ===== */
+        .sidebar {
+            width: 260px;
+            min-width: 260px;
+            background: var(--bg-card);
+            border-right: 1px solid var(--border-light);
+            overflow-y: auto;
+            padding: 16px 0;
+            transition: transform var(--transition-normal);
+        }
+
+        .sidebar-section {
+            padding: 8px 20px;
+            margin-bottom: 4px;
+        }
+
+        .sidebar-label {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--text-muted);
+            font-weight: 500;
+            margin-bottom: 8px;
+            padding: 0 4px;
+        }
+
+        .sidebar-link {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 12px;
+            border-radius: 8px;
+            text-decoration: none;
+            color: var(--text-secondary);
+            font-size: 0.88rem;
+            transition: all var(--transition-fast);
+            cursor: pointer;
+            border: none;
+            background: none;
+            width: 100%;
+            text-align: left;
+            font-family: 'Noto Sans SC', sans-serif;
+        }
+
+        .sidebar-link:hover { background: var(--bg-secondary); color: var(--accent-terracotta); }
+        .sidebar-link.active { background: rgba(212, 165, 116, 0.15); color: var(--accent-terracotta); font-weight: 500; }
+
+        .sidebar-link .icon { font-size: 0.9rem; flex-shrink: 0; width: 20px; text-align: center; }
+        .sidebar-link .badge {
+            margin-left: auto;
+            font-size: 0.65rem;
+            padding: 2px 8px;
+            border-radius: 10px;
+            background: var(--bg-secondary);
+            color: var(--text-muted);
+        }
+
+        /* ===== 搜索 ===== */
+        .search-wrap {
+            padding: 0 20px 16px;
+            position: sticky;
+            top: 0;
+            background: var(--bg-card);
+            z-index: 10;
+        }
+
+        .search-wrap input {
+            width: 100%;
+            padding: 10px 14px 10px 36px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-light);
+            border-radius: 10px;
+            font-size: 0.85rem;
+            color: var(--text-primary);
+            transition: all var(--transition-fast);
+            font-family: 'Noto Sans SC', sans-serif;
+        }
+
+        .search-wrap input:focus {
+            outline: none;
+            border-color: var(--accent-warm);
+            background: var(--bg-card);
+        }
+
+        .search-wrap .search-icon {
+            position: absolute;
+            left: 32px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 0.85rem;
+            opacity: 0.4;
+            pointer-events: none;
+        }
+
+        .search-results {
+            display: none;
+            margin-top: 8px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .search-results.show { display: block; }
+
+        .search-result-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.82rem;
+            color: var(--text-secondary);
+            transition: all var(--transition-fast);
+            border: 1px solid transparent;
+            text-align: left;
+            width: 100%;
+            background: none;
+            font-family: 'Noto Sans SC', sans-serif;
+        }
+
+        .search-result-item:hover, .search-result-item:focus {
+            background: var(--bg-secondary);
+            border-color: var(--border-light);
+            color: var(--accent-terracotta);
+        }
+
+        .search-result-item .match-count {
+            margin-left: auto;
+            font-size: 0.65rem;
+            color: var(--text-muted);
+            background: var(--bg-secondary);
+            padding: 2px 8px;
+            border-radius: 10px;
+        }
+
+        /* ===== 搜索高亮 ===== */
+        .markdown-body mark {
+            background: rgba(212, 165, 116, 0.3);
+            color: inherit;
+            padding: 1px 2px;
+            border-radius: 2px;
+        }
+
+        /* ===== 主内容区 ===== */
+        .main {
+            flex: 1;
+            overflow-y: auto;
+            padding: 40px 48px;
+            max-width: 860px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        /* ===== Markdown 渲染样式 ===== */
+        .markdown-body {
+            color: var(--text-primary);
+            line-height: 1.85;
+            font-size: 0.95rem;
+        }
+
+        .markdown-body h1 {
+            font-family: 'Noto Serif SC', serif;
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+            padding-bottom: 16px;
+            border-bottom: 2px solid var(--border-light);
+            color: var(--text-primary);
+        }
+
+        .markdown-body h2 {
+            font-family: 'Noto Serif SC', serif;
+            font-size: 1.4rem;
+            font-weight: 600;
+            margin-top: 40px;
+            margin-bottom: 16px;
+            color: var(--text-primary);
+            padding-left: 14px;
+            border-left: 4px solid var(--accent-warm);
+        }
+
+        .markdown-body h3 {
+            font-family: 'Noto Serif SC', serif;
+            font-size: 1.15rem;
+            font-weight: 600;
+            margin-top: 28px;
+            margin-bottom: 12px;
+            color: var(--text-primary);
+        }
+
+        .markdown-body h4 {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-top: 20px;
+            margin-bottom: 8px;
+            color: var(--text-secondary);
+        }
+
+        .markdown-body p { margin-bottom: 16px; }
+
+        .markdown-body a {
+            color: var(--accent-terracotta);
+            text-decoration: none;
+            border-bottom: 1px solid transparent;
+            transition: border-color var(--transition-fast);
+        }
+
+        .markdown-body a:hover { border-bottom-color: var(--accent-terracotta); }
+
+        .markdown-body strong { font-weight: 600; color: var(--text-primary); }
+        .markdown-body em { color: var(--text-secondary); }
+
+        .markdown-body ul, .markdown-body ol { margin-bottom: 16px; padding-left: 24px; }
+        .markdown-body li { margin-bottom: 6px; }
+
+        .markdown-body blockquote {
+            margin: 20px 0;
+            padding: 16px 20px;
+            background: var(--bg-secondary);
+            border-left: 4px solid var(--accent-warm);
+            border-radius: 0 8px 8px 0;
+            color: var(--text-secondary);
+        }
+
+        .markdown-body blockquote p:last-child { margin-bottom: 0; }
+
+        /* 表格 */
+        .markdown-body table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            font-size: 0.9rem;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 1px solid var(--border-light);
+        }
+
+        .markdown-body th {
+            background: var(--bg-secondary);
+            text-align: left;
+            padding: 12px 16px;
+            font-weight: 600;
+            border-bottom: 2px solid var(--border-medium);
+            color: var(--text-primary);
+        }
+
+        .markdown-body td {
+            padding: 10px 16px;
+            border-bottom: 1px solid var(--border-light);
+            color: var(--text-secondary);
+        }
+
+        .markdown-body tr:last-child td { border-bottom: none; }
+        .markdown-body tr:hover td { background: var(--bg-secondary); }
+
+        /* 代码块 */
+        .markdown-body code {
+            font-family: 'JetBrains Mono', 'Consolas', monospace;
+            font-size: 0.85em;
+            padding: 2px 6px;
+            background: var(--bg-secondary);
+            border-radius: 4px;
+            color: var(--accent-terracotta);
+            border: 1px solid var(--border-light);
+        }
+
+        .markdown-body pre {
+            margin: 20px 0;
+            padding: 20px 24px;
+            background: #1E1E1E;
+            border-radius: 12px;
+            overflow-x: auto;
+            border: 1px solid var(--border-medium);
+        }
+
+        .markdown-body pre code {
+            background: none;
+            border: none;
+            padding: 0;
+            color: #D4D4D4;
+            font-size: 0.85rem;
+            line-height: 1.7;
+            white-space: pre;
+        }
+
+        .markdown-body hr {
+            border: none;
+            height: 1px;
+            background: var(--border-light);
+            margin: 32px 0;
+        }
+
+        .markdown-body img { max-width: 100%; border-radius: 8px; margin: 16px 0; }
+
+        /* ===== 加载/空状态 ===== */
+        .empty-state {
+            text-align: center;
+            padding: 80px 20px;
+            color: var(--text-muted);
+        }
+
+        .empty-state .icon { font-size: 4rem; margin-bottom: 20px; }
+        .empty-state h3 { font-family: 'Noto Serif SC', serif; font-size: 1.3rem; margin-bottom: 12px; color: var(--text-secondary); }
+        .empty-state p { font-size: 0.9rem; max-width: 400px; margin: 0 auto 24px; line-height: 1.7; }
+
+        .loading { text-align: center; padding: 40px; color: var(--text-muted); }
+        .spinner { display: inline-block; width: 32px; height: 32px; border: 3px solid var(--border-light); border-top-color: var(--accent-warm); border-radius: 50%; animation: spin 0.8s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* ===== 响应式 ===== */
+        @media (max-width: 768px) {
+            .sidebar {
+                position: fixed;
+                left: 0;
+                top: 57px;
+                bottom: 0;
+                z-index: 99;
+                transform: translateX(-100%);
+            }
+            .sidebar.open { transform: translateX(0); box-shadow: var(--shadow-medium); }
+            #toggleSidebar { display: inline-flex; }
+            .main { padding: 24px 20px; }
+            .markdown-body h1 { font-size: 1.6rem; }
+            .markdown-body h2 { font-size: 1.2rem; }
+            .markdown-body pre { padding: 16px; }
+            .markdown-body pre code { font-size: 0.75rem; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="topbar">
+    <div class="topbar-left">
+        <button class="btn" id="toggleSidebar" onclick="toggleSidebar()">☰</button>
+        <span class="topbar-logo">🤟</span>
+        <span class="topbar-title">聆心文档</span>
+        <span class="breadcrumb" id="breadcrumb"></span>
+    </div>
+    <div class="topbar-right">
+        <a href="index.html" class="btn">🏠 首页</a>
+        <a href="resources.html" class="btn">📚 资源导航</a>
+        <a href="#" class="btn primary" onclick="window.open(currentFile, '_blank')">↗ 原始文件</a>
+    </div>
+</div>
+
+<div class="layout">
+    <aside class="sidebar" id="sidebar">
+        <div class="search-wrap">
+            <div style="position:relative;">
+                <span class="search-icon">🔍</span>
+                <input type="text" id="searchInput" placeholder="搜索文档... (Ctrl+K)" autocomplete="off">
+            </div>
+            <div class="search-results" id="searchResults"></div>
+        </div>
+
+        <div class="sidebar-section" id="sidebarLinks">
+            <div class="sidebar-label">📖 学习文档</div>
+            <button class="sidebar-link" data-file="docs/01-quickstart.md">
+                <span class="icon">🚀</span> 01 — 快速入门
+            </button>
+            <button class="sidebar-link" data-file="docs/02-architecture.md">
+                <span class="icon">🏛️</span> 02 — 架构设计
+            </button>
+            <button class="sidebar-link" data-file="docs/03-data-collection.md">
+                <span class="icon">📹</span> 03 — 数据采集
+            </button>
+            <button class="sidebar-link" data-file="docs/04-training.md">
+                <span class="icon">🎯</span> 04 — 模型训练
+            </button>
+            <button class="sidebar-link" data-file="docs/05-code-guide.md">
+                <span class="icon">💻</span> 05 — 代码导读
+            </button>
+            <button class="sidebar-link" data-file="docs/06-design-patterns.md">
+                <span class="icon">🎨</span> 06 — 设计模式
+            </button>
+            <button class="sidebar-link" data-file="docs/07-faq.md">
+                <span class="icon">❓</span> 07 — 常见问题
+            </button>
+            <button class="sidebar-link" data-file="docs/08-testing.md">
+                <span class="icon">🧪</span> 08 — 测试指南
+            </button>
+        </div>
+
+        <div class="sidebar-section">
+            <div class="sidebar-label">📋 项目日志</div>
+            <button class="sidebar-link" data-file="docs/journal/development.md">
+                <span class="icon">📝</span> 开发历程
+            </button>
+            <button class="sidebar-link" data-file="docs/journal/experiments.md">
+                <span class="icon">📊</span> 实验记录
+            </button>
+        </div>
+
+        <div class="sidebar-section">
+            <div class="sidebar-label">📄 项目根目录</div>
+            <button class="sidebar-link" data-file="README.md">
+                <span class="icon">📋</span> README
+            </button>
+        </div>
+    </aside>
+
+    <main class="main" id="mainContent">
+        <div class="empty-state">
+            <div class="icon">📖</div>
+            <h3>选择一篇文档开始阅读</h3>
+            <p>从左侧导航栏选择文档，或点击下方的推荐入门文档</p>
+            <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:8px;">
+                <button class="btn primary" onclick="loadDoc('docs/01-quickstart.md')">🚀 快速入门</button>
+                <button class="btn" onclick="loadDoc('docs/02-architecture.md')">🏛️ 架构设计</button>
+                <button class="btn" onclick="loadDoc('docs/04-training.md')">🎯 模型训练</button>
+            </div>
+        </div>
+    </main>
+</div>
+
+<script>
+    let currentFile = '';
+
+    // 配置 marked
+    marked.setOptions({
+        breaks: true,
+        gfm: true,
+    });
+
+    // 自定义渲染器：让 markdown 内部链接在阅读器内打开
+    const renderer = new marked.Renderer();
+    renderer.link = function(href, title, text) {
+        // href 可能为 null/undefined（空链接、自动链接等），做防御处理
+        const hrefStr = (href == null) ? '' : String(href);
+        const isInternalMd = hrefStr.endsWith('.md') && !hrefStr.startsWith('http');
+        if (isInternalMd) {
+            let resolvedFile = hrefStr;
+            if (hrefStr.startsWith('../')) {
+                resolvedFile = hrefStr.replace(/^\.\.\//, '');
+            }
+            return `<a href="javascript:loadDoc('${resolvedFile}')" ${title ? `title="${title}"` : ''}>${text}</a>`;
+        }
+        const target = hrefStr.startsWith('http') ? ' target="_blank" rel="noopener"' : '';
+        return `<a href="${hrefStr}"${target} ${title ? `title="${title}"` : ''}>${text}</a>`;
+    };
+
+    // 渲染器：给标题添加 id 用于锚点
+    let headingCount = 0;
+    renderer.heading = function(text, level) {
+        const id = 'heading-' + (headingCount++);
+        return `<h${level} id="${id}">${text}</h${level}>`;
+    };
+
+    marked.use({ renderer });
+
+    function loadDoc(filePath) {
+        currentFile = filePath;
+        const main = document.getElementById('mainContent');
+        main.innerHTML = '<div class="loading"><div class="spinner"></div><p style="margin-top:16px;">加载文档中...</p></div>';
+
+        // 更新侧边栏高亮
+        document.querySelectorAll('.sidebar-link').forEach(link => {
+            link.classList.toggle('active', link.dataset.file === filePath);
+        });
+
+        // 更新面包屑
+        updateBreadcrumb(filePath);
+
+        fetch('../' + filePath)
+            .then(response => {
+                if (!response.ok) throw new Error('文件未找到: ' + filePath);
+                return response.text();
+            })
+            .then(markdown => {
+                // 去除 frontmatter（如果存在）
+                markdown = markdown.replace(/^---[\s\S]*?---\n*/, '');
+                const html = marked.parse(markdown);
+                main.innerHTML = `<div class="markdown-body">${html}</div>`;
+                main.scrollTop = 0;
+
+                // 为代码块添加语言标签
+                main.querySelectorAll('pre code').forEach(block => {
+                    const pre = block.parentElement;
+                    const lang = block.className.replace('language-', '');
+                    if (lang) {
+                        const label = document.createElement('div');
+                        label.className = 'code-lang';
+                        label.textContent = lang;
+                        label.style.cssText = 'position:absolute;top:8px;right:16px;font-size:0.7rem;color:#888;text-transform:uppercase;';
+                        pre.style.position = 'relative';
+                        pre.appendChild(label);
+                    }
+                });
+            })
+            .catch(error => {
+                main.innerHTML = `
+                    <div class="empty-state">
+                        <div class="icon">⚠️</div>
+                        <h3>加载失败</h3>
+                        <p>${error.message}</p>
+                        <button class="btn" onclick="loadDoc('${filePath}')">🔄 重试</button>
+                    </div>`;
+            });
+    }
+
+    function updateBreadcrumb(filePath) {
+        const parts = filePath.replace(/\.md$/, '').split('/');
+        const breadcrumb = document.getElementById('breadcrumb');
+        breadcrumb.innerHTML = parts.map((p, i) =>
+            i === parts.length - 1
+                ? `<span>${p}</span>`
+                : `<span style="opacity:0.5;">${p}</span> → `
+        ).join('');
+    }
+
+    function toggleSidebar() {
+        document.getElementById('sidebar').classList.toggle('open');
+    }
+
+    // 侧边栏链接点击
+    document.querySelectorAll('.sidebar-link').forEach(link => {
+        link.addEventListener('click', function() {
+            loadDoc(this.dataset.file);
+            // 移动端：点击后收起侧边栏
+            if (window.innerWidth <= 768) {
+                document.getElementById('sidebar').classList.remove('open');
+            }
+        });
+    });
+
+    // URL 参数：?file=docs/01-quickstart.md
+    const params = new URLSearchParams(window.location.search);
+    const fileParam = params.get('file');
+    if (fileParam) {
+        loadDoc(fileParam);
+    }
+
+    // =========================================================================
+    // 全文搜索
+    // =========================================================================
+
+    // 所有可搜索的文档列表
+    const DOC_FILES = [
+        'docs/01-quickstart.md',
+        'docs/02-architecture.md',
+        'docs/03-data-collection.md',
+        'docs/04-training.md',
+        'docs/05-code-guide.md',
+        'docs/06-design-patterns.md',
+        'docs/07-faq.md',
+        'docs/08-testing.md',
+        'docs/journal/development.md',
+        'docs/journal/experiments.md',
+        'README.md',
+    ];
+
+    const DOC_LABELS = {
+        'docs/01-quickstart.md': ['🚀', '01 · 快速入门'],
+        'docs/02-architecture.md': ['🏛️', '02 · 架构设计'],
+        'docs/03-data-collection.md': ['📹', '03 · 数据采集'],
+        'docs/04-training.md': ['🎯', '04 · 模型训练'],
+        'docs/05-code-guide.md': ['💻', '05 · 代码导读'],
+        'docs/06-design-patterns.md': ['🎨', '06 · 设计模式'],
+        'docs/07-faq.md': ['❓', '07 · 常见问题'],
+        'docs/08-testing.md': ['🧪', '08 · 测试指南'],
+        'docs/journal/development.md': ['📝', '开发历程'],
+        'docs/journal/experiments.md': ['📊', '实验记录'],
+        'README.md': ['📋', 'README'],
+    };
+
+    // 搜索索引：{ filePath: { title: '', text: '' } }
+    let searchIndex = {};
+
+    // 构建搜索索引（预加载所有文档纯文本）
+    async function buildSearchIndex() {
+        const promises = DOC_FILES.map(async (file) => {
+            try {
+                const resp = await fetch('../' + file);
+                if (!resp.ok) return;
+                let text = await resp.text();
+                // 去除 frontmatter
+                text = text.replace(/^---[\s\S]*?---\n*/, '');
+                // 提取标题（第一个 # 开头行）
+                const titleMatch = text.match(/^#\s+(.+)$/m);
+                const title = titleMatch ? titleMatch[1] : file;
+                // 去除 markdown 语法，保留纯文本用于搜索
+                const plainText = text
+                    .replace(/```[\s\S]*?```/g, ' ')   // 代码块
+                    .replace(/`[^`]+`/g, ' ')          // 行内代码
+                    .replace(/\[([^\]]*)\]\([^)]*\)/g, '$1') // 链接
+                    .replace(/[#*>\-|]/g, ' ')          // 标记符号
+                    .replace(/\s+/g, ' ')
+                    .toLowerCase();
+                searchIndex[file] = { title, text: plainText };
+            } catch (e) {
+                // 静默：某些文件可能无法加载
+            }
+        });
+        await Promise.all(promises);
+    }
+
+    function doSearch(query) {
+        const q = query.toLowerCase().trim();
+        const resultsEl = document.getElementById('searchResults');
+        const sidebarLinksEl = document.getElementById('sidebarLinks');
+
+        if (q.length < 1) {
+            resultsEl.classList.remove('show');
+            sidebarLinksEl.style.display = '';
+            return;
+        }
+
+        const results = [];
+        for (const [file, data] of Object.entries(searchIndex)) {
+            let score = 0;
+            const idx = data.text.indexOf(q);
+            if (idx >= 0) {
+                // 匹配次数越多分数越高
+                score = (data.text.match(new RegExp(q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g')) || []).length;
+                // 标题匹配加权
+                if (data.title.toLowerCase().includes(q)) score += 10;
+                results.push({ file, score, title: data.title, preview: data.text.substring(Math.max(0, idx - 30), idx + q.length + 50) });
+            }
+        }
+
+        results.sort((a, b) => b.score - a.score);
+
+        if (results.length > 0) {
+            const [icon, label] = DOC_LABELS[results[0].file] || ['📄', results[0].title];
+            resultsEl.innerHTML = results.map((r, i) => {
+                const [ico, lbl] = DOC_LABELS[r.file] || ['📄', r.title];
+                return `<button class="search-result-item" onclick="loadDoc('${r.file}');highlightSearch('${q.replace(/'/g, "\\'")}')" data-file="${r.file}">
+                    <span>${ico}</span>
+                    <span>${lbl}</span>
+                    <span class="match-count">${r.score}处</span>
+                </button>`;
+            }).join('');
+            resultsEl.classList.add('show');
+            sidebarLinksEl.style.display = 'none';
+        } else {
+            resultsEl.innerHTML = '<div style="padding:12px;font-size:0.8rem;color:var(--text-muted);text-align:center;">无匹配结果</div>';
+            resultsEl.classList.add('show');
+            sidebarLinksEl.style.display = 'none';
+        }
+    }
+
+    // 在渲染后的文档中高亮搜索词
+    function highlightSearch(query) {
+        if (!query) return;
+        const q = query.toLowerCase();
+        const main = document.getElementById('mainContent');
+        const walker = document.createTreeWalker(main, NodeFilter.SHOW_TEXT, null, false);
+        const textNodes = [];
+        while (walker.nextNode()) textNodes.push(walker.currentNode);
+
+        textNodes.forEach(node => {
+            const text = node.textContent.toLowerCase();
+            const idx = text.indexOf(q);
+            if (idx >= 0 && node.parentElement.tagName !== 'SCRIPT' && node.parentElement.tagName !== 'STYLE') {
+                const span = document.createElement('span');
+                const before = node.textContent.substring(0, idx);
+                const match = node.textContent.substring(idx, idx + query.length);
+                const after = node.textContent.substring(idx + query.length);
+                span.innerHTML = before + '<mark>' + match + '</mark>' + after;
+                node.parentElement.replaceChild(span, node);
+            }
+        });
+    }
+
+    // 初始化搜索
+    buildSearchIndex();
+
+    const searchInput = document.getElementById('searchInput');
+    let searchTimer;
+    searchInput.addEventListener('input', function() {
+        clearTimeout(searchTimer);
+        searchTimer = setTimeout(() => doSearch(this.value), 150);
+    });
+
+    // 搜索时 ESC 清空
+    searchInput.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            this.value = '';
+            doSearch('');
+            this.blur();
+        }
+    });
+
+    // 点击搜索结果外部关闭
+    document.addEventListener('click', function(e) {
+        if (!e.target.closest('.search-wrap')) {
+            document.getElementById('searchResults').classList.remove('show');
+            document.getElementById('sidebarLinks').style.display = '';
+        }
+    });
+
+    // =========================================================================
+    // 键盘快捷键
+    // =========================================================================
+    document.addEventListener('keydown', function(e) {
+        // Ctrl+K / Cmd+K: 聚焦搜索
+        if (e.key === 'k' && (e.ctrlKey || e.metaKey)) {
+            e.preventDefault();
+            document.getElementById('searchInput').focus();
+        }
+        // Ctrl+\: 切换侧边栏
+        if (e.key === '\\' && e.ctrlKey) {
+            e.preventDefault();
+            toggleSidebar();
+        }
+    });
+</script>
+
+</body>
+</html>

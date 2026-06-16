@@ -1,281 +1,258 @@
 """
 InferenceRunner - 实时推理运行器
 
-本文件实现了手语识别的实时推理功能，通过摄像头捕获视频流并进行预测。
-
-工作流程：
-1. 从摄像头读取视频帧
-2. 使用 MediaPipe 检测手部关键点
-3. 提取特征向量
-4. 输入模型进行预测
-5. 显示预测结果
-
 支持的模型类型：
-- 传统机器学习：SVM、随机森林、MLP（使用单帧特征）
-- 深度学习：LSTM、Transformer（使用序列特征）
+- 传统机器学习：SVM、随机森林、MLP
+- 深度学习：LSTM、Transformer
 
 使用方法：
-python tools/inference.py
-然后按照提示输入模型类型和模型路径。
+python tools/inference.py --model lstm
 """
 
+import os
+import sys
 import cv2
 import numpy as np
-from src.detection.hand_detector import HandDetector
-from src.features.feature_extractor import FeatureExtractor
+import argparse
+import joblib
+from PIL import Image, ImageDraw, ImageFont
+
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from src.detection.hand_detector import HolisticDetector
 from src.models.lstm_model import LSTMModel
 from src.models.transformer_model import TransformerModel
+from src.config import config
 from src.utils.logger import get_logger
+
+logger = get_logger("InferenceRunner")
+
+
+def init_font(size=24):
+    """加载中文字体"""
+    font_paths = [
+        "C:/Windows/Fonts/msyh.ttc",
+        "C:/Windows/Fonts/simhei.ttf",
+        "C:/Windows/Fonts/simsun.ttc",
+    ]
+    for fp in font_paths:
+        if os.path.exists(fp):
+            try:
+                return ImageFont.truetype(fp, size)
+            except:
+                continue
+    return ImageFont.load_default()
+
+
+def put_chinese_text(frame, text, position, font, color=(255, 255, 255)):
+    """在帧上绘制中文文本"""
+    pil_img = Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
+    draw = ImageDraw.Draw(pil_img)
+    draw.text(position, text, font=font, fill=tuple(reversed(color)))
+    return cv2.cvtColor(np.array(pil_img), cv2.COLOR_RGB2BGR)
 
 
 class InferenceRunner:
-    """
-    实时推理运行器
 
-    负责初始化检测器、特征提取器和模型，并处理实时推理流程。
-    使用字典映射消除 if-elif 分支，提高可维护性。
-    """
-
-    # 模型配置映射
-    # 键: 模型类型名称
-    # 值: 配置字典
     MODEL_CONFIG = {
-        'svm': {
-            'model_category': 'classifier',  # 模型类别
-            'input_shape': 71,                # 单帧特征维度
-            'uses_sequence': False,            # 是否使用序列
-        },
-        'rf': {
-            'model_category': 'classifier',
-            'input_shape': 71,
-            'uses_sequence': False,
-        },
-        'mlp': {
-            'model_category': 'classifier',
-            'input_shape': 71,
-            'uses_sequence': False,
-        },
-        'lstm': {
-            'model_category': 'deep_learning',
-            'input_shape': (30, 71),          # (序列长度, 特征维度)
-            'uses_sequence': True,
-        },
-        'transformer': {
-            'model_category': 'deep_learning',
-            'input_shape': (30, 71),
-            'uses_sequence': True,
-        }
+        'svm': {'category': 'classifier', 'uses_sequence': False},
+        'rf': {'category': 'classifier', 'uses_sequence': False},
+        'mlp': {'category': 'classifier', 'uses_sequence': False},
+        'lstm': {'category': 'deep_learning', 'uses_sequence': True},
+        'transformer': {'category': 'deep_learning', 'uses_sequence': True},
     }
 
     def __init__(self):
-        """初始化推理运行器"""
-        self.logger = get_logger(self.__class__.__name__)
-        # 初始化检测器和特征提取器
-        self.detector = HandDetector()
-        self.extractor = FeatureExtractor()
-
-        # 推理序列缓冲区（用于LSTM/Transformer）
+        self.detector = HolisticDetector(min_detection_confidence=0.3)
         self.sequence_buffer = []
         self.max_sequence_length = 30
+        self.scaler = None
+        self.font = init_font(26)
+        self.font_small = init_font(18)
 
-    def run(self, model_type='svm', model_path=None,
-            class_labels_path='data/processed/csl_isolated/class_labels.npy'):
-        """
-        执行实时推理
-
-        Args:
-            model_type (str, optional): 模型类型. Defaults to 'svm'.
-            model_path (str, optional): 模型文件路径. Defaults to None.
-            class_labels_path (str, optional): 类别标签文件路径. Defaults to '...'.
-        """
-        # 验证模型类型
+    def run(self, model_type, model_path=None, class_labels_path=None):
         if model_type not in self.MODEL_CONFIG:
-            self.logger.error(f'未知模型类型: {model_type}，可选类型: {", ".join(self.MODEL_CONFIG.keys())}')
+            logger.error(f"未知模型类型: {model_type}")
             return
 
-        config = self.MODEL_CONFIG[model_type]
+        if class_labels_path is None:
+            class_labels_path = str(config.processed_data_dir / 'class_labels.npy')
+
+        config_info = self.MODEL_CONFIG[model_type]
+        category = config_info['category']
+        uses_sequence = config_info['uses_sequence']
 
         # 加载类别标签
         class_labels = np.load(class_labels_path, allow_pickle=True).item()
         class_names = list(class_labels.keys())
         num_classes = len(class_labels)
+        logger.info(f"加载 {num_classes} 个类别")
 
-        # 创建模型
-        model = self._create_model(model_type, config, num_classes)
-
-        # 如果提供了模型路径，加载预训练权重
-        if model_path:
-            model.load(model_path)
-
-        # 打开摄像头开始推理
-        self._run_inference_loop(model, model_type, config, class_names)
-
-    def _create_model(self, model_type, config, num_classes):
-        """
-        创建模型实例
-
-        Args:
-            model_type (str): 模型类型
-            config (dict): 模型配置
-            num_classes (int): 类别数量
-
-        Returns:
-            模型实例
-        """
-        model_category = config['model_category']
-
-        if model_category == 'classifier':
-            # 传统机器学习分类器（预留，当前版本未实现加载）
-            raise NotImplementedError(
-                f'{model_type} 分类器的推理功能尚未实现。'
-                f'请使用深度学习模型（lstm/transformer）。'
-            )
+        # 加载模型
+        if category == 'classifier':
+            model = self._load_classifier(model_path, model_type)
         else:
-            # 深度学习模型
-            model_class = self._get_model_class(model_type)
-            if model_class is None:
-                raise ValueError(f'未知模型类型: {model_type}')
+            model = self._load_deep_learning(model_type, model_path, num_classes)
 
-            input_shape = config['input_shape']
-            return model_class(input_shape, num_classes)
-
-    def _get_model_class(self, model_type):
-        """
-        获取模型类
-
-        Args:
-            model_type (str): 模型类型
-
-        Returns:
-            class: 模型类
-        """
-        model_classes = {
-            'lstm': LSTMModel,
-            'transformer': TransformerModel
-        }
-        return model_classes.get(model_type)
-
-    def _run_inference_loop(self, model, model_type, config, class_names):
-        """
-        运行推理主循环
-
-        Args:
-            model: 模型实例
-            model_type (str): 模型类型
-            config (dict): 模型配置
-            class_names (list): 类别名称列表
-        """
-        cap = cv2.VideoCapture(0)
+        # 打开摄像头
+        cap = cv2.VideoCapture(0, cv2.CAP_DSHOW)
         if not cap.isOpened():
-            self.logger.error('错误：无法打开摄像头')
+            logger.error("错误：无法打开摄像头")
             return
 
-        self.logger.info(f'开始 {model_type} 实时推理，按 q 退出')
+        cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
+        cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
 
-        uses_sequence = config['uses_sequence']
+        # 预热
+        for _ in range(15):
+            cap.grab()
 
-        while True:
-            ret, frame = cap.read()
-            if not ret:
-                break
+        logger.info(f"开始 {model_type} 实时推理，按 Q/ESC 退出")
 
-            # 检测手部关键点
-            results = self.detector.detect(frame)
-            frame = self.detector.draw_landmarks(frame, results)
+        try:
+            while True:
+                ret, frame = cap.read()
+                if not ret:
+                    break
 
-            # 提取关键点
-            landmarks = self.detector.get_landmarks(results, frame.shape)
+                frame = cv2.flip(frame, 1)
 
-            if len(landmarks) > 0:
-                # 提取特征
-                features = self.extractor.extract_features(landmarks)
+                # 检测关键点
+                results = self.detector.detect(frame)
+                landmarks = self.detector.get_landmarks(results, frame.shape)
+                frame = self.detector.draw_landmarks(frame, results)
 
-                if uses_sequence:
-                    # 序列模型：维护特征序列
-                    self._handle_sequence_inference(
-                        model, model_type, frame, features, class_names
-                    )
+                # 归一化 x,y 到 [0,1]（与训练时一致）
+                h, w = frame.shape[:2]
+                landmarks_norm = landmarks.copy()
+                landmarks_norm[0::3] /= w
+                landmarks_norm[1::3] /= h
+
+                has_hand = bool(np.any(np.abs(landmarks[:126]) > 1e-4))
+
+                prediction = None
+                if has_hand:
+                    if uses_sequence:
+                        prediction = self._predict_sequence(model, landmarks_norm, class_names)
+                    else:
+                        prediction = self._predict_single(model, landmarks_norm, class_names)
+
+                # 绘制预测结果（用 PIL 渲染中文）
+                if prediction:
+                    frame = put_chinese_text(
+                        frame, f"识别: {prediction}",
+                        (10, 10), self.font, (0, 255, 0))
+
+                # 状态
+                if has_hand:
+                    frame = put_chinese_text(
+                        frame, "已检测到手部",
+                        (10, 50), self.font_small, (0, 255, 0))
                 else:
-                    # 分类器模型：单帧预测（预留）
-                    self._handle_classifier_inference(frame)
+                    frame = put_chinese_text(
+                        frame, "请将手伸到摄像头前",
+                        (10, 50), self.font_small, (0, 0, 255))
 
-            cv2.imshow('Inference', frame)
+                # 缓冲区信息
+                if uses_sequence:
+                    buf_text = f"缓冲: {len(self.sequence_buffer)}/{self.max_sequence_length}"
+                    frame = put_chinese_text(
+                        frame, buf_text,
+                        (10, 80), self.font_small, (255, 255, 255))
 
-            key = cv2.waitKey(1) & 0xFF
-            if key == ord('q'):
-                break
+                # 模型信息
+                frame = put_chinese_text(
+                    frame, f"模型: {model_type.upper()} | 按Q退出",
+                    (10, h - 30), self.font_small, (200, 200, 200))
 
-        cap.release()
-        cv2.destroyAllWindows()
+                cv2.imshow('Sign Language Recognition', frame)
 
-    def _handle_sequence_inference(self, model, model_type, frame, features, class_names):
-        """
-        处理序列模型推理
+                key = cv2.waitKey(1) & 0xFF
+                if key == ord('q') or key == 27:
+                    break
 
-        Args:
-            model: 模型实例
-            model_type (str): 模型类型
-            frame: 当前帧
-            features: 特征向量
-            class_names (list): 类别名称列表
-        """
-        # 添加到序列缓冲区
-        self.sequence_buffer.append(features)
+        finally:
+            cap.release()
+            cv2.destroyAllWindows()
 
-        # 保持序列长度不超过最大值
+    def _load_classifier(self, model_path, model_type):
+        if model_path is None:
+            model_path = str(config.get_model_path(model_type))
+        model_data = joblib.load(model_path)
+        self.scaler = model_data.get('scaler')
+        logger.info(f"加载分类器: {model_path}")
+        return model_data
+
+    def _load_deep_learning(self, model_type, model_path, num_classes):
+        import torch
+        model_classes = {'lstm': LSTMModel, 'transformer': TransformerModel}
+        model_class = model_classes.get(model_type)
+        if model_class is None:
+            raise ValueError(f"未知模型类型: {model_type}")
+
+        input_shape = (self.max_sequence_length, 171)
+        model = model_class(input_shape, num_classes)
+
+        if model_path is None:
+            model_path = str(config.get_model_path(model_type))
+
+        model.load(model_path)
+
+        scaler_path = str(config.processed_data_dir / 'scaler_sequence.pkl')
+        if os.path.exists(scaler_path):
+            self.scaler = joblib.load(scaler_path)
+            logger.info(f"加载 scaler: {scaler_path}")
+
+        logger.info(f"加载模型: {model_path}")
+        return model
+
+    def _predict_single(self, model, landmarks, class_names):
+        features = landmarks.reshape(1, -1)
+        if self.scaler is not None:
+            features = self.scaler.transform(features)
+        pred = model['model'].predict(features)[0]
+        return class_names[int(pred)]
+
+    def _predict_sequence(self, model, landmarks, class_names):
+        self.sequence_buffer.append(landmarks)
         if len(self.sequence_buffer) > self.max_sequence_length:
             self.sequence_buffer = self.sequence_buffer[-self.max_sequence_length:]
 
-        # 当序列达到最大长度时进行预测
-        if len(self.sequence_buffer) == self.max_sequence_length:
-            input_data = np.array(self.sequence_buffer).reshape(
-                1, self.max_sequence_length, -1
-            )
+        if len(self.sequence_buffer) < self.max_sequence_length:
+            return None
 
-            # 模型预测
-            y_pred = model.predict(input_data)
-            predicted_class = class_names[int(y_pred[0])]
+        import torch
+        input_data = np.array(self.sequence_buffer, dtype=np.float32)
 
-            # 在帧上显示预测结果
-            cv2.putText(
-                frame,
-                f'Prediction: {predicted_class}',
-                (10, 30),
-                cv2.FONT_HERSHEY_SIMPLEX,
-                1,
-                (0, 255, 0),
-                2
-            )
+        if self.scaler is not None:
+            seq_len, n_features = input_data.shape
+            input_2d = input_data.reshape(-1, n_features)
+            input_scaled = self.scaler.transform(input_2d)
+            input_data = input_scaled.reshape(seq_len, n_features)
 
-            # 显示当前序列状态
-            cv2.putText(
-                frame,
-                f'Sequence: {len(self.sequence_buffer)}/{self.max_sequence_length}',
-                (10, 70),
-                cv2.FONT_HERSHEY_SIMPLEX,
-                0.7,
-                (255, 255, 255),
-                1
-            )
+        input_tensor = torch.tensor(input_data).unsqueeze(0).to(model.device)
 
-    def _handle_classifier_inference(self, frame):
-        """
-        处理分类器模型推理（预留功能）
+        model.eval()
+        with torch.no_grad():
+            outputs = model(input_tensor)
+            _, predicted = torch.max(outputs, 1)
+            pred_idx = predicted.item()
 
-        Args:
-            frame: 当前帧
-        """
-        # 分类器推理功能预留
-        # 当前版本尚未实现加载和推理分类器模型
-        pass
+        return class_names[pred_idx]
+
+
+def main():
+    parser = argparse.ArgumentParser(description='聆心手语识别 — 实时推理')
+    parser.add_argument('--model', type=str, required=True,
+                       choices=['svm', 'rf', 'mlp', 'lstm', 'transformer'],
+                       help='模型类型')
+    parser.add_argument('--model-path', type=str, default=None)
+    parser.add_argument('--labels', type=str, default=None)
+    args = parser.parse_args()
+
+    runner = InferenceRunner()
+    runner.run(args.model, args.model_path, args.labels)
 
 
 if __name__ == '__main__':
-    runner = InferenceRunner()
-
-    # 获取用户输入
-    model_type = input('请选择模型类型 (svm/rf/mlp/lstm/transformer): ')
-    model_path = input('请输入模型路径 (可选): ').strip() or None
-
-    # 运行推理
-    runner.run(model_type, model_path)
+    main()

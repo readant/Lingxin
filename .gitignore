@@ -26,6 +26,8 @@ data/raw/*
 !data/raw/.gitkeep
 data/processed/*
 !data/processed/.gitkeep
+data/videos/*
+!data/videos/.gitkeep
 
 # 模型文件（需单独下载）
 models/*

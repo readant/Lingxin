@@ -6,6 +6,7 @@
 
 import cv2
 import sys
+import os
 
 def main():
     print("=" * 60)
@@ -101,5 +102,4 @@ def main():
     print("=" * 60)
 
 if __name__ == '__main__':
-    import os
     main()
