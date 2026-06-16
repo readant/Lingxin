@@ -88,7 +88,26 @@ draw.text((10, 10), "你好", font=font, fill=(255, 255, 255))
 frame = cv2.cvtColor(np.array(pil_img), cv2.COLOR_RGB2BGR)
 ```
 
-### 3.4 模型训练过拟合
+### 3.4 预览回放导致主界面卡顿
+
+**现象**：
+录制完成后按 `D` 预览回放序列，返回主采集界面后摄像头画面明显卡顿，帧率显著下降。
+
+**原因**：
+
+1. **Preview 窗口泄露**（主因）：`_playback_sequence` 通过 `cv2.imshow('Preview', frame)` 打开第二个 OpenCV 窗口，但回放结束后未调用 `cv2.destroyWindow` 销毁。返回主循环后，OpenCV highgui 后端需同时管理 `Preview` 和 `Data Collection` 两个窗口，`cv2.waitKey(1)` 分摊处理所有窗口的事件循环，实质帧率腰斩。
+2. **摄像头缓冲区积压**：回放期间（最长约 150 帧 × 33ms ≈ 5 秒）摄像头持续捕获帧到 DSHOW 缓冲区。`_show_review` 返回后虽有 `_flush_capture(max_frames=60)`，但预览期间积压量可能远超 60 帧，残留旧帧导致 `cap.read()` 返回延迟画面。
+
+**解决方案**：
+
+1. 在 `_playback_sequence` 中用 `try/finally` 包裹回放逻辑，`finally` 块中调用 `cv2.destroyWindow('Preview')` 并额外执行 3 次 `cv2.waitKey(1)` 完成底层清理
+2. 在 `_show_review` 的 `D` 键分支中，预览返回后立即调用 `_flush_capture(cap, max_frames=min(len(sequence)*3, 200))` 清空积压帧
+3. 附带优化：将回放帧的文本渲染从逐帧 PIL 往返（cv2→PIL→cv2）改为与 `_render_frame_ui` 一致的 RGBA 预渲染 + `_paste_rgba` alpha 合成（静态文本仅渲染一次，动态标题每 5 帧更新）
+
+**根因分析**：
+OpenCV highgui 的 `waitKey` 是全局事件泵——它会处理**所有**已创建窗口的消息。一个额外的未销毁窗口意味着每帧 `waitKey(1)` 要做两倍的事件处理工作。在 30fps 的实时采集场景中，这个微小的开销会被逐帧放大，表现为可感知的掉帧。
+
+### 3.5 模型训练过拟合
 
 **现象**：
 训练准确率很高，但验证准确率很低。
@@ -162,9 +181,9 @@ Lingxin/
 
 **文件格式**：`data/vocab.csv`
 ```csv
-category,word,description
-问候,你好,打招呼用语
-问候,谢谢,表达感谢
+word,category,priority
+你好,问候,1
+谢谢,问候,1
 ...
 ```
 
@@ -281,6 +300,62 @@ category,word,description
 - 新增 `--summary` 模式查看数据人员分布
 - 输出 `split_info.json` 记录划分详情
 
+### 4.12 新手学习教程体系（2026年6月）
+
+**里程碑**：零基础友好学习路线
+
+**新增内容**：
+- `learning/` 目录：10阶段循序渐进学习教程
+- 从环境配置到项目实战，覆盖完整技术栈
+- 每个阶段独立可运行，附带详细注释
+- 6周学习计划，适合新手自主学习
+
+**教程覆盖**：
+Python基础 → OpenCV → MediaPipe → 手部/姿态检测 → NumPy → 特征工程 → SVM → LSTM → 数据采集实战
+
+### 4.13 Web演示界面（2026年6月）
+
+**里程碑**：浏览器端在线手语识别演示
+
+**新增内容**：
+- `web/index.html` — 学习导航主页
+- `web/demo.html` — 基于MediaPipe WASM的在线手语识别演示
+- `web/docs-viewer.html` — 项目文档在线查看器
+- `web/resources.html` — 学习资源汇总页
+- `assets/marked.min.js` — Markdown解析库
+
+**技术方案**：
+- 使用 MediaPipe JavaScript SDK（WASM后端）在浏览器端运行手部检测
+- 前端实时推理，无需后端服务
+- 日式温暖风格UI设计
+
+### 4.14 项目工程化完善（2026年6月）
+
+**里程碑**：项目规范化和工程化
+
+**新增内容**：
+1. **`pyproject.toml`** — 项目元数据和构建配置
+   - 版本号 0.2.0
+   - 标准化依赖声明
+   - CLI入口点配置（`lingxin-collect`、`lingxin-train`）
+   - black/isort/pytest 工具配置
+
+2. **`.pre-commit-config.yaml`** — Git钩子
+   - trailing-whitespace / end-of-file-fixer
+   - check-yaml / check-added-large-files
+   - commitizen 规范化提交信息
+
+3. **`environment-gpu.yml`** — GPU环境配置
+   - 支持 NVIDIA RTX 5060 (Blackwell, sm_120)
+   - CUDA 12.8 + PyTorch 2.8 GPU版本
+   - 清华镜像加速
+
+4. **测试框架** — pytest 测试用例
+   - 数据增强模块测试
+   - 数据采集工具测试
+   - 配置管理测试
+   - 特征提取测试
+
 ## 五、当前项目状态
 
 ### 5.1 已完成功能
@@ -300,6 +375,10 @@ category,word,description
 | 模型训练 | ✅ 完成 | 统一训练接口，预划分数据自动检测 |
 | 模型评估 | ✅ 完成 | 多指标评估和混淆矩阵 |
 | 实时推理 | ✅ 完成 | 摄像头实时识别 |
+| Web演示 | ✅ 完成 | 浏览器端MediaPipe WASM手语识别演示 |
+| 新手教程 | ✅ 完成 | 10阶段学习路线 + 6周学习计划 |
+| 测试框架 | ✅ 完成 | pytest单元测试覆盖核心模块 |
+| 项目工程化 | ✅ 完成 | pyproject.toml + pre-commit + GPU环境 |
 
 ### 5.2 当前工作重点
 
@@ -314,7 +393,6 @@ category,word,description
 |------|--------|------|
 | API服务完善 | 高 | Flask RESTful API 增强 |
 | 模型部署优化 | 中 | ONNX/TensorRT 模型转换 |
-| Web演示界面 | 中 | 可视化演示界面 |
 | 连续手语识别 | 低 | 支持连续手语（非孤立词） |
 
 ## 六、下一步计划
@@ -322,16 +400,18 @@ category,word,description
 ### 6.1 短期目标（1-2周）
 1. 完善 API 服务，支持线上预测
 2. 补充实验数据，更新模型性能对比
+3. Web演示界面增加更多交互功能
 
 ### 6.2 中期目标（1-2月）
 1. 模型超参数调优（网格搜索/贝叶斯优化）
 2. 模型压缩与加速（ONNX导出）
 3. 扩充自采数据，增强数据多样性
+4. 增加测试覆盖率
 
 ### 6.3 长期目标（3-6月）
 1. 部署到生产环境
 2. 支持连续手语识别
-3. 开发移动端/Web端应用
+3. 开发移动端应用
 
 ---
 

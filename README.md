@@ -12,20 +12,26 @@
 
 | 功能 | 状态 | 说明 |
 |------|------|------|
-| 手部关键点检测 | ✅ | MediaPipe 21点手部检测 |
-| 姿态关键点检测 | ✅ | MediaPipe 上半身15点检测 |
-| 时序数据采集 | ✅ | 支持录制关键点序列 |
+| 手部关键点检测 | ✅ | MediaPipe 21点手部检测（Task API） |
+| 姿态关键点检测 | ✅ | MediaPipe 上半身15点检测（Task API） |
+| 时序数据采集 | ✅ | 摄像头录制 + 视频批量提取 |
+| 数据增强 | ✅ | 平移、缩放、噪声、时间扭曲、遮挡 |
 | 特征提取 | ✅ | 相对坐标、角度、长度等特征 |
-| 模型训练 | ✅ | 支持5种模型 |
+| 模型训练 | ✅ | 支持5种模型，按人员划分数据集 |
 | 模型评估 | ✅ | 多指标评估 + 混淆矩阵 |
 | 实时推理 | ✅ | 摄像头实时识别 |
+| Web演示 | ✅ | 浏览器在线手语识别演示 |
+| 新手教程 | ✅ | 10阶段循序渐进学习路线 |
 
 ## 目录结构
 
 ```
 Lingxin/
 ├── api/                              # API服务
-│   └── app.py                        # Flask API入口
+│   └── app.py                        # Flask API入口（含WebSocket实时推理）
+│
+├── assets/                           # 静态资源
+│   └── marked.min.js                 # Markdown解析库（文档查看器用）
 │
 ├── data/                             # 数据目录
 │   ├── vocab.csv                     # 词汇表（50个常用词汇）
@@ -34,44 +40,96 @@ Lingxin/
 │   └── processed/                    # 预处理后的数据
 │
 ├── docs/                             # 文档目录
-│   ├── learning/                     # 新手学习笔记
-│   ├── architecture.md               # 架构设计文档
-│   ├── data_collection.md            # 数据采集指南
-│   ├── development.md               # 开发记录
-│   └── experiments.md               # 实验记录
+│   ├── 01-quickstart.md              # 快速入门
+│   ├── 02-architecture.md            # 架构设计
+│   ├── 03-data-collection.md         # 数据采集指南
+│   ├── 04-training.md                # 模型训练
+│   ├── 05-code-guide.md              # 核心代码导读
+│   ├── 06-design-patterns.md         # 设计模式实践
+│   ├── 07-faq.md                     # 常见问题
+│   ├── 08-testing.md                 # 测试指南
+│   └── journal/                      # 项目日志
+│       ├── development.md            # 开发历程
+│       └── experiments.md            # 实验记录
+│
+├── learning/                         # 新手学习教程（10个阶段）
+│   ├── README.md                     # 学习指南和路线图
+│   ├── download_models.py            # 模型下载脚本
+│   ├── 00_env_setup.py              # 环境检查
+│   ├── 01_python_basics.py          # Python基础
+│   ├── 02_opencv_*.py               # OpenCV图像/视频处理
+│   ├── 03_mediapipe_intro.py        # MediaPipe入门
+│   ├── 04_hand_detection_*.py       # 手部检测
+│   ├── 05_pose_detection.py         # 姿态检测
+│   ├── 06_numpy_*.py                # NumPy数据处理
+│   ├── 07_feature_extraction.py     # 特征工程
+│   ├── 08_svm_intro.py              # SVM入门
+│   ├── 09_lstm_intro.py             # LSTM入门
+│   └── 10_data_collection.py        # 数据采集实战
+│
+├── models/                           # 模型文件
+│   ├── hand_landmarker.task          # MediaPipe手部检测模型
+│   ├── pose_landmarker_lite.task     # MediaPipe姿态检测模型
+│   └── *_model.{pth,pkl}            # 训练好的模型权重
 │
 ├── src/                              # 核心源代码
-│   ├── detection/                   # 关键点检测
+│   ├── config.py                     # 统一配置管理
+│   ├── constants.py                  # 共享常量
+│   ├── detection/                    # 关键点检测
 │   │   └── hand_detector.py         # 手部/姿态/Holistic检测器
-│   ├── features/                    # 特征工程
-│   │   └── feature_extractor.py     # 特征提取器
-│   ├── models/                      # 模型定义
+│   ├── features/                     # 特征工程
+│   │   ├── feature_extractor.py     # 特征提取器
+│   │   └── augmentation.py          # 数据增强模块
+│   ├── models/                       # 模型定义
 │   │   ├── base_model.py           # 模型基类（模板方法模式）
 │   │   ├── classifiers.py          # SVM/随机森林/MLP
 │   │   ├── lstm_model.py           # LSTM模型
 │   │   └── transformer_model.py   # Transformer模型
-│   ├── training/                   # 训练模块
+│   ├── training/                     # 训练模块
 │   │   └── trainer.py              # 统一训练接口
-│   └── utils/                      # 工具函数
-│       ├── data_loader.py          # 数据加载
-│       ├── metrics.py              # 评估指标
+│   └── utils/                        # 工具函数
+│       ├── data_loader.py           # 数据加载
+│       ├── logger.py                # 统一日志系统
+│       ├── metrics.py               # 评估指标
 │       └── visualization.py         # 可视化工具
 │
+├── tests/                            # 测试代码
+│   ├── test_augmentation.py          # 数据增强测试
+│   ├── test_collect_data.py          # 数据采集测试
+│   ├── test_collect_from_video.py    # 视频采集测试
+│   ├── test_config.py                # 配置管理测试
+│   ├── test_constants.py             # 常量测试
+│   └── test_feature_extractor.py     # 特征提取测试
+│
 ├── tools/                            # 工具脚本
-│   ├── collect_data.py              # 数据采集工具
+│   ├── collect_data.py              # 摄像头数据采集工具
+│   ├── collect_from_video.py        # 视频批量采集工具
 │   ├── preprocess.py               # 数据预处理工具
 │   ├── train.py                    # 模型训练入口
 │   ├── evaluate.py                 # 模型评估入口
 │   └── inference.py                # 实时推理入口
 │
-├── tests/                            # 测试目录（待完善）
+├── web/                              # Web演示界面
+│   ├── index.html                    # 学习导航主页
+│   ├── demo.html                     # 手语识别在线演示
+│   ├── docs-viewer.html             # 文档在线查看器
+│   ├── resources.html                # 学习资源汇总
+│   └── mediapipe/                    # MediaPipe WASM资源
+│
+├── pyproject.toml                    # 项目元数据和构建配置
 ├── requirements.txt                  # pip依赖清单
-├── environment.yml                  # conda环境文件
+├── environment.yml                   # conda CPU环境文件
+├── environment-gpu.yml               # conda GPU环境文件
+├── .pre-commit-config.yaml           # Git钩子配置
 ├── .gitignore
 └── README.md
 ```
 
 ## 环境配置（推荐使用conda）
+
+项目提供两种环境配置：
+- **`environment.yml`** — CPU版本（默认，适合开发和学习）
+- **`environment-gpu.yml`** — GPU版本（NVIDIA CUDA，适合模型训练加速）
 
 ### 方法一：使用conda环境文件（推荐）
 
@@ -266,13 +324,15 @@ python tools/inference.py --model lstm --checkpoint models/lstm_model.pth
 
 ```bash
 # 启动Flask API服务
-python api/app.py
+python api/app.py --model lstm
 ```
 
 API接口：
-- `POST /predict` - 手语识别
-- `GET /models` - 获取可用模型列表
-- `POST /train` - 触发模型训练
+- `POST /api/predict` — 手语识别（接收 base64 图片或 171 维特征）
+- `POST /api/detect` — 仅检测手部关键点（返回 171 维特征）
+- `POST /api/load_model` — 加载/切换模型
+- `GET /api/health` — 健康检查
+- `WS /ws/detect` — WebSocket 实时检测+预测
 
 ## 项目流程图
 
@@ -312,9 +372,9 @@ API接口：
 
 ```
 每帧数据：71维特征向量
-├── 相对坐标：30维（相对于手腕的偏移）
-├── 手指长度：10维（5根手指的长度）
-└── 关节角度：31维（关节间的角度）
+├── 相对坐标：63维（21点 × 3坐标，相对于手腕）
+├── 手指长度：4维（食指、中指、无名指、小指）
+└── 关节角度：4维（4个手指根部角度）
 ```
 
 ### 文件命名规范
@@ -364,19 +424,19 @@ pip install --upgrade mediapipe>=0.10.33
 pip install mediapipe>=0.10.33
 ```
 
-### Q3: 模块导入失败
+### Q4: 模块导入失败
 
 **错误**：`ModuleNotFoundError: No module named 'src'`
 
 **解决方案**：工具脚本已自动添加项目路径，无需手动配置。
 
-### Q4: 中文显示乱码
+### Q5: 中文显示乱码
 
 **现象**：界面显示"???"而非中文
 
 **解决方案**：系统已自动加载Windows中文字体（微软雅黑/黑体），无需额外配置。
 
-### Q5: 摄像头无法打开
+### Q6: 摄像头无法打开
 
 **检查项**：
 1. 摄像头是否被其他程序占用
@@ -428,11 +488,14 @@ conda activate lingxin
 | [06-设计模式实践](docs/06-design-patterns.md) | 模板方法、字典映射、架构实践 |
 | [07-常见问题](docs/07-faq.md) | 环境/数据/模型问题排查 |
 | [08-测试指南](docs/08-testing.md) | pytest使用、测试编写、最佳实践 |
+| [🎓 新手学习教程](learning/README.md) | 10阶段零基础学习路线 |
+| [🌐 Web演示](web/index.html) | 浏览器端在线手语识别 |
 | [开发历程](docs/journal/development.md) | 项目开发大事记 |
 | [实验记录](docs/journal/experiments.md) | 模型性能对比与调优 |
 
 ## 更新日志
 
+- **2026-06-16**: 项目工程化完善（pyproject.toml、pre-commit、GPU环境），新增新手学习教程（10阶段）和Web演示界面
 - **2026-06-11**: 新增测试指南文档（08-testing.md），包含 pytest 使用、测试编写、最佳实践
 - **2026-06-10**: 文档结构重组，新增7篇学习路径文档，优化阅读体验
 - **2026-06-01**: 升级MediaPipe至最新稳定版（>=0.10.33），迁移至Task API

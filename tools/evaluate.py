@@ -21,7 +21,14 @@ python tools/evaluate.py
 
 import numpy as np
 import os
+import sys
+import torch
+
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from src.training.trainer import Trainer
+from src.models.lstm_model import LSTMModel
+from src.models.transformer_model import TransformerModel
+from src.config import config
 
 
 class EvaluateRunner:
@@ -160,10 +167,12 @@ class EvaluateRunner:
         )
 
         model.eval()
-        with np.no_errstate():
-            X_test_tensor = np.array(X_test, dtype=np.float32)
-            y_pred = model.predict(X_test_tensor)
-            y_pred = np.argmax(y_pred, axis=1)
+        with np.errstate():
+            X_test_tensor = torch.tensor(np.array(X_test, dtype=np.float32))
+            X_test_tensor = X_test_tensor.to(model.device)
+            with torch.no_grad():
+                outputs = model(X_test_tensor)
+                y_pred = torch.argmax(outputs, dim=1).cpu().numpy()
 
         # 计算评估指标
         metrics = self.metrics_calculator.calculate_metrics(y_test, y_pred)

@@ -9,21 +9,33 @@
 ```
 Lingxin/                              # 项目根目录
 ├── api/                              # API服务模块
-│   └── app.py                        # Flask API应用入口
-├── config/                           # 配置文件（预留）
+│   └── app.py                        # Flask API应用入口（含WebSocket）
+├── assets/                           # 静态资源
+│   └── marked.min.js                 # Markdown解析库
 ├── data/                             # 数据目录
 │   ├── vocab.csv                     # 自建词汇表（50个常用词汇）
-│   ├── videos/                       # 待处理视频文件（不被 git 追踪）
 │   ├── raw/                          # 原始数据
 │   │   └── collected/                # 采集输出（按词汇分目录）
 │   └── processed/                    # 预处理后的训练数据
 ├── docs/                             # 文档目录
-│   ├── learning/                     # 新手学习笔记
-│   ├── architecture.md               # 架构设计文档
-│   ├── data_collection.md            # 数据采集指南
-│   ├── development.md                # 开发记录
-│   └── experiments.md                # 实验记录
-├── learning/                         # 学习资源（含模型下载脚本）
+│   ├── 01-quickstart.md              # 快速入门
+│   ├── 02-architecture.md            # 架构设计
+│   ├── 03-data-collection.md         # 数据采集指南
+│   ├── 04-training.md                # 模型训练
+│   ├── 05-code-guide.md              # 核心代码导读
+│   ├── 06-design-patterns.md         # 设计模式实践
+│   ├── 07-faq.md                     # 常见问题
+│   ├── 08-testing.md                 # 测试指南
+│   └── journal/                      # 项目日志
+│       ├── development.md            # 开发历程
+│       └── experiments.md            # 实验记录
+├── learning/                         # 新手学习教程（10阶段）
+│   ├── README.md                     # 学习指南
+│   └── *.py                          # 各阶段学习脚本
+├── models/                           # 模型文件目录
+│   ├── hand_landmarker.task          # MediaPipe手部检测模型
+│   ├── pose_landmarker_lite.task     # MediaPipe姿态检测模型
+│   └── *_model.{pth,pkl}            # 训练好的模型权重
 ├── src/                              # 核心源代码
 │   ├── config.py                     # 统一配置管理（dataclass 单例）
 │   ├── constants.py                  # 共享常量定义（骨架连接、维度常量）
@@ -44,6 +56,13 @@ Lingxin/                              # 项目根目录
 │       ├── logger.py                 # 统一日志系统
 │       ├── metrics.py                # 评估指标计算
 │       └── visualization.py          # 可视化工具
+├── tests/                            # 测试代码
+│   ├── test_augmentation.py          # 数据增强测试
+│   ├── test_collect_data.py          # 数据采集测试
+│   ├── test_collect_from_video.py    # 视频采集测试
+│   ├── test_config.py                # 配置管理测试
+│   ├── test_constants.py             # 常量测试
+│   └── test_feature_extractor.py     # 特征提取测试
 ├── tools/                            # 工具脚本
 │   ├── collect_data.py               # 摄像头实时采集
 │   ├── collect_from_video.py         # 视频文件批量采集
@@ -51,12 +70,16 @@ Lingxin/                              # 项目根目录
 │   ├── train.py                      # 模型训练入口
 │   ├── evaluate.py                   # 模型评估入口
 │   └── inference.py                  # 实时推理入口
-├── models/                           # 模型文件目录
-│   ├── *.task                         # MediaPipe 预训练模型
-│   ├── *.pkl                          # scikit-learn 模型
-│   └── *.pth                          # PyTorch 模型
+├── web/                              # Web演示界面
+│   ├── index.html                    # 学习导航主页
+│   ├── demo.html                     # 在线手语识别演示
+│   ├── docs-viewer.html              # 文档在线查看器
+│   └── resources.html                # 学习资源汇总
+├── pyproject.toml                    # 项目元数据和构建配置
 ├── requirements.txt                  # pip 依赖清单
-├── environment.yml                   # conda 环境文件
+├── environment.yml                   # conda CPU环境文件
+├── environment-gpu.yml               # conda GPU环境文件
+├── .pre-commit-config.yaml           # Git钩子配置
 └── README.md                         # 项目说明
 ```
 

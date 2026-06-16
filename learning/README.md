@@ -7,10 +7,11 @@
 - 实时检测窗口创建
 - 关键点检测原理
 - 数据采集和处理
+- 模型训练和评估
 
 ---
 
-## 📚 学习路线（10个阶段）
+## 📚 学习路线（13个阶段）
 
 ### 第0阶段：环境准备
 | 文件 | 学习目标 |
@@ -32,7 +33,7 @@
 ### 第3阶段：MediaPipe入门
 | 文件 | 学习目标 |
 |------|----------|
-| `03_mediapipe_intro.py` | MediaPipe框架介绍和模型配置 |
+| `03_mediapipe_intro.py` | MediaPipe框架介绍、Task API、模型文件 |
 
 ### 第4阶段：手部检测
 | 文件 | 学习目标 |
@@ -54,7 +55,7 @@
 ### 第7阶段：特征工程
 | 文件 | 学习目标 |
 |------|----------|
-| `07_feature_extraction.py` | 关键点特征提取方法 |
+| `07_feature_extraction.py` | 171维原始向量 vs 71维提取特征 |
 
 ### 第8阶段：机器学习
 | 文件 | 学习目标 |
@@ -64,16 +65,31 @@
 ### 第9阶段：深度学习
 | 文件 | 学习目标 |
 |------|----------|
-| `09_lstm_intro.py` | LSTM时序模型原理 |
+| `09_lstm_intro.py` | LSTM原理、项目LSTMModel、训练流程 |
 
-### 第10阶段：项目实战
+### 第10阶段：数据采集
 | 文件 | 学习目标 |
 |------|----------|
-| `10_data_collection.py` | 完整数据采集流程 |
+| `10_data_collection.py` | 项目采集工具介绍、简化版演示 |
+
+### 第11阶段：配置管理（新增）
+| 文件 | 学习目标 |
+|------|----------|
+| `11_config_management.py` | config.py 统一配置、constants.py 共享常量 |
+
+### 第12阶段：训练流程（新增）
+| 文件 | 学习目标 |
+|------|----------|
+| `12_training_pipeline.py` | preprocess → train → evaluate 完整流程 |
+
+### 第13阶段：数据增强（新增）
+| 文件 | 学习目标 |
+|------|----------|
+| `13_data_augmentation.py` | KeypointAugmenter 5种增强策略 |
 
 ---
 
-## 📅 6周学习计划
+## 📅 学习计划
 
 ### 第1周：基础准备
 ```
@@ -106,7 +122,8 @@ Day 17-18: 09_lstm_intro.py
 
 ### 第6周：项目实战
 ```
-Day 19-23: 10_data_collection.py
+Day 19-20: 10_data_collection.py → 11_config_management.py
+Day 21-22: 12_training_pipeline.py → 13_data_augmentation.py
 ```
 
 ---
@@ -135,6 +152,9 @@ python learning/07_feature_extraction.py
 python learning/08_svm_intro.py
 python learning/09_lstm_intro.py
 python learning/10_data_collection.py
+python learning/11_config_management.py
+python learning/12_training_pipeline.py
+python learning/13_data_augmentation.py
 ```
 
 ---
@@ -155,10 +175,13 @@ learning/
 ├── 05_pose_detection.py         # 姿态检测
 ├── 06_numpy_intro.py            # NumPy基础
 ├── 06_numpy_operations.py       # NumPy进阶
-├── 07_feature_extraction.py     # 特征工程
+├── 07_feature_extraction.py     # 特征工程（171维 vs 71维）
 ├── 08_svm_intro.py              # SVM入门
-├── 09_lstm_intro.py             # LSTM入门
-└── 10_data_collection.py        # 数据采集实战
+├── 09_lstm_intro.py             # LSTM入门（引用项目LSTMModel）
+├── 10_data_collection.py        # 数据采集实战
+├── 11_config_management.py      # 配置管理（新增）
+├── 12_training_pipeline.py      # 训练流程（新增）
+└── 13_data_augmentation.py      # 数据增强（新增）
 ```
 
 ---
@@ -173,4 +196,4 @@ learning/
 
 ---
 
-**祝您学习顺利！** 🎉
+**祝您学习顺利！**

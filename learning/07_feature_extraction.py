@@ -168,13 +168,23 @@ def section_4_feature_vector_construction():
     print("=" * 50)
 
     print("""
-完整的特征向量构建流程：
-----------------------
-1. 左手关键点坐标: 21点 × 3坐标 = 63维
-2. 右手关键点坐标: 21点 × 3坐标 = 63维
-3. 姿态关键点坐标: 15点 × 3坐标 = 45维
------------------------------------------
-总计: 171维特征向量
+项目中有两种特征向量，用途不同：
+
+1. 原始关键点向量（171维）— 用于深度学习模型（LSTM、Transformer）
+   - 左手关键点: 21点 × 3坐标 = 63维
+   - 右手关键点: 21点 × 3坐标 = 63维
+   - 姿态关键点: 15点 × 3坐标 = 45维
+   - 总计: 171维
+
+2. 提取后特征向量（71维）— 用于传统ML模型（SVM、RF、MLP）
+   - 相对坐标: 21点 × 3坐标 = 63维（相对于手腕）
+   - 手指长度: 4维（食指、中指、无名指、小指）
+   - 关节角度: 4维（4个手指根部角度）
+   - 总计: 71维
+
+为什么要区分？
+- 深度学习模型可以自动从原始序列中学习特征
+- 传统ML模型需要手工设计的特征才能取得好效果
 """)
 
     # 模拟数据
@@ -182,8 +192,8 @@ def section_4_feature_vector_construction():
     right_hand = np.random.rand(21, 3)
     pose = np.random.rand(15, 3)
 
-    # 构建特征向量
-    feature_vector = np.concatenate([
+    # 构建171维原始关键点向量
+    raw_vector = np.concatenate([
         left_hand.flatten(),
         right_hand.flatten(),
         pose.flatten()
@@ -192,25 +202,28 @@ def section_4_feature_vector_construction():
     print(f"左手形状: {left_hand.shape} -> 展平后: {left_hand.flatten().shape}")
     print(f"右手形状: {right_hand.shape} -> 展平后: {right_hand.flatten().shape}")
     print(f"姿态形状: {pose.shape} -> 展平后: {pose.flatten().shape}")
-    print(f"特征向量总维度: {feature_vector.shape[0]}")
+    print(f"原始关键点向量维度: {raw_vector.shape[0]} (用于LSTM/Transformer)")
 
-    # 添加更多特征（可选）
-    # 计算手指长度特征
+    # 构建71维提取特征向量
+    wrist = left_hand[0]
+    relative_coords = (left_hand - wrist).flatten()  # 63维
+
     finger_lengths = []
-    for i in range(5):  # 5根手指
-        finger_lengths.extend([np.random.rand() for _ in range(3)])  # 每根手指3个特征
+    fingers = [left_hand[5:9], left_hand[9:13], left_hand[13:17], left_hand[17:21]]
+    for finger in fingers:
+        length = np.linalg.norm(finger[-1] - finger[0])
+        finger_lengths.append(length)
 
-    # 计算关节角度特征
-    joint_angles = [np.random.rand() for _ in range(20)]  # 20个关节角度
-
-    # 扩展特征向量
-    extended_feature = np.concatenate([
-        feature_vector,
-        finger_lengths,
-        joint_angles
+    extracted_features = np.concatenate([
+        relative_coords,                # 63维
+        np.array(finger_lengths),       # 4维
+        np.random.rand(4)               # 4维（关节角度）
     ])
 
-    print(f"\n扩展特征向量维度: {extended_feature.shape[0]}")
+    print(f"\n提取特征向量维度: {extracted_features.shape[0]} (用于SVM/RF/MLP)")
+    print(f"  - 相对坐标: 63维")
+    print(f"  - 手指长度: 4维")
+    print(f"  - 关节角度: 4维")
 
 def section_5_practical_demo():
     """7.5 实战演示"""

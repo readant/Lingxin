@@ -165,150 +165,120 @@ nn.LSTM(
     print(f"细胞状态形状: {c_n.shape}")
 
 def section_4_lstm_classifier():
-    """9.4 LSTM分类器实现"""
+    """9.4 项目中的LSTM模型"""
     print("\n" + "=" * 50)
-    print("9.4 LSTM分类器实现")
+    print("9.4 项目中的LSTM模型")
     print("=" * 50)
 
-    import torch
-    import torch.nn as nn
+    import sys
+    import os
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    project_root = os.path.dirname(current_dir)
+    sys.path.insert(0, project_root)
 
-    class LSTMClassifier(nn.Module):
-        """用于手语识别的LSTM分类器"""
+    try:
+        from src.models.lstm_model import LSTMModel
+        print("[OK] 成功导入项目的 LSTMModel")
+        print("""
+项目的 LSTMModel 继承自 BaseModel，内置了：
+- 统一的训练循环（train_model方法）
+- Early Stopping（早停机制）
+- 学习率调度器（ReduceLROnPlateau）
+- 自动保存最佳模型
+- GPU 自动检测支持
 
-        def __init__(self, input_size, hidden_size, num_layers, num_classes):
-            super(LSTMClassifier, self).__init__()
+模型结构：
+  输入(30, 171) → LSTM(2层, 128隐藏单元) → 全连接(128→64) → 输出(num_classes)
+""")
 
-            # LSTM层
-            self.lstm = nn.LSTM(
-                input_size=input_size,
-                hidden_size=hidden_size,
-                num_layers=num_layers,
-                batch_first=True
-            )
+        # 创建模型
+        input_shape = (30, 171)  # (序列长度, 特征维度)
+        num_classes = 10
+        model = LSTMModel(input_shape, num_classes)
+        print(f"模型结构:\n{model}")
 
-            # 全连接层
-            self.fc = nn.Linear(hidden_size, num_classes)
+        # 计算参数数量
+        total_params = sum(p.numel() for p in model.parameters())
+        print(f"\n总参数数量: {total_params:,}")
 
-            # 激活函数
-            self.softmax = nn.Softmax(dim=1)
+        # 测试前向传播
+        import torch
+        batch_size = 16
+        x = torch.randn(batch_size, *input_shape)
+        output = model(x)
+        print(f"\n输入形状: {x.shape}")
+        print(f"输出形状: {output.shape}")
 
-        def forward(self, x):
-            """
-            参数:
-                x: 输入张量，形状为(batch_size, seq_len, input_size)
+    except ImportError as e:
+        print(f"[ERROR] 无法导入 LSTMModel: {e}")
+        print("请确保在项目根目录下运行此脚本")
+        print("\n以下是独立的LSTM分类器示例：")
 
-            返回:
-                预测概率，形状为(batch_size, num_classes)
-            """
-            # LSTM前向传播
-            _, (h_n, _) = self.lstm(x)
+        import torch
+        import torch.nn as nn
 
-            # 取最后一层的隐藏状态
-            last_hidden = h_n[-1]  # (batch_size, hidden_size)
+        class SimpleLSTMClassifier(nn.Module):
+            def __init__(self, input_size, hidden_size, num_layers, num_classes):
+                super().__init__()
+                self.lstm = nn.LSTM(input_size, hidden_size, num_layers, batch_first=True)
+                self.fc = nn.Linear(hidden_size, num_classes)
 
-            # 全连接层
-            logits = self.fc(last_hidden)
+            def forward(self, x):
+                _, (h_n, _) = self.lstm(x)
+                return self.fc(h_n[-1])
 
-            # Softmax激活
-            probabilities = self.softmax(logits)
-
-            return probabilities
-
-    # 创建模型
-    input_size = 171    # 171维特征
-    hidden_size = 128   # 隐藏层维度
-    num_layers = 2      # LSTM层数
-    num_classes = 10    # 手势类别数量
-
-    model = LSTMClassifier(input_size, hidden_size, num_layers, num_classes)
-    print(f"模型结构:\n{model}")
-
-    # 计算参数数量
-    total_params = sum(p.numel() for p in model.parameters())
-    print(f"\n总参数数量: {total_params:,}")
-
-    # 测试前向传播
-    batch_size = 16
-    seq_len = 30
-    x = torch.randn(batch_size, seq_len, input_size)
-    output = model(x)
-    print(f"\n输入形状: {x.shape}")
-    print(f"输出形状: {output.shape}")
-    print(f"输出示例:\n{output[0].detach().numpy().round(4)}")
+        model = SimpleLSTMClassifier(171, 128, 2, 10)
+        total_params = sum(p.numel() for p in model.parameters())
+        print(f"模型参数量: {total_params:,}")
 
 def section_5_training_example():
-    """9.5 训练示例"""
+    """9.5 项目训练流程"""
     print("\n" + "=" * 50)
-    print("9.5 训练示例")
+    print("9.5 项目训练流程")
     print("=" * 50)
 
-    import torch
-    import torch.nn as nn
+    print("""
+项目的训练流程已经封装好，使用非常简单：
 
-    # 超参数
-    input_size = 171
-    hidden_size = 128
-    num_layers = 2
-    num_classes = 5
-    batch_size = 32
-    seq_len = 30
-    epochs = 10
+步骤1: 预处理数据
+  python tools/preprocess.py --split-by-person --train-persons L
 
-    # 创建模型
-    model = LSTMClassifier(input_size, hidden_size, num_layers, num_classes)
+步骤2: 训练模型
+  python tools/train.py --model lstm
+  python tools/train.py --model transformer
 
-    # 损失函数和优化器
-    criterion = nn.CrossEntropyLoss()
-    optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
+步骤3: 评估模型
+  python tools/evaluate.py  （选择模型类型）
 
-    print("训练循环流程:")
+步骤4: 实时推理
+  python tools/inference.py --model lstm --checkpoint models/lstm_model.pth
+
+内部训练循环（BaseModel.train_model）：
+""")
+
     print("""
 for epoch in range(epochs):
     model.train()
-
-    # 前向传播
-    outputs = model(inputs)
-
-    # 计算损失
-    loss = criterion(outputs, labels)
-
-    # 反向传播
-    optimizer.zero_grad()
-    loss.backward()
-
-    # 更新参数
-    optimizer.step()
-
-    # 评估
-    model.eval()
-    with torch.no_grad():
-        predictions = model(test_inputs)
-        accuracy = calculate_accuracy(predictions, test_labels)
-""")
-
-    # 模拟训练数据
-    print("\n模拟训练:")
-    for epoch in range(epochs):
-        # 生成模拟数据
-        inputs = torch.randn(batch_size, seq_len, input_size)
-        labels = torch.randint(0, num_classes, (batch_size,))
-
-        # 前向传播
-        outputs = model(inputs)
-
-        # 计算损失
-        loss = criterion(outputs, labels)
-
-        # 反向传播
+    for inputs, labels in train_loader:
         optimizer.zero_grad()
+        outputs = model(inputs)
+        loss = criterion(outputs, labels)
         loss.backward()
         optimizer.step()
 
-        if (epoch + 1) % 5 == 0:
-            print(f"Epoch [{epoch+1}/{epochs}], Loss: {loss.item():.4f}")
+    # 验证 + 早停 + 学习率调度
+    val_loss, val_acc = validate(val_loader)
+    scheduler.step(val_loss)
+    early_stopping(val_loss, model)
+""")
 
-    print("\n训练完成！")
+    print("""
+BaseModel 内置功能：
+- Early Stopping: 验证损失不再改善时自动停止
+- LR Scheduler: 自动降低学习率
+- 最佳模型保存: 自动保存验证集上表现最好的模型
+- GPU 支持: 自动检测并使用 CUDA
+""")
 
 def main():
     print("=" * 60)

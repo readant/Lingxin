@@ -217,6 +217,22 @@ python tools/preprocess.py --summary
 
 **解决**：已修复为 `waitKey(33)` 循环 + 窗口关闭检测。如果仍遇到此问题，请确认代码为最新版本。
 
+### Q21: 预览回放后主界面卡顿、帧率下降
+
+**现象**：录制完成后按 `D` 预览回放序列，返回主采集界面后，摄像头画面明显卡顿，帧率比之前降低。
+
+**原因**：
+
+1. **Preview 窗口泄露**（主因）：`_playback_sequence` 通过 `cv2.imshow('Preview', frame)` 打开了第二个 OpenCV 窗口，但回放结束后未销毁。返回主循环后，OpenCV highgui 需要同时管理 `Preview` 和 `Data Collection` 两个窗口，`cv2.waitKey(1)` 分摊处理两个窗口的事件循环，导致帧率下降。
+2. **摄像头缓冲区积压**：回放期间（最长约 5 秒）摄像头持续捕获帧，缓冲区积累大量旧帧，返回主循环后 `cap.read()` 拿到的是延迟帧。
+
+**解决**：已在代码中修复（`tools/collect_data.py`）：
+
+- `_playback_sequence` 使用 `try/finally` 确保 `cv2.destroyWindow('Preview')` 在回放结束后必定执行
+- `_show_review` 在预览回放返回后立即调用 `_flush_capture` 清空摄像头积压帧
+
+如果使用旧版本代码遇到此问题，请更新到最新版本。
+
 ## 六、自检清单
 
 遇到问题时，按以下顺序排查：
@@ -256,4 +272,4 @@ python tools/preprocess.py --summary
 
 ---
 
-*最后更新：2026-06-13*
+*最后更新：2026-06-15*

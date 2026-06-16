@@ -7,7 +7,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700&family=Noto+Sans+SC:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-    <script src="assets/marked.min.js"></script>
+    <script src="../assets/marked.min.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -569,7 +569,7 @@
         // 更新面包屑
         updateBreadcrumb(filePath);
 
-        fetch(filePath)
+        fetch('../' + filePath)
             .then(response => {
                 if (!response.ok) throw new Error('文件未找到: ' + filePath);
                 return response.text();
@@ -678,7 +678,7 @@
     async function buildSearchIndex() {
         const promises = DOC_FILES.map(async (file) => {
             try {
-                const resp = await fetch(file);
+                const resp = await fetch('../' + file);
                 if (!resp.ok) return;
                 let text = await resp.text();
                 // 去除 frontmatter

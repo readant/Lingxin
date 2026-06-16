@@ -46,6 +46,9 @@ if 'GLOG_logtostderr' not in os.environ:
     os.environ['GLOG_logtostderr'] = '0'        # 禁止写 stderr
 if 'GLOG_alsologtostderr' not in os.environ:
     os.environ['GLOG_alsologtostderr'] = '0'    # 禁止 also-log-to-stderr
+# 抑制 MediaPipe 警告信息（如 landmark_projection_calculator 警告）
+if 'MEDIAPIPE_DISABLE_GPU' not in os.environ:
+    os.environ['MEDIAPIPE_DISABLE_GPU'] = '0'  # 保持GPU加速
 # 禁用 clearcut 遥测上传（国内网络连 Google 超时 20-30s）
 if 'MEDIAPIPE_DISABLE_ANALYTICS' not in os.environ:
     os.environ['MEDIAPIPE_DISABLE_ANALYTICS'] = '1'
@@ -571,6 +574,7 @@ class DataCollector:
 
         以视频帧的形式逐帧显示序列中的关键点。
         自动检测归一化坐标并反归一化到像素空间。
+        使用 RGBA 预渲染文本避免逐帧 PIL 开销。
 
         Args:
             sequence: 关键点序列（像素坐标或归一化坐标均可）
@@ -578,15 +582,16 @@ class DataCollector:
             frame_w (int): 显示帧宽度
         """
         h, w = frame_h, frame_w
+        total_frames = len(sequence)
 
-        self.logger.info(f"预览序列长度: {len(sequence)}")
-        if len(sequence) > 0:
+        self.logger.info(f"预览序列长度: {total_frames}")
+        if total_frames > 0:
             self.logger.debug(f"第一帧关键点数据: {sequence[0][:10]}...")
             self.logger.debug(f"是否有手部数据: {not np.all(sequence[0][:126] == 0)}")
 
         # 自动检测归一化坐标：若全部 x,y 值 ∈ [0,1] 且 z 方向有非零值 → 反归一化
         needs_denorm = False
-        if len(sequence) > 0:
+        if total_frames > 0:
             sample = np.asarray(sequence[0], dtype=np.float32)
             x_coords = sample[0::3]
             y_coords = sample[1::3]
@@ -594,51 +599,75 @@ class DataCollector:
                 needs_denorm = True
                 self.logger.info("检测到归一化坐标，自动反归一化到像素空间")
 
-        for idx, landmarks in enumerate(sequence):
-            # 反归一化：将 [0,1] 范围坐标映射回像素坐标
-            if needs_denorm:
-                landmarks = landmarks.copy()
-                landmarks[0::3] *= w   # x → 像素
-                landmarks[1::3] *= h   # y → 像素
-            # 创建深灰色背景
-            frame = np.ones((h, w, 3), dtype=np.uint8) * 40
+        # 预渲染静态文本为 RGBA numpy 数组，避免每帧 PIL 往返
+        _hint_rgba = self._render_text_rgba(
+            "[SPACE]暂停 [ESC]退出", font_size=18, color=(200, 200, 200))
+        _no_data_rgba = self._render_text_rgba(
+            "无有效关键点数据", font_size=24, color=(255, 0, 0))
 
-            # 检查数据有效性
-            has_hand = not np.all(landmarks[:126] == 0)
-            has_pose = not np.all(landmarks[126:] == 0)
+        # title_text 是动态的（显示进度），每 5 帧重新渲染一次即可
+        _cached_title_text = None
+        _cached_title_rgba = None
 
-            if has_hand or has_pose:
-                frame = self._draw_landmarks_on_frame(frame, landmarks)
-            else:
-                pil_frame = self._cv2_to_pil(frame)
-                self._draw_text_pil(pil_frame, "无有效关键点数据",
-                                    (w//2-100, h//2), font_size=24, color=(255, 0, 0))
-                frame = self._pil_to_cv2(pil_frame)
+        try:
+            for idx, landmarks in enumerate(sequence):
+                # 反归一化：将 [0,1] 范围坐标映射回像素坐标
+                if needs_denorm:
+                    landmarks = landmarks.copy()
+                    landmarks[0::3] *= w   # x → 像素
+                    landmarks[1::3] *= h   # y → 像素
 
-            # 添加边框
-            cv2.rectangle(frame, (0, 0), (w - 1, h - 1), (255, 255, 255), 2)
+                # 创建深灰色背景
+                frame = np.ones((h, w, 3), dtype=np.uint8) * 40
 
-            # 添加文字信息
-            pil_frame = self._cv2_to_pil(frame)
-            self._draw_text_pil(pil_frame, f"预览回放  {idx + 1}/{len(sequence)} 帧",
-                               (10, 30), font_size=24, color=(255, 255, 255))
-            self._draw_text_pil(pil_frame, "[SPACE]暂停 [ESC]退出",
-                               (10, h - 30), font_size=18, color=(200, 200, 200))
+                # 检查数据有效性
+                has_hand = not np.all(landmarks[:126] == 0)
+                has_pose = not np.all(landmarks[126:] == 0)
 
-            frame = self._pil_to_cv2(pil_frame)
-            cv2.imshow('Preview', frame)
+                if has_hand or has_pose:
+                    frame = self._draw_landmarks_on_frame(frame, landmarks)
+                else:
+                    # 使用预渲染 RGBA 文本（无 PIL 参与）
+                    self._paste_rgba(frame, _no_data_rgba,
+                                     (w - _no_data_rgba.shape[1]) // 2, h // 2)
 
-            key = cv2.waitKey(33) & 0xFF
-            if key == 27:
-                return
-            elif key == ord(' '):
-                # 暂停等待下一次空格或ESC（使用短超时避免窗口失焦时卡死）
-                while True:
-                    pause_key = cv2.waitKey(33) & 0xFF
-                    if pause_key == ord(' ') or pause_key == 27 or pause_key == 255:
-                        break
+                # 添加边框
+                cv2.rectangle(frame, (0, 0), (w - 1, h - 1), (255, 255, 255), 2)
 
-        cv2.waitKey(500)
+                # 标题文字（每 5 帧或文字变化时重新渲染，减少文本渲染开销）
+                title_text = f"预览回放  {idx + 1}/{total_frames} 帧"
+                if _cached_title_text != title_text or idx % 5 == 0:
+                    _cached_title_text = title_text
+                    _cached_title_rgba = self._render_text_rgba(
+                        title_text, font_size=24, color=(255, 255, 255))
+
+                # 粘贴预渲染文本（纯 OpenCV alpha 合成，无 PIL）
+                self._paste_rgba(frame, _cached_title_rgba, 10, 30)
+                self._paste_rgba(frame, _hint_rgba, 10, h - 30)
+
+                cv2.imshow('Preview', frame)
+
+                key = cv2.waitKey(33) & 0xFF
+                if key == 27:
+                    return  # 通过 finally 块确保窗口清理
+                elif key == ord(' '):
+                    # 暂停等待下一次空格或ESC（使用短超时避免窗口失焦时卡死）
+                    while True:
+                        pause_key = cv2.waitKey(33) & 0xFF
+                        if pause_key == ord(' ') or pause_key == 27 or pause_key == 255:
+                            break
+
+            cv2.waitKey(500)
+        finally:
+            # ═══════════════════════════════════════════════════════════════════
+            # 关键：必须销毁 Preview 窗口，否则返回主循环后 OpenCV highgui
+            # 需同时管理 Preview + Data Collection 两个窗口，
+            # cv2.waitKey(1) 分摊处理所有窗口的事件 → 主循环帧率下降 → 卡顿
+            # ═══════════════════════════════════════════════════════════════════
+            cv2.destroyWindow('Preview')
+            # 额外调用 waitKey 让 highgui 完成窗口销毁的底层清理
+            for _ in range(3):
+                cv2.waitKey(1)
 
     def _show_countdown(self, cap, seconds=3):
         """
@@ -680,9 +709,13 @@ class DataCollector:
             cv2.rectangle(frame, (0, 0), (w - 1, h - 1), (0, 255, 255), 4)
             cv2.imshow('Data Collection', frame)
 
-            key = cv2.waitKey(1000) & 0xFF
-            if key == 27:
-                return False
+            # 使用短超时循环等待，每帧清空非ESC按键（防止空格残留）
+            wait_start = time.time()
+            while (time.time() - wait_start) < 1.0:
+                key = cv2.waitKey(33) & 0xFF
+                if key == 27:  # ESC 取消
+                    return False
+                # 其他按键（包括空格）被忽略，不缓存
         return True
 
     def _show_review(self, cap, sequence):
@@ -727,10 +760,11 @@ class DataCollector:
                 return True, 'retry'
             elif key in (ord('d'), ord('D')):
                 self._playback_sequence(sequence, h, w)
+                # 预览回放期间摄像头持续捕获帧，缓冲区已积压
+                # 必须清空，否则返回主循环后 cap.read() 拿到的是旧帧 → 感知延迟
+                self._flush_capture(cap, max_frames=min(len(sequence) * 3, 200))
                 cv2.imshow('Data Collection', frame)
             elif key == 27:
-                return False, 'cancel'
-            elif key == 255:
                 return False, 'cancel'
 
     def _render_frame_ui(self, frame, status_text=""):
@@ -876,6 +910,7 @@ class DataCollector:
             status_message = ""      # 状态消息文本
             status_until = 0.0       # 状态消息显示截止时间（time.time()秒数）
             frame_count = 0          # 帧计数器，用于周期性 GC
+            recording_started_at = 0.0  # 录制开始时间戳（用于忽略启动瞬间的误按键）
 
             while True:
                 # --- 帧率计算 ---
@@ -963,6 +998,9 @@ class DataCollector:
                     break
                 elif key == ord(' '):  # 空格：开始/停止录制
                     if self.is_recording:
+                        # 忽略录制启动后 1 秒内的空格（防止倒计时残留按键误触发）
+                        if time.time() - recording_started_at < 1.0:
+                            continue
                         # 停止录制
                         self.is_recording = False
                         if len(self.current_sequence) > 0:
@@ -1012,8 +1050,20 @@ class DataCollector:
                             status_until = time.time() + 2.0
                             continue
 
+                        # 消费倒计时期间可能残留的按键（防止空格误触发停止）
+                        # 多次调用 waitKey 彻底清空按键缓冲区
+                        for _ in range(10):
+                            key_flush = cv2.waitKey(10) & 0xFF
+                            # 如果在清空过程中检测到ESC，取消录制
+                            if key_flush == 27:
+                                status_message = "已取消录制"
+                                status_until = time.time() + 2.0
+                                continue
+                        self._flush_capture(cap, max_frames=10)
+
                         self.is_recording = True
                         self.current_sequence = []
+                        recording_started_at = time.time()  # 记录启动时间
                         status_message = "录制中...按空格停止"
                         status_until = time.time() + 1.0
                 elif key in (ord('n'), ord('N')):  # 下一个词汇
@@ -1075,7 +1125,7 @@ class DataCollector:
 
 def main():
     """
-    主入口函数
+    主入口函数L
 
     提示用户输入录制人ID，然后启动数据采集器。
     """

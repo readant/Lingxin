@@ -71,7 +71,7 @@ class Trainer:
 
         # 步骤4：获取并训练模型
         model = models.get(model_type)
-        if not model:
+        if model is None:
             raise ValueError(f"未知模型类型: {model_type}，可选类型: svm, rf, mlp")
 
         # 训练模型
