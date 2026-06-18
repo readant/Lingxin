@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>聆心手语识别系统</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="static/css/style.css">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: { DEFAULT: '#6366f1', light: '#818cf8' },
+                        surface: { dark: '#0f1219', panel: '#161b26', card: '#1c2333' }
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="dark">
+    <!-- ===== Top Navigation ===== -->
+    <header class="flex items-center justify-between px-6 py-3 bg-surface-panel border-b border-white/5 sticky top-0 z-50">
+        <div class="flex items-center gap-3">
+            <img src="assets/logo.png" alt="聆心" class="w-8 h-8 rounded-lg">
+            <h1 class="text-lg font-bold bg-gradient-to-r from-brand to-purple-400 bg-clip-text text-transparent">
+                聆心手语识别系统
+            </h1>
+        </div>
+        <div class="flex items-center gap-4">
+            <div class="flex items-center gap-2 px-3 py-1.5 bg-white/5 rounded-full">
+                <span class="status-dot offline" id="statusDot"></span>
+                <span class="text-sm text-gray-400" id="statusText">未连接</span>
+            </div>
+            <div class="flex items-center gap-2 px-3 py-1.5 bg-white/5 rounded-full">
+                <span class="text-sm text-gray-400">模型:</span>
+                <span class="text-sm font-medium" id="modelName">--</span>
+            </div>
+            <button onclick="Onboarding.reset(); Onboarding.show();"
+                    class="px-3 py-1.5 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors"
+                    title="重新显示新手引导">
+                ❓ 引导
+            </button>
+            <button onclick="toggleDarkMode()"
+                    class="px-3 py-1.5 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors"
+                    id="themeToggle" title="切换主题">
+                🌙
+            </button>
+            <button onclick="exportHistory()"
+                    class="px-3 py-1.5 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors"
+                    title="导出识别记录">
+                📥 导出
+            </button>
+            <button onclick="window.open('docs-viewer.html?file=docs/01-quickstart.md', '_blank')"
+                    class="px-3 py-1.5 bg-white/5 hover:bg-white/10 rounded-lg text-sm transition-colors">
+                📖 文档
+            </button>
+            <button onclick="window.open('dashboard', '_blank')"
+                    class="px-3 py-1.5 bg-brand/20 hover:bg-brand/30 text-brand-light rounded-lg text-sm transition-colors">
+                🎛️ 控制台
+            </button>
+        </div>
+    </header>
+
+    <!-- ===== Main Content ===== -->
+    <main class="main-layout grid grid-cols-[1fr_380px] gap-4 p-4" style="height: calc(100vh - 56px);">
+
+        <!-- Left: Video Area -->
+        <div class="flex flex-col gap-4">
+            <!-- Video Card -->
+            <div class="flex-1 bg-surface-card rounded-2xl border border-white/5 overflow-hidden flex flex-col">
+                <div class="flex items-center justify-between px-5 py-3 border-b border-white/5">
+                    <div class="flex items-center gap-2">
+                        <span class="text-lg">📹</span>
+                        <span class="font-semibold">摄像头画面</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="text-xs text-gray-500">骨骼点叠加</span>
+                        <div class="w-8 h-5 bg-brand rounded-full relative cursor-pointer">
+                            <div class="absolute right-0.5 top-0.5 w-4 h-4 bg-white rounded-full shadow transition-all"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex-1 relative bg-black">
+                    <div class="video-container">
+                        <video id="webcam" autoplay playsinline muted style="display:none;"></video>
+                        <canvas id="canvas"></canvas>
+                        <div class="video-placeholder absolute inset-0 flex items-center justify-center" id="videoPlaceholder">
+                            <div class="text-center">
+                                <div class="text-6xl mb-4 opacity-40">📷</div>
+                                <p class="text-gray-500 mb-4">点击下方按钮开启摄像头</p>
+                                <p class="text-xs text-gray-600">按 <kbd class="px-2 py-1 bg-white/10 rounded">空格</kbd> 快速开始/暂停</p>
+                            </div>
+                        </div>
+                        <div class="prediction-overlay" id="predictionOverlay" style="display:none;">
+                            <div class="prediction-word" id="overlayWord"></div>
+                            <div class="prediction-confidence" id="overlayConf"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Control Bar -->
+                <div class="control-bar">
+                    <button class="control-btn control-btn-primary" id="btnToggle" onclick="App.toggleCamera()">
+                        🎬 开始识别
+                    </button>
+                    <button class="control-btn control-btn-outline" id="btnPause" onclick="App.togglePause()" style="display:none;">
+                        ⏸️ 暂停识别
+                    </button>
+                    <div class="flex-1"></div>
+                    <div class="stats-row">
+                        <div class="stat-box">
+                            <div class="stat-box-label">FPS</div>
+                            <div class="stat-box-value" id="fpsValue">0</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-box-label">延迟</div>
+                            <div class="stat-box-value"><span id="latencyValue">0</span>ms</div>
+                        </div>
+                    </div>
+                    <button class="control-btn control-btn-outline" onclick="App.clearHistory()">
+                        🗑️ 清空
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right: Side Panel -->
+        <div class="side-panel flex flex-col gap-4 overflow-y-auto">
+
+            <!-- Current Prediction -->
+            <div class="bg-surface-card rounded-2xl border border-white/5 p-5">
+                <div class="flex items-center gap-2 mb-4">
+                    <span class="text-lg">🎯</span>
+                    <span class="font-semibold">当前识别</span>
+                </div>
+                <div class="text-center mb-4">
+                    <div class="text-4xl font-bold text-brand mb-2" id="currentWord" style="color:#64748b;">--</div>
+                    <div class="text-sm text-gray-500">置信度</div>
+                </div>
+                <div class="confidence-bar mb-2">
+                    <div class="confidence-bar-fill" id="confidenceBarFill" style="width:0%"></div>
+                </div>
+                <div class="text-center text-sm text-gray-400" id="currentConf">0%</div>
+            </div>
+
+            <!-- Top Predictions -->
+            <div class="bg-surface-card rounded-2xl border border-white/5 p-5">
+                <div class="flex items-center gap-2 mb-4">
+                    <span class="text-lg">📊</span>
+                    <span class="font-semibold">置信度排行</span>
+                </div>
+                <div class="flex flex-col gap-2" id="topPredictions">
+                    <div class="text-center py-8 text-gray-500 text-sm">等待识别...</div>
+                </div>
+            </div>
+
+            <!-- Confidence Chart -->
+            <div class="bg-surface-card rounded-2xl border border-white/5 p-5">
+                <div class="chart-header">
+                    <div class="chart-title">
+                        <span>📈</span>
+                        <span>置信度柱状图</span>
+                    </div>
+                </div>
+                <div id="confidenceChart" class="chart-body"></div>
+            </div>
+
+            <!-- Word Frequency Chart -->
+            <div class="bg-surface-card rounded-2xl border border-white/5 p-5">
+                <div class="chart-header">
+                    <div class="chart-title">
+                        <span>🥧</span>
+                        <span>识别词频统计</span>
+                    </div>
+                </div>
+                <div id="wordFreqChart" class="chart-body"></div>
+            </div>
+
+            <!-- History -->
+            <div class="bg-surface-card rounded-2xl border border-white/5 p-5">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center gap-2">
+                        <span class="text-lg">📝</span>
+                        <span class="font-semibold">识别历史</span>
+                    </div>
+                    <span class="text-xs text-gray-500" id="historyCount">0 条记录</span>
+                </div>
+                <div class="flex flex-col gap-2 max-h-64 overflow-y-auto" id="historyList">
+                    <div class="text-center py-8 text-gray-500 text-sm">暂无识别记录</div>
+                </div>
+            </div>
+
+            <!-- Sequence Buffer -->
+            <div class="bg-surface-card rounded-2xl border border-white/5 p-5">
+                <div class="flex items-center gap-2 mb-3">
+                    <span class="text-lg">🔄</span>
+                    <span class="font-semibold">序列缓冲</span>
+                </div>
+                <div class="flex items-center gap-3">
+                    <div class="flex-1 h-2 bg-white/5 rounded-full overflow-hidden">
+                        <div class="h-full bg-brand rounded-full transition-all" id="bufferBar" style="width:0%"></div>
+                    </div>
+                    <span class="text-xs text-gray-500" id="bufferText">0 / 30</span>
+                </div>
+            </div>
+
+            <!-- Log Console -->
+            <div class="bg-surface-card rounded-2xl border border-white/5 p-5">
+                <div class="flex items-center gap-2 mb-3">
+                    <span class="text-lg">📋</span>
+                    <span class="font-semibold">系统日志</span>
+                </div>
+                <div class="log-console" id="logConsole">
+                    <div class="log-line info"><span class="time">[就绪]</span> <span class="msg">等待启动...</span></div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Keyboard Shortcut Hint -->
+    <div class="fixed bottom-4 left-1/2 -translate-x-1/2 px-4 py-2 bg-black/60 backdrop-blur-sm rounded-full text-xs text-gray-400 pointer-events-none">
+        <kbd class="px-2 py-0.5 bg-white/10 rounded">空格</kbd> 开始/暂停
+        <kbd class="px-2 py-0.5 bg-white/10 rounded ml-2">ESC</kbd> 停止
+    </div>
+
+    <script src="static/js/app.js"></script>
+    <script src="static/js/chart.js"></script>
+    <script src="static/js/onboarding.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            App.init();
+            document.getElementById('btnPause').style.display = 'none';
+
+            // Show pause button when camera starts
+            const originalToggle = App.toggleCamera;
+            App.toggleCamera = async function() {
+                await originalToggle.call(App);
+                const btn = document.getElementById('btnPause');
+                if (window.State && window.State.isRunning) {
+                    btn.style.display = 'flex';
+                } else {
+                    btn.style.display = 'none';
+                }
+            };
+        });
+    </script>
+</body>
+</html>

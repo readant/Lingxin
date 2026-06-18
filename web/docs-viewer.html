@@ -56,7 +56,8 @@
             gap: 12px;
         }
 
-        .topbar-logo { font-size: 1.5rem; }
+        .topbar-logo { font-size: 1.5rem; display: flex; align-items: center; }
+        .topbar-logo img { width: 28px; height: auto; border-radius: 6px; }
 
         .topbar-title {
             font-family: 'Noto Serif SC', serif;
@@ -440,7 +441,7 @@
 <div class="topbar">
     <div class="topbar-left">
         <button class="btn" id="toggleSidebar" onclick="toggleSidebar()">☰</button>
-        <span class="topbar-logo">🤟</span>
+        <span class="topbar-logo"><img src="assets/logo.png" alt="聆心"></span>
         <span class="topbar-title">聆心文档</span>
         <span class="breadcrumb" id="breadcrumb"></span>
     </div>
@@ -524,37 +525,31 @@
 <script>
     let currentFile = '';
 
-    // 配置 marked
-    marked.setOptions({
-        breaks: true,
-        gfm: true,
-    });
-
-    // 自定义渲染器：让 markdown 内部链接在阅读器内打开
-    const renderer = new marked.Renderer();
-    renderer.link = function(href, title, text) {
-        // href 可能为 null/undefined（空链接、自动链接等），做防御处理
-        const hrefStr = (href == null) ? '' : String(href);
-        const isInternalMd = hrefStr.endsWith('.md') && !hrefStr.startsWith('http');
-        if (isInternalMd) {
-            let resolvedFile = hrefStr;
-            if (hrefStr.startsWith('../')) {
-                resolvedFile = hrefStr.replace(/^\.\.\//, '');
+    // marked v15 — Renderer 方法接收 token 对象，不是多个参数
+    const renderer = {
+        link(token) {
+            const href = token.href;
+            const hrefStr = (href == null) ? '' : String(href);
+            const isInternalMd = hrefStr.endsWith('.md') && !hrefStr.startsWith('http');
+            if (isInternalMd) {
+                let resolvedFile = hrefStr;
+                if (hrefStr.startsWith('../')) {
+                    resolvedFile = hrefStr.replace(/^\.\.\//, '');
+                }
+                return `<a href="javascript:loadDoc('${resolvedFile}')" ${token.title ? `title="${token.title}"` : ''}>${token.text}</a>`;
             }
-            return `<a href="javascript:loadDoc('${resolvedFile}')" ${title ? `title="${title}"` : ''}>${text}</a>`;
+            const target = hrefStr.startsWith('http') ? ' target="_blank" rel="noopener"' : '';
+            return `<a href="${hrefStr}"${target} ${token.title ? `title="${token.title}"` : ''}>${token.text}</a>`;
+        },
+
+        heading(token) {
+            const id = 'heading-' + (headingCount++);
+            return `<h${token.depth} id="${id}">${token.text}</h${token.depth}>`;
         }
-        const target = hrefStr.startsWith('http') ? ' target="_blank" rel="noopener"' : '';
-        return `<a href="${hrefStr}"${target} ${title ? `title="${title}"` : ''}>${text}</a>`;
     };
-
-    // 渲染器：给标题添加 id 用于锚点
     let headingCount = 0;
-    renderer.heading = function(text, level) {
-        const id = 'heading-' + (headingCount++);
-        return `<h${level} id="${id}">${text}</h${level}>`;
-    };
 
-    marked.use({ renderer });
+    marked.use({ breaks: true, gfm: true, renderer });
 
     function loadDoc(filePath) {
         currentFile = filePath;

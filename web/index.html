@@ -73,11 +73,17 @@
         }
 
         .logo {
-            font-size: 4.5rem;
             margin-bottom: 24px;
             display: inline-block;
             position: relative;
             animation: gentleFloat 6s ease-in-out infinite;
+        }
+
+        .logo img {
+            width: 100px;
+            height: auto;
+            border-radius: 20px;
+            box-shadow: var(--shadow-medium);
         }
 
         @keyframes gentleFloat {
@@ -718,7 +724,7 @@
         /* ===== 响应式 ===== */
         @media (max-width: 768px) {
             h1 { font-size: 2rem; }
-            .logo { font-size: 3.5rem; }
+            .logo img { width: 72px; }
             .stats { gap: 16px; }
             .stat-item { min-width: 100px; padding: 16px 20px; }
             .stat-number { font-size: 1.8rem; }
@@ -749,7 +755,7 @@
 <body>
     <div class="container">
         <header>
-            <div class="logo">🤟</div>
+            <div class="logo"><img src="assets/logo.png" alt="聆心 Logo"></div>
             <h1>聆心手语识别系统</h1>
             <p class="subtitle">基于深度学习的实时手语识别系统学习导航，支持多种模型架构</p>
             <div class="stats">
@@ -770,7 +776,11 @@
                     <div class="stat-label">特征维度</div>
                 </div>
             </div>
-            <a href="docs-viewer.html?file=docs/01-quickstart.md" class="nav-button">
+            <a href="dashboard" class="nav-button">
+                <span>🎛️</span>
+                <span>全流程控制台</span>
+            </a>
+            <a href="docs-viewer.html?file=docs/01-quickstart.md" class="nav-button" style="margin-left:12px;">
                 <span>📚</span>
                 <span>文档阅读</span>
             </a>

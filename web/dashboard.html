@@ -1,0 +1,1124 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>聆心手语识别系统 - 全流程控制台</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700&family=Noto+Serif+SC:wght@600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --bg-dark: #0f1219;
+            --bg-panel: #161b26;
+            --bg-card: #1c2333;
+            --bg-card-hover: #222a3d;
+            --bg-input: #0d1117;
+            --accent: #6366f1;
+            --accent-light: #818cf8;
+            --accent-glow: rgba(99,102,241,0.25);
+            --success: #10b981;
+            --success-glow: rgba(16,185,129,0.25);
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --text: #e2e8f0;
+            --text-dim: #94a3b8;
+            --text-muted: #64748b;
+            --border: rgba(255,255,255,0.06);
+            --border-light: rgba(255,255,255,0.1);
+            --radius: 12px;
+            --radius-sm: 8px;
+            --shadow: 0 4px 24px rgba(0,0,0,0.3);
+            --transition: 0.2s cubic-bezier(0.4,0,0.2,1);
+        }
+        body { font-family: 'Noto Sans SC', sans-serif; background: var(--bg-dark); color: var(--text); min-height: 100vh; display: flex; }
+
+        /* ===== Sidebar ===== */
+        .sidebar { width: 240px; background: var(--bg-panel); border-right: 1px solid var(--border); display: flex; flex-direction: column; position: fixed; height: 100vh; z-index: 100; }
+        .sidebar-brand { padding: 20px; display: flex; align-items: center; gap: 12px; border-bottom: 1px solid var(--border); }
+        .sidebar-brand img { width: 36px; height: auto; border-radius: 10px; }
+        .sidebar-brand span { font-family: 'Noto Serif SC', serif; font-weight: 700; font-size: 1.1rem; background: linear-gradient(135deg, var(--accent), #a78bfa); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .sidebar-nav { flex: 1; padding: 12px; overflow-y: auto; }
+        .nav-section { margin-bottom: 8px; }
+        .nav-section-title { font-size: 0.68rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.1em; padding: 8px 12px; }
+        .nav-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: var(--radius-sm); cursor: pointer; transition: all var(--transition); color: var(--text-dim); font-size: 0.88rem; }
+        .nav-item:hover { background: var(--bg-card); color: var(--text); }
+        .nav-item.active { background: linear-gradient(135deg, rgba(99,102,241,0.15), rgba(167,139,250,0.1)); color: var(--accent-light); border: 1px solid rgba(99,102,241,0.2); }
+        .nav-item .icon { font-size: 1.1rem; width: 24px; text-align: center; }
+        .nav-item .badge { margin-left: auto; background: var(--accent); color: #fff; font-size: 0.65rem; padding: 2px 6px; border-radius: 10px; }
+        .sidebar-footer { padding: 12px; border-top: 1px solid var(--border); }
+        .system-status { display: flex; align-items: center; gap: 8px; padding: 10px 12px; background: var(--bg-card); border-radius: var(--radius-sm); font-size: 0.8rem; }
+        .status-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--danger); }
+        .status-dot.online { background: var(--success); box-shadow: 0 0 8px var(--success-glow); }
+
+        /* ===== Main Content ===== */
+        .main { flex: 1; margin-left: 240px; display: flex; flex-direction: column; min-height: 100vh; }
+        .topbar { display: flex; align-items: center; justify-content: space-between; padding: 14px 28px; background: rgba(22,27,38,0.8); backdrop-filter: blur(12px); border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 50; }
+        .topbar-title { font-family: 'Noto Serif SC', serif; font-size: 1.15rem; font-weight: 700; }
+        .topbar-actions { display: flex; align-items: center; gap: 12px; }
+        .topbar-btn { padding: 8px 16px; border-radius: var(--radius-sm); border: 1px solid var(--border); background: var(--bg-card); color: var(--text); font-size: 0.82rem; cursor: pointer; transition: all var(--transition); display: flex; align-items: center; gap: 6px; }
+        .topbar-btn:hover { background: var(--bg-card-hover); border-color: var(--border-light); }
+        .topbar-btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+        .topbar-btn.primary:hover { background: var(--accent-light); }
+        .content { flex: 1; padding: 24px 28px; overflow-y: auto; }
+
+        /* ===== Page Sections ===== */
+        .page { display: none; }
+        .page.active { display: block; }
+        .page-header { margin-bottom: 24px; }
+        .page-title { font-family: 'Noto Serif SC', serif; font-size: 1.5rem; font-weight: 700; margin-bottom: 6px; }
+        .page-desc { color: var(--text-dim); font-size: 0.9rem; }
+
+        /* ===== Stats Grid ===== */
+        .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
+        .stat-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; transition: all var(--transition); }
+        .stat-card:hover { transform: translateY(-2px); box-shadow: var(--shadow); border-color: var(--border-light); }
+        .stat-icon { font-size: 1.8rem; margin-bottom: 12px; }
+        .stat-value { font-family: 'Noto Serif SC', serif; font-size: 2rem; font-weight: 700; margin-bottom: 4px; }
+        .stat-label { font-size: 0.82rem; color: var(--text-dim); }
+        .stat-change { font-size: 0.75rem; margin-top: 8px; display: flex; align-items: center; gap: 4px; }
+        .stat-change.up { color: var(--success); }
+        .stat-change.down { color: var(--danger); }
+
+        /* ===== Cards ===== */
+        .card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 20px; overflow: hidden; }
+        .card-header { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; border-bottom: 1px solid var(--border); }
+        .card-title { font-weight: 600; font-size: 0.95rem; display: flex; align-items: center; gap: 8px; }
+        .card-body { padding: 20px; }
+        .card-footer { padding: 12px 20px; border-top: 1px solid var(--border); background: rgba(0,0,0,0.15); }
+
+        /* ===== Form Elements ===== */
+        .form-group { margin-bottom: 16px; }
+        .form-label { display: block; font-size: 0.82rem; font-weight: 500; color: var(--text-dim); margin-bottom: 6px; }
+        .form-input, .form-select, .form-textarea { width: 100%; padding: 10px 14px; background: var(--bg-input); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text); font-size: 0.88rem; font-family: inherit; transition: border-color var(--transition); }
+        .form-input:focus, .form-select:focus, .form-textarea:focus { outline: none; border-color: var(--accent); }
+        .form-select { cursor: pointer; }
+        .form-select option { background: var(--bg-panel); }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+        .form-hint { font-size: 0.75rem; color: var(--text-muted); margin-top: 4px; }
+
+        /* ===== Buttons ===== */
+        .btn { padding: 10px 20px; border-radius: var(--radius-sm); border: none; font-size: 0.88rem; font-weight: 500; cursor: pointer; transition: all var(--transition); display: inline-flex; align-items: center; gap: 8px; font-family: inherit; }
+        .btn-primary { background: var(--accent); color: #fff; }
+        .btn-primary:hover { background: var(--accent-light); box-shadow: 0 4px 12px var(--accent-glow); }
+        .btn-success { background: var(--success); color: #fff; }
+        .btn-success:hover { background: #059669; }
+        .btn-danger { background: var(--danger); color: #fff; }
+        .btn-danger:hover { background: #dc2626; }
+        .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text); }
+        .btn-outline:hover { background: var(--bg-card); border-color: var(--border-light); }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .btn-group { display: flex; gap: 10px; flex-wrap: wrap; }
+
+        /* ===== Progress ===== */
+        .progress { height: 6px; background: var(--bg-input); border-radius: 3px; overflow: hidden; }
+        .progress-bar { height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent-light)); border-radius: 3px; transition: width 0.5s; }
+        .progress-bar.success { background: linear-gradient(90deg, var(--success), #34d399); }
+        .progress-bar.warning { background: linear-gradient(90deg, var(--warning), #fbbf24); }
+        .progress-bar.danger { background: linear-gradient(90deg, var(--danger), #f87171); }
+
+        /* ===== Table ===== */
+        .table-wrap { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; }
+        th { text-align: left; padding: 12px 16px; font-size: 0.78rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 1px solid var(--border); }
+        td { padding: 12px 16px; font-size: 0.88rem; border-bottom: 1px solid var(--border); }
+        tr:hover td { background: rgba(255,255,255,0.02); }
+        .table-empty { text-align: center; padding: 40px 0; color: var(--text-muted); }
+
+        /* ===== Tags ===== */
+        .tag { display: inline-flex; align-items: center; padding: 4px 10px; border-radius: 20px; font-size: 0.72rem; font-weight: 500; }
+        .tag-success { background: rgba(16,185,129,0.15); color: var(--success); }
+        .tag-warning { background: rgba(245,158,11,0.15); color: var(--warning); }
+        .tag-danger { background: rgba(239,68,68,0.15); color: var(--danger); }
+        .tag-info { background: rgba(99,102,241,0.15); color: var(--accent-light); }
+
+        /* ===== Timeline ===== */
+        .timeline { position: relative; padding-left: 28px; }
+        .timeline::before { content: ''; position: absolute; left: 8px; top: 0; bottom: 0; width: 2px; background: var(--border); }
+        .timeline-item { position: relative; margin-bottom: 20px; }
+        .timeline-item::before { content: ''; position: absolute; left: -24px; top: 4px; width: 12px; height: 12px; border-radius: 50%; background: var(--bg-card); border: 2px solid var(--accent); }
+        .timeline-item.done::before { background: var(--success); border-color: var(--success); }
+        .timeline-item.active::before { background: var(--accent); border-color: var(--accent); box-shadow: 0 0 8px var(--accent-glow); }
+        .timeline-title { font-weight: 600; margin-bottom: 4px; }
+        .timeline-desc { font-size: 0.82rem; color: var(--text-dim); }
+
+        /* ===== Grid Layout ===== */
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+
+        /* ===== Chart Placeholder ===== */
+        .chart-placeholder { height: 200px; display: flex; align-items: center; justify-content: center; background: var(--bg-input); border-radius: var(--radius-sm); color: var(--text-muted); font-size: 0.9rem; }
+
+        /* ===== Log Console ===== */
+        .log-console { background: var(--bg-input); border-radius: var(--radius-sm); padding: 12px; font-family: 'Consolas', 'Monaco', monospace; font-size: 0.78rem; max-height: 200px; overflow-y: auto; color: var(--text-dim); }
+        .log-line { padding: 2px 0; line-height: 1.6; }
+        .log-line .time { color: var(--text-muted); }
+        .log-line.info .msg { color: var(--text-dim); }
+        .log-line.success .msg { color: var(--success); }
+        .log-line.warning .msg { color: var(--warning); }
+        .log-line.error .msg { color: var(--danger); }
+
+        /* ===== Responsive ===== */
+        @media (max-width: 1200px) { .stats-grid { grid-template-columns: repeat(2, 1fr); } }
+        @media (max-width: 900px) {
+            .sidebar { width: 60px; }
+            .sidebar-brand span, .nav-item span:not(.icon), .nav-section-title, .sidebar-footer .system-status span:not(.status-dot) { display: none; }
+            .nav-item { justify-content: center; padding: 12px; }
+            .main { margin-left: 60px; }
+            .grid-2, .grid-3 { grid-template-columns: 1fr; }
+        }
+
+        /* ===== Animations ===== */
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .fade-in { animation: fadeIn 0.3s ease; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+        .pulse { animation: pulse 2s infinite; }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="sidebar-brand">
+            <img src="assets/logo.png" alt="聆心">
+            <span>聆心控制台</span>
+        </div>
+        <nav class="sidebar-nav">
+            <div class="nav-section">
+                <div class="nav-section-title">概览</div>
+                <div class="nav-item active" onclick="showPage('overview')">
+                    <span class="icon">📊</span>
+                    <span>系统概览</span>
+                </div>
+            </div>
+            <div class="nav-section">
+                <div class="nav-section-title">数据流程</div>
+                <div class="nav-item" onclick="showPage('collect')">
+                    <span class="icon">📹</span>
+                    <span>数据采集</span>
+                    <span class="badge">50词</span>
+                </div>
+                <div class="nav-item" onclick="showPage('preprocess')">
+                    <span class="icon">⚙️</span>
+                    <span>数据预处理</span>
+                </div>
+            </div>
+            <div class="nav-section">
+                <div class="nav-section-title">模型管理</div>
+                <div class="nav-item" onclick="showPage('train')">
+                    <span class="icon">🎯</span>
+                    <span>模型训练</span>
+                </div>
+                <div class="nav-item" onclick="showPage('evaluate')">
+                    <span class="icon">📈</span>
+                    <span>模型评估</span>
+                </div>
+                <div class="nav-item" onclick="showPage('models')">
+                    <span class="icon">📦</span>
+                    <span>模型库</span>
+                    <span class="badge">4</span>
+                </div>
+            </div>
+            <div class="nav-section">
+                <div class="nav-section-title">推理服务</div>
+                <div class="nav-item" onclick="showPage('inference')">
+                    <span class="icon">🚀</span>
+                    <span>实时推理</span>
+                </div>
+                <div class="nav-item" onclick="showPage('api')">
+                    <span class="icon">🔌</span>
+                    <span>API管理</span>
+                </div>
+            </div>
+            <div class="nav-section">
+                <div class="nav-section-title">系统</div>
+                <div class="nav-item" onclick="showPage('settings')">
+                    <span class="icon">⚙️</span>
+                    <span>系统设置</span>
+                </div>
+                <div class="nav-item" onclick="showPage('logs')">
+                    <span class="icon">📋</span>
+                    <span>运行日志</span>
+                </div>
+            </div>
+        </nav>
+        <div class="sidebar-footer">
+            <div class="system-status">
+                <span class="status-dot" id="statusDot"></span>
+                <span id="statusText">检查中...</span>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main">
+        <header class="topbar">
+            <div class="topbar-title" id="pageTitle">系统概览</div>
+            <div class="topbar-actions">
+                <button class="topbar-btn" onclick="refreshData()">🔄 刷新</button>
+                <button class="topbar-btn" onclick="window.open('demo.html', '_blank')">🎬 演示模式</button>
+                <button class="topbar-btn primary" onclick="startQuickTrain()">⚡ 快速训练</button>
+            </div>
+        </header>
+
+        <div class="content">
+            <!-- Overview Page -->
+            <div class="page active" id="page-overview">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon">📹</div>
+                        <div class="stat-value" id="totalSamples">0</div>
+                        <div class="stat-label">采集样本数</div>
+                        <div class="stat-change up">↑ 持续增长</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">🎯</div>
+                        <div class="stat-value" id="vocabCount">50</div>
+                        <div class="stat-label">词汇量</div>
+                        <div class="stat-change">7个类别</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">📦</div>
+                        <div class="stat-value" id="modelCount">4</div>
+                        <div class="stat-label">已训练模型</div>
+                        <div class="stat-change">SVM/RF/MLP/LSTM</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">🚀</div>
+                        <div class="stat-value" id="apiStatus">--</div>
+                        <div class="stat-label">API状态</div>
+                        <div class="stat-change" id="apiStatusChange">检查中...</div>
+                    </div>
+                </div>
+
+                <div class="grid-2">
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title">📊 工作流程</div>
+                        </div>
+                        <div class="card-body">
+                            <div class="timeline">
+                                <div class="timeline-item done">
+                                    <div class="timeline-title">数据采集</div>
+                                    <div class="timeline-desc">摄像头录制手语数据，保存为171维特征序列</div>
+                                </div>
+                                <div class="timeline-item done">
+                                    <div class="timeline-title">数据预处理</div>
+                                    <div class="timeline-desc">标准化、序列对齐、数据集划分</div>
+                                </div>
+                                <div class="timeline-item active">
+                                    <div class="timeline-title">模型训练</div>
+                                    <div class="timeline-desc">选择模型架构，配置超参数，开始训练</div>
+                                </div>
+                                <div class="timeline-item">
+                                    <div class="timeline-title">模型评估</div>
+                                    <div class="timeline-desc">测试集评估、混淆矩阵、性能对比</div>
+                                </div>
+                                <div class="timeline-item">
+                                    <div class="timeline-title">部署推理</div>
+                                    <div class="timeline-desc">启动API服务，实时手语识别</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title">🎯 模型性能对比</div>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-wrap">
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>模型</th>
+                                            <th>类型</th>
+                                            <th>准确率</th>
+                                            <th>状态</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="modelPerfTable">
+                                        <tr>
+                                            <td>SVM</td>
+                                            <td><span class="tag tag-info">传统ML</span></td>
+                                            <td>85%</td>
+                                            <td><span class="tag tag-success">已训练</span></td>
+                                        </tr>
+                                        <tr>
+                                            <td>Random Forest</td>
+                                            <td><span class="tag tag-info">传统ML</span></td>
+                                            <td>88%</td>
+                                            <td><span class="tag tag-success">已训练</span></td>
+                                        </tr>
+                                        <tr>
+                                            <td>MLP</td>
+                                            <td><span class="tag tag-info">传统ML</span></td>
+                                            <td>90%</td>
+                                            <td><span class="tag tag-success">已训练</span></td>
+                                        </tr>
+                                        <tr>
+                                            <td>LSTM</td>
+                                            <td><span class="tag tag-warning">深度学习</span></td>
+                                            <td>93%</td>
+                                            <td><span class="tag tag-success">已训练</span></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">📋 最近活动</div>
+                    </div>
+                    <div class="card-body">
+                        <div class="log-console" id="recentLogs">
+                            <div class="log-line info"><span class="time">[系统启动]</span> <span class="msg">聆心手语识别系统已就绪</span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Data Collection Page -->
+            <div class="page" id="page-collect">
+                <div class="page-header">
+                    <div class="page-title">📹 数据采集</div>
+                    <div class="page-desc">通过摄像头录制手语数据，或从视频文件批量导入</div>
+                </div>
+
+                <div class="grid-2">
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title">📷 摄像头采集</div>
+                        </div>
+                        <div class="card-body">
+                            <div class="form-group">
+                                <label class="form-label">录制人ID</label>
+                                <input type="text" class="form-input" id="personId" placeholder="例如: user001">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">目标词汇</label>
+                                <select class="form-select" id="vocabSelect">
+                                    <option value="all">全部词汇 (50个)</option>
+                                    <option value="priority1">优先级1 (42个)</option>
+                                    <option value="priority2">优先级2 (8个)</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">每个词汇目标数量</label>
+                                <input type="number" class="form-input" id="targetSamples" value="30" min="10" max="100">
+                                <div class="form-hint">建议: 30-50次/词</div>
+                            </div>
+                            <div class="btn-group">
+                                <button class="btn btn-primary" onclick="startCollection()">▶️ 开始采集</button>
+                                <button class="btn btn-outline" onclick="previewVocab()">👁️ 预览词汇</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title">📁 视频导入</div>
+                        </div>
+                        <div class="card-body">
+                            <div class="form-group">
+                                <label class="form-label">选择视频文件</label>
+                                <input type="file" class="form-input" id="videoFile" accept="video/*" multiple>
+                                <div class="form-hint">支持 mp4, avi, mov 格式</div>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">视频对应词汇</label>
+                                <input type="text" class="form-input" id="videoWord" placeholder="例如: 你好">
+                            </div>
+                            <div class="btn-group">
+                                <button class="btn btn-primary" onclick="importVideo()">📥 导入视频</button>
+                                <button class="btn btn-outline" onclick="batchImport()">📦 批量导入</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">📊 采集进度</div>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-wrap">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>词汇</th>
+                                        <th>类别</th>
+                                        <th>已采集</th>
+                                        <th>目标</th>
+                                        <th>进度</th>
+                                        <th>操作</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="collectionProgress">
+                                    <!-- Dynamic content -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Preprocess Page -->
+            <div class="page" id="page-preprocess">
+                <div class="page-header">
+                    <div class="page-title">⚙️ 数据预处理</div>
+                    <div class="page-desc">将原始数据转换为训练可用的格式</div>
+                </div>
+
+                <div class="grid-2">
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title">🔧 预处理配置</div>
+                        </div>
+                        <div class="card-body">
+                            <div class="form-group">
+                                <label class="form-label">数据源目录</label>
+                                <input type="text" class="form-input" value="data/raw/collected" id="preprocessInput">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">输出目录</label>
+                                <input type="text" class="form-input" value="data/processed" id="preprocessOutput">
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label class="form-label">序列长度</label>
+                                    <input type="number" class="form-input" value="30" min="10" max="50">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">测试集比例</label>
+                                    <select class="form-select">
+                                        <option value="0.1">10%</option>
+                                        <option value="0.2" selected>20%</option>
+                                        <option value="0.3">30%</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">数据增强</label>
+                                <div style="display:flex;gap:16px;flex-wrap:wrap;margin-top:6px;">
+                                    <label style="display:flex;align-items:center;gap:6px;font-size:0.85rem;cursor:pointer;">
+                                        <input type="checkbox" checked> 平移
+                                    </label>
+                                    <label style="display:flex;align-items:center;gap:6px;font-size:0.85rem;cursor:pointer;">
+                                        <input type="checkbox" checked> 缩放
+                                    </label>
+                                    <label style="display:flex;align-items:center;gap:6px;font-size:0.85rem;cursor:pointer;">
+                                        <input type="checkbox"> 噪声
+                                    </label>
+                                    <label style="display:flex;align-items:center;gap:6px;font-size:0.85rem;cursor:pointer;">
+                                        <input type="checkbox"> 时间扭曲
+                                    </label>
+                                </div>
+                            </div>
+                            <button class="btn btn-primary" onclick="startPreprocess()">🚀 开始预处理</button>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title">📊 预处理结果</div>
+                        </div>
+                        <div class="card-body">
+                            <div id="preprocessResult">
+                                <div style="text-align:center;padding:40px 0;color:var(--text-muted);">
+                                    <div style="font-size:2.5rem;margin-bottom:12px;">⏳</div>
+                                    <p>尚未运行预处理</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Training Page -->
+            <div class="page" id="page-train">
+                <div class="page-header">
+                    <div class="page-title">🎯 模型训练</div>
+                    <div class="page-desc">选择模型架构并配置训练参数</div>
+                </div>
+
+                <div class="grid-2">
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title">🧬 模型选择</div>
+                        </div>
+                        <div class="card-body">
+                            <div class="grid-3" id="modelSelector">
+                                <div class="model-option" data-model="svm" onclick="selectModel('svm')" style="padding:16px;background:var(--bg-input);border:2px solid var(--border);border-radius:var(--radius-sm);cursor:pointer;text-align:center;transition:all 0.2s;">
+                                    <div style="font-size:2rem;margin-bottom:8px;">🔧</div>
+                                    <div style="font-weight:600;">SVM</div>
+                                    <div style="font-size:0.75rem;color:var(--text-muted);">支持向量机</div>
+                                </div>
+                                <div class="model-option" data-model="rf" onclick="selectModel('rf')" style="padding:16px;background:var(--bg-input);border:2px solid var(--border);border-radius:var(--radius-sm);cursor:pointer;text-align:center;transition:all 0.2s;">
+                                    <div style="font-size:2rem;margin-bottom:8px;">🌳</div>
+                                    <div style="font-weight:600;">Random Forest</div>
+                                    <div style="font-size:0.75rem;color:var(--text-muted);">随机森林</div>
+                                </div>
+                                <div class="model-option" data-model="mlp" onclick="selectModel('mlp')" style="padding:16px;background:var(--bg-input);border:2px solid var(--border);border-radius:var(--radius-sm);cursor:pointer;text-align:center;transition:all 0.2s;">
+                                    <div style="font-size:2rem;margin-bottom:8px;">🧠</div>
+                                    <div style="font-weight:600;">MLP</div>
+                                    <div style="font-size:0.75rem;color:var(--text-muted);">多层感知机</div>
+                                </div>
+                                <div class="model-option selected" data-model="lstm" onclick="selectModel('lstm')" style="padding:16px;background:var(--bg-input);border:2px solid var(--accent);border-radius:var(--radius-sm);cursor:pointer;text-align:center;transition:all 0.2s;">
+                                    <div style="font-size:2rem;margin-bottom:8px;">🔄</div>
+                                    <div style="font-weight:600;">LSTM</div>
+                                    <div style="font-size:0.75rem;color:var(--text-muted);">长短期记忆</div>
+                                </div>
+                                <div class="model-option" data-model="transformer" onclick="selectModel('transformer')" style="padding:16px;background:var(--bg-input);border:2px solid var(--border);border-radius:var(--radius-sm);cursor:pointer;text-align:center;transition:all 0.2s;">
+                                    <div style="font-size:2rem;margin-bottom:8px;">⚡</div>
+                                    <div style="font-weight:600;">Transformer</div>
+                                    <div style="font-size:0.75rem;color:var(--text-muted);">注意力机制</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title">⚙️ 训练参数</div>
+                        </div>
+                        <div class="card-body">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label class="form-label">训练轮数 (Epochs)</label>
+                                    <input type="number" class="form-input" id="trainEpochs" value="50" min="10" max="200">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">学习率</label>
+                                    <input type="number" class="form-input" id="trainLr" value="0.001" step="0.0001" min="0.0001" max="0.1">
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label class="form-label">批大小 (Batch Size)</label>
+                                    <input type="number" class="form-input" id="trainBatch" value="32" min="8" max="128">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">早停轮数</label>
+                                    <input type="number" class="form-input" id="trainPatience" value="10" min="5" max="30">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">设备</label>
+                                <select class="form-select" id="trainDevice">
+                                    <option value="auto">自动检测</option>
+                                    <option value="cpu">CPU</option>
+                                    <option value="cuda">GPU (CUDA)</option>
+                                </select>
+                            </div>
+                            <button class="btn btn-primary btn-lg" onclick="startTraining()" style="width:100%;">🚀 开始训练</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">📈 训练进度</div>
+                    </div>
+                    <div class="card-body">
+                        <div style="display:flex;justify-content:space-between;margin-bottom:12px;">
+                            <span id="trainStatus">等待开始...</span>
+                            <span id="trainProgress">0%</span>
+                        </div>
+                        <div class="progress" style="margin-bottom:20px;">
+                            <div class="progress-bar" id="trainProgressBar" style="width:0%"></div>
+                        </div>
+                        <div class="grid-3" id="trainMetrics">
+                            <div style="text-align:center;padding:16px;background:var(--bg-input);border-radius:var(--radius-sm);">
+                                <div style="font-size:0.75rem;color:var(--text-muted);margin-bottom:4px;">当前轮次</div>
+                                <div style="font-size:1.5rem;font-weight:700;" id="currentEpoch">-</div>
+                            </div>
+                            <div style="text-align:center;padding:16px;background:var(--bg-input);border-radius:var(--radius-sm);">
+                                <div style="font-size:0.75rem;color:var(--text-muted);margin-bottom:4px;">训练损失</div>
+                                <div style="font-size:1.5rem;font-weight:700;" id="trainLoss">-</div>
+                            </div>
+                            <div style="text-align:center;padding:16px;background:var(--bg-input);border-radius:var(--radius-sm);">
+                                <div style="font-size:0.75rem;color:var(--text-muted);margin-bottom:4px;">验证准确率</div>
+                                <div style="font-size:1.5rem;font-weight:700;" id="valAccuracy">-</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Evaluation Page -->
+            <div class="page" id="page-evaluate">
+                <div class="page-header">
+                    <div class="page-title">📈 模型评估</div>
+                    <div class="page-desc">评估模型性能，查看混淆矩阵和详细指标</div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">🎯 选择评估模型</div>
+                    </div>
+                    <div class="card-body">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label">模型类型</label>
+                                <select class="form-select" id="evalModelType">
+                                    <option value="svm">SVM</option>
+                                    <option value="rf">Random Forest</option>
+                                    <option value="mlp">MLP</option>
+                                    <option value="lstm" selected>LSTM</option>
+                                    <option value="transformer">Transformer</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">模型路径</label>
+                                <input type="text" class="form-input" id="evalModelPath" placeholder="自动检测">
+                            </div>
+                        </div>
+                        <button class="btn btn-primary" onclick="startEvaluation()">📊 开始评估</button>
+                    </div>
+                </div>
+
+                <div class="grid-2">
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title">📊 评估指标</div>
+                        </div>
+                        <div class="card-body">
+                            <div class="grid-2">
+                                <div style="text-align:center;padding:20px;background:var(--bg-input);border-radius:var(--radius-sm);">
+                                    <div style="font-size:0.78rem;color:var(--text-muted);margin-bottom:8px;">准确率 (Accuracy)</div>
+                                    <div style="font-size:2rem;font-weight:700;color:var(--success);" id="evalAccuracy">--</div>
+                                </div>
+                                <div style="text-align:center;padding:20px;background:var(--bg-input);border-radius:var(--radius-sm);">
+                                    <div style="font-size:0.78rem;color:var(--text-muted);margin-bottom:8px;">F1分数</div>
+                                    <div style="font-size:2rem;font-weight:700;color:var(--accent-light);" id="evalF1">--</div>
+                                </div>
+                                <div style="text-align:center;padding:20px;background:var(--bg-input);border-radius:var(--radius-sm);">
+                                    <div style="font-size:0.78rem;color:var(--text-muted);margin-bottom:8px;">精确率 (Precision)</div>
+                                    <div style="font-size:2rem;font-weight:700;" id="evalPrecision">--</div>
+                                </div>
+                                <div style="text-align:center;padding:20px;background:var(--bg-input);border-radius:var(--radius-sm);">
+                                    <div style="font-size:0.78rem;color:var(--text-muted);margin-bottom:8px;">召回率 (Recall)</div>
+                                    <div style="font-size:2rem;font-weight:700;" id="evalRecall">--</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title">📊 混淆矩阵</div>
+                        </div>
+                        <div class="card-body">
+                            <div class="chart-placeholder" id="confusionMatrix">
+                                运行评估后显示混淆矩阵
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Models Page -->
+            <div class="page" id="page-models">
+                <div class="page-header">
+                    <div class="page-title">📦 模型库</div>
+                    <div class="page-desc">管理已训练的模型文件</div>
+                </div>
+
+                <div class="card">
+                    <div class="card-body">
+                        <div class="table-wrap">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>模型名称</th>
+                                        <th>类型</th>
+                                        <th>文件大小</th>
+                                        <th>最后修改</th>
+                                        <th>状态</th>
+                                        <th>操作</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="modelsTable">
+                                    <tr>
+                                        <td><strong>svm_model.pkl</strong></td>
+                                        <td><span class="tag tag-info">SVM</span></td>
+                                        <td>--</td>
+                                        <td>--</td>
+                                        <td><span class="tag tag-success">可用</span></td>
+                                        <td>
+                                            <button class="btn btn-outline" style="padding:6px 12px;font-size:0.78rem;">加载</button>
+                                            <button class="btn btn-danger" style="padding:6px 12px;font-size:0.78rem;">删除</button>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>rf_model.pkl</strong></td>
+                                        <td><span class="tag tag-info">RF</span></td>
+                                        <td>--</td>
+                                        <td>--</td>
+                                        <td><span class="tag tag-success">可用</span></td>
+                                        <td>
+                                            <button class="btn btn-outline" style="padding:6px 12px;font-size:0.78rem;">加载</button>
+                                            <button class="btn btn-danger" style="padding:6px 12px;font-size:0.78rem;">删除</button>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>mlp_model.pkl</strong></td>
+                                        <td><span class="tag tag-info">MLP</span></td>
+                                        <td>--</td>
+                                        <td>--</td>
+                                        <td><span class="tag tag-success">可用</span></td>
+                                        <td>
+                                            <button class="btn btn-outline" style="padding:6px 12px;font-size:0.78rem;">加载</button>
+                                            <button class="btn btn-danger" style="padding:6px 12px;font-size:0.78rem;">删除</button>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>lstm_model.pth</strong></td>
+                                        <td><span class="tag tag-warning">LSTM</span></td>
+                                        <td>--</td>
+                                        <td>--</td>
+                                        <td><span class="tag tag-success">可用</span></td>
+                                        <td>
+                                            <button class="btn btn-outline" style="padding:6px 12px;font-size:0.78rem;">加载</button>
+                                            <button class="btn btn-danger" style="padding:6px 12px;font-size:0.78rem;">删除</button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Inference Page -->
+            <div class="page" id="page-inference">
+                <div class="page-header">
+                    <div class="page-title">🚀 实时推理</div>
+                    <div class="page-desc">启动实时手语识别服务</div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">⚙️ 推理配置</div>
+                    </div>
+                    <div class="card-body">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label">使用模型</label>
+                                <select class="form-select" id="inferenceModel">
+                                    <option value="lstm">LSTM</option>
+                                    <option value="svm">SVM</option>
+                                    <option value="rf">Random Forest</option>
+                                    <option value="mlp">MLP</option>
+                                    <option value="transformer">Transformer</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">摄像头索引</label>
+                                <input type="number" class="form-input" value="0" min="0" max="5">
+                            </div>
+                        </div>
+                        <div class="btn-group">
+                            <button class="btn btn-primary" onclick="startInference()">▶️ 启动推理</button>
+                            <button class="btn btn-success" onclick="window.open('demo.html', '_blank')">🌐 Web演示</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">📋 推理输出</div>
+                    </div>
+                    <div class="card-body">
+                        <div class="log-console" id="inferenceLog">
+                            <div class="log-line info"><span class="time">[就绪]</span> <span class="msg">等待启动推理服务...</span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- API Page -->
+            <div class="page" id="page-api">
+                <div class="page-header">
+                    <div class="page-title">🔌 API管理</div>
+                    <div class="page-desc">管理Flask API服务</div>
+                </div>
+
+                <div class="grid-2">
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title">🖥️ 服务状态</div>
+                        </div>
+                        <div class="card-body">
+                            <div class="grid-2">
+                                <div style="padding:16px;background:var(--bg-input);border-radius:var(--radius-sm);">
+                                    <div style="font-size:0.75rem;color:var(--text-muted);margin-bottom:6px;">服务地址</div>
+                                    <div style="font-family:monospace;">http://localhost:5000</div>
+                                </div>
+                                <div style="padding:16px;background:var(--bg-input);border-radius:var(--radius-sm);">
+                                    <div style="font-size:0.75rem;color:var(--text-muted);margin-bottom:6px;">服务状态</div>
+                                    <div id="apiServiceStatus"><span class="tag tag-success">运行中</span></div>
+                                </div>
+                            </div>
+                            <div class="btn-group" style="margin-top:16px;">
+                                <button class="btn btn-success" onclick="startApi()">▶️ 启动服务</button>
+                                <button class="btn btn-danger" onclick="stopApi()">⏹️ 停止服务</button>
+                                <button class="btn btn-outline" onclick="checkApiHealth()">🔍 健康检查</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title">📡 API端点</div>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-wrap">
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>方法</th>
+                                            <th>端点</th>
+                                            <th>说明</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td><span class="tag tag-success">POST</span></td>
+                                            <td><code>/api/predict</code></td>
+                                            <td>手语识别预测</td>
+                                        </tr>
+                                        <tr>
+                                            <td><span class="tag tag-success">POST</span></td>
+                                            <td><code>/api/detect</code></td>
+                                            <td>手部关键点检测</td>
+                                        </tr>
+                                        <tr>
+                                            <td><span class="tag tag-success">POST</span></td>
+                                            <td><code>/api/load_model</code></td>
+                                            <td>加载/切换模型</td>
+                                        </tr>
+                                        <tr>
+                                            <td><span class="tag tag-info">GET</span></td>
+                                            <td><code>/api/health</code></td>
+                                            <td>健康检查</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Settings Page -->
+            <div class="page" id="page-settings">
+                <div class="page-header">
+                    <div class="page-title">⚙️ 系统设置</div>
+                    <div class="page-desc">配置系统参数和路径</div>
+                </div>
+
+                <div class="grid-2">
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title">📁 路径配置</div>
+                        </div>
+                        <div class="card-body">
+                            <div class="form-group">
+                                <label class="form-label">项目根目录</label>
+                                <input type="text" class="form-input" value="E:\Projects0\Lingxin" readonly>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">数据目录</label>
+                                <input type="text" class="form-input" value="data">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">模型目录</label>
+                                <input type="text" class="form-input" value="models">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title">🎯 采集参数</div>
+                        </div>
+                        <div class="card-body">
+                            <div class="form-group">
+                                <label class="form-label">默认目标数量</label>
+                                <input type="number" class="form-input" value="30">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">倒计时秒数</label>
+                                <input type="number" class="form-input" value="3">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">最大录制帧数</label>
+                                <input type="number" class="form-input" value="300">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-footer" style="display:flex;justify-content:flex-end;gap:10px;">
+                        <button class="btn btn-outline">恢复默认</button>
+                        <button class="btn btn-primary">保存设置</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Logs Page -->
+            <div class="page" id="page-logs">
+                <div class="page-header">
+                    <div class="page-title">📋 运行日志</div>
+                    <div class="page-desc">查看系统运行日志</div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">📋 日志输出</div>
+                        <div class="btn-group">
+                            <button class="btn btn-outline" style="padding:6px 12px;font-size:0.78rem;">清空</button>
+                            <button class="btn btn-outline" style="padding:6px 12px;font-size:0.78rem;">导出</button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="log-console" id="systemLogs" style="max-height:500px;">
+                            <div class="log-line info"><span class="time">[启动]</span> <span class="msg">系统日志已就绪</span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+    // ===== Navigation =====
+    function showPage(pageId) {
+        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+        document.getElementById('page-' + pageId).classList.add('active');
+        document.querySelector(`.nav-item[onclick="showPage('${pageId}')"]`).classList.add('active');
+        document.getElementById('pageTitle').textContent = document.querySelector(`.nav-item[onclick="showPage('${pageId}')"] span:last-child`).textContent;
+    }
+
+    // ===== API Status =====
+    async function checkApiStatus() {
+        try {
+            const r = await fetch('/api/health');
+            const d = await r.json();
+            document.getElementById('statusDot').classList.add('online');
+            document.getElementById('statusText').textContent = 'API已连接';
+            document.getElementById('apiStatus').textContent = '在线';
+            document.getElementById('apiStatusChange').textContent = d.model_type ? `模型: ${d.model_type.toUpperCase()}` : '未加载模型';
+            document.getElementById('apiStatusChange').className = 'stat-change up';
+        } catch(e) {
+            document.getElementById('statusDot').classList.remove('online');
+            document.getElementById('statusText').textContent = 'API未连接';
+            document.getElementById('apiStatus').textContent = '离线';
+            document.getElementById('apiStatusChange').textContent = '请启动: python api/app.py';
+            document.getElementById('apiStatusChange').className = 'stat-change down';
+        }
+    }
+
+    // ===== Model Selection =====
+    let selectedModel = 'lstm';
+    function selectModel(model) {
+        selectedModel = model;
+        document.querySelectorAll('.model-option').forEach(el => {
+            el.style.borderColor = el.dataset.model === model ? 'var(--accent)' : 'var(--border)';
+        });
+    }
+
+    // ===== Placeholder Functions =====
+    function refreshData() { location.reload(); }
+    function startQuickTrain() { showPage('train'); }
+
+    async function startCollection() {
+        const personId = document.getElementById('personId').value;
+        if (!personId) { alert('请输入录制人ID'); return; }
+
+        const targetSamples = document.getElementById('targetSamples').value;
+
+        try {
+            const r = await fetch('/api/collect', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    person_id: personId,
+                    target_samples: parseInt(targetSamples)
+                })
+            });
+            const d = await r.json();
+            if (d.status === 'ok') {
+                alert('✅ ' + d.message + '\n\n采集器窗口将在新进程中打开');
+            } else {
+                alert('❌ ' + (d.error || '启动失败'));
+            }
+        } catch(e) {
+            alert('❌ 连接API失败: ' + e.message);
+        }
+    }
+
+    function previewVocab() { alert('词汇表预览功能开发中...'); }
+    function importVideo() { alert('视频导入功能开发中...'); }
+    function batchImport() { alert('批量导入功能开发中...'); }
+
+    async function startPreprocess() {
+        try {
+            const r = await fetch('/api/preprocess', { method: 'POST' });
+            const d = await r.json();
+            if (d.status === 'ok') {
+                alert('✅ ' + d.message);
+            } else {
+                alert('❌ 启动失败');
+            }
+        } catch(e) {
+            alert('❌ 连接API失败: ' + e.message);
+        }
+    }
+
+    async function startTraining() {
+        const model = selectedModel;
+        const epochs = document.getElementById('trainEpochs').value;
+
+        try {
+            const r = await fetch('/api/train', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ model_type: model, epochs: parseInt(epochs) })
+            });
+            const d = await r.json();
+            if (d.status === 'ok') {
+                alert('✅ ' + d.message);
+            } else {
+                alert('❌ 启动失败');
+            }
+        } catch(e) {
+            alert('❌ 连接API失败: ' + e.message);
+        }
+    }
+
+    function startEvaluation() {
+        const model = document.getElementById('evalModelType').value;
+        alert(`将在命令行启动评估\n\n命令: python tools/evaluate.py --model ${model}`);
+    }
+
+    function startInference() {
+        const model = document.getElementById('inferenceModel').value;
+        alert(`将在命令行启动推理\n\n命令: python tools/inference.py --model ${model}`);
+    }
+
+    function startApi() { alert('启动API: python api/app.py'); }
+    function stopApi() { alert('停止API服务'); }
+    function checkApiHealth() { checkApiStatus(); }
+
+    // ===== Init =====
+    checkApiStatus();
+    setInterval(checkApiStatus, 30000);
+    </script>
+</body>
+</html>

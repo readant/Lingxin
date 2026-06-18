@@ -1125,14 +1125,17 @@ class DataCollector:
 
 def main():
     """
-    主入口函数L
+    主入口函数
 
     提示用户输入录制人ID，然后启动数据采集器。
+    支持从环境变量 LINGXIN_PERSON_ID 和 LINGXIN_TARGET_SAMPLES 读取参数。
     """
     import argparse
     parser = argparse.ArgumentParser(description='聆心手语数据采集工具')
     parser.add_argument('--vocab', default='data/vocab.csv', help='词汇表路径 (默认: data/vocab.csv)')
     parser.add_argument('--output', default='data/raw/collected', help='数据保存目录 (默认: data/raw/collected)')
+    parser.add_argument('--person-id', default=None, help='录制人ID (可选，也可通过环境变量 LINGXIN_PERSON_ID 设置)')
+    parser.add_argument('--target-samples', type=int, default=None, help='每个词汇目标数量 (可选，也可通过环境变量 LINGXIN_TARGET_SAMPLES 设置)')
     args = parser.parse_args()
 
     logger = get_logger("DataCollector")
@@ -1141,12 +1144,23 @@ def main():
     logger.info("=" * 50)
     sys.stdout.flush()
 
-    person_id = input("请输入录制人ID: ").strip()
+    # 优先使用命令行参数，其次环境变量，最后交互输入
+    person_id = args.person_id or os.environ.get('LINGXIN_PERSON_ID', '')
+    target_samples = args.target_samples or int(os.environ.get('LINGXIN_TARGET_SAMPLES', '30'))
+
+    if not person_id:
+        person_id = input("请输入录制人ID: ").strip()
+
     if not person_id:
         logger.error("错误：录制人ID不能为空")
         return
 
-    collector = DataCollector(person_id=person_id, save_dir=args.output, vocab_path=args.vocab)
+    collector = DataCollector(
+        person_id=person_id,
+        save_dir=args.output,
+        target_samples=target_samples,
+        vocab_path=args.vocab
+    )
     collector.run()
 
 

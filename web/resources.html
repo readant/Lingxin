@@ -87,6 +87,13 @@
             align-items: center;
             justify-content: center;
             font-size: 1.5rem;
+            overflow: hidden;
+        }
+
+        .sidebar-logo img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
         }
 
         .sidebar-title {
@@ -202,10 +209,16 @@
         }
 
         .logo {
-            font-size: 3.5rem;
             margin-bottom: 16px;
             display: inline-block;
             animation: gentleFloat 6s ease-in-out infinite;
+        }
+
+        .logo img {
+            width: 80px;
+            height: auto;
+            border-radius: 18px;
+            box-shadow: var(--shadow-medium);
         }
 
         @keyframes gentleFloat {
@@ -730,7 +743,7 @@
 
         @media (max-width: 768px) {
             h1 { font-size: 1.8rem; }
-            .logo { font-size: 3rem; }
+            .logo img { width: 64px; }
             .back-link {
                 position: relative;
                 top: 0;
@@ -770,7 +783,7 @@
         <!-- 侧边导航 -->
         <aside class="sidebar">
             <div class="sidebar-header">
-                <div class="sidebar-logo">📚</div>
+                <div class="sidebar-logo"><img src="assets/logo.png" alt="聆心"></div>
                 <span class="sidebar-title">资源导航</span>
             </div>
             <nav>
@@ -851,7 +864,7 @@
                     <span>←</span>
                     <span>返回首页</span>
                 </a>
-                <div class="logo">📚</div>
+                <div class="logo"><img src="assets/logo.png" alt="聆心 Logo"></div>
                 <h1>资源导航中心</h1>
                 <p class="subtitle">汇集Python技术栈、深度学习模型、手语识别论文等优质学习资源</p>
             </header>

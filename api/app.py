@@ -29,7 +29,7 @@ from src.utils.logger import get_logger
 
 logger = get_logger(__name__)
 
-app = Flask(__name__, static_folder='../', static_url_path='')
+app = Flask(__name__)
 CORS(app)
 
 # =============================================================================
@@ -264,21 +264,169 @@ def health():
     })
 
 
+@app.route('/api/collect', methods=['POST'])
+def api_collect():
+    """启动数据采集器（后台进程）"""
+    import subprocess
+    import threading
+
+    data = request.json or {}
+    person_id = data.get('person_id', '')
+    target_samples = data.get('target_samples', 30)
+
+    if not person_id:
+        return jsonify({'error': '请提供录制人ID'}), 400
+
+    def run_collector():
+        try:
+            cmd = [
+                sys.executable, 'tools/collect_data.py',
+                '--vocab', 'data/vocab.csv',
+                '--output', 'data/raw/collected'
+            ]
+            env = os.environ.copy()
+            env['LINGXIN_PERSON_ID'] = person_id
+            env['LINGXIN_TARGET_SAMPLES'] = str(target_samples)
+
+            process = subprocess.Popen(
+                cmd,
+                cwd=os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+                env=env,
+                creationflags=subprocess.CREATE_NEW_PROCESS_GROUP if sys.platform == 'win32' else 0
+            )
+            logger.info(f"采集器已启动: PID={process.pid}, 人员={person_id}")
+        except Exception as e:
+            logger.error(f"启动采集器失败: {e}")
+
+    thread = threading.Thread(target=run_collector, daemon=True)
+    thread.start()
+
+    return jsonify({
+        'status': 'ok',
+        'message': f'采集器已启动，录制人: {person_id}'
+    })
+
+
+@app.route('/api/preprocess', methods=['POST'])
+def api_preprocess():
+    """启动数据预处理"""
+    import subprocess
+    import threading
+
+    def run_preprocess():
+        try:
+            cmd = [
+                sys.executable, 'tools/preprocess.py',
+                '--input', 'data/raw/collected',
+                '--output', 'data/processed'
+            ]
+            process = subprocess.Popen(
+                cmd,
+                cwd=os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+                creationflags=subprocess.CREATE_NEW_PROCESS_GROUP if sys.platform == 'win32' else 0
+            )
+            logger.info(f"预处理已启动: PID={process.pid}")
+        except Exception as e:
+            logger.error(f"启动预处理失败: {e}")
+
+    thread = threading.Thread(target=run_preprocess, daemon=True)
+    thread.start()
+
+    return jsonify({'status': 'ok', 'message': '预处理已启动'})
+
+
+@app.route('/api/train', methods=['POST'])
+def api_train():
+    """启动模型训练"""
+    import subprocess
+    import threading
+
+    data = request.json or {}
+    model_type = data.get('model_type', 'lstm')
+    epochs = data.get('epochs', 50)
+
+    def run_train():
+        try:
+            cmd = [
+                sys.executable, 'tools/train.py',
+                '--model', model_type,
+                '--epochs', str(epochs)
+            ]
+            process = subprocess.Popen(
+                cmd,
+                cwd=os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+                creationflags=subprocess.CREATE_NEW_PROCESS_GROUP if sys.platform == 'win32' else 0
+            )
+            logger.info(f"训练已启动: PID={process.pid}, 模型={model_type}")
+        except Exception as e:
+            logger.error(f"启动训练失败: {e}")
+
+    thread = threading.Thread(target=run_train, daemon=True)
+    thread.start()
+
+    return jsonify({'status': 'ok', 'message': f'训练已启动: {model_type}'})
+
+
 # =============================================================================
 # 静态页面
 # =============================================================================
 
 @app.route('/')
 def index():
+    return send_from_directory('../web', 'index_new.html')
+
+@app.route('/old')
+def index_old():
     return send_from_directory('../web', 'index.html')
 
-@app.route('/demo')
-def demo():
+@app.route('/dashboard')
+def dashboard():
+    return send_from_directory('../web', 'dashboard.html')
+
+@app.route('/demo.html')
+def demo_html():
     return send_from_directory('../web', 'demo.html')
 
 @app.route('/resources')
 def resources():
     return send_from_directory('../web', 'resources.html')
+
+@app.route('/docs-viewer.html')
+def docs_viewer():
+    return send_from_directory('../web', 'docs-viewer.html')
+
+@app.route('/favicon.ico')
+def favicon():
+    return send_from_directory('../assets', 'logo.png')
+
+
+# =============================================================================
+# 静态资源（替代 static_folder）
+# =============================================================================
+
+@app.route('/assets/<path:filename>')
+def serve_assets(filename):
+    """静态资源（图片、JS 等）"""
+    return send_from_directory('../assets', filename)
+
+@app.route('/static/css/<path:filename>')
+def serve_css(filename):
+    """CSS 样式文件"""
+    return send_from_directory('../web/static/css', filename)
+
+@app.route('/static/js/<path:filename>')
+def serve_js(filename):
+    """JavaScript 文件"""
+    return send_from_directory('../web/static/js', filename)
+
+@app.route('/docs/<path:filename>')
+def serve_docs(filename):
+    """Markdown 文档"""
+    return send_from_directory('../docs', filename)
+
+@app.route('/README.md')
+def serve_readme():
+    return send_from_directory('..', 'README.md')
 
 
 if __name__ == '__main__':
