@@ -29,10 +29,10 @@ class TestTransformerModel:
         batch_size = 4
         seq_len = 30
         n_features = 71
-        
+
         x = torch.randn(batch_size, seq_len, n_features)
         output = model(x)
-        
+
         assert output.shape == (batch_size, 5)  # num_classes=5
 
     def test_forward_different_batch(self, model):
@@ -59,7 +59,7 @@ class TestTransformerModel:
             dff=256,
             num_layers=3
         )
-        
+
         x = torch.randn(2, 30, 71)
         output = model(x)
         assert output.shape == (2, 10)
@@ -84,17 +84,17 @@ class TestTransformerModel:
         """模型应可训练"""
         x = torch.randn(4, 30, 71)
         y = torch.tensor([0, 1, 2, 3])
-        
+
         criterion = torch.nn.CrossEntropyLoss()
         optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
-        
+
         # 训练一步
         model.train()
         output = model(x)
         loss = criterion(output, y)
         loss.backward()
         optimizer.step()
-        
+
         # 确认梯度存在
         for param in model.parameters():
             assert param.grad is not None

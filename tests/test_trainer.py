@@ -26,7 +26,7 @@ class TestTrainerClassifier:
         """SVM训练应返回模型和准确率"""
         X, y = sample_data
         model_data, accuracy = Trainer.train_classifier(X, y, model_type='svm')
-        
+
         assert 'model' in model_data
         assert 'scaler' in model_data
         assert model_data['type'] == 'svm'
@@ -36,7 +36,7 @@ class TestTrainerClassifier:
         """随机森林训练应返回模型和准确率"""
         X, y = sample_data
         model_data, accuracy = Trainer.train_classifier(X, y, model_type='rf')
-        
+
         assert model_data['type'] == 'rf'
         assert 0 <= accuracy <= 1
 
@@ -44,7 +44,7 @@ class TestTrainerClassifier:
         """MLP训练应返回模型和准确率"""
         X, y = sample_data
         model_data, accuracy = Trainer.train_classifier(X, y, model_type='mlp')
-        
+
         assert model_data['type'] == 'mlp'
         assert 0 <= accuracy <= 1
 
@@ -58,10 +58,10 @@ class TestTrainerClassifier:
         """分类器保存和加载应保持一致"""
         X, y = sample_data
         model_data, _ = Trainer.train_classifier(X, y, model_type='svm')
-        
+
         save_path = str(tmp_path / 'test_model.pkl')
         Trainer.save_classifier(model_data, save_path)
-        
+
         loaded = Trainer.load_classifier(save_path)
         assert loaded['type'] == model_data['type']
         assert hasattr(loaded['model'], 'predict')
@@ -84,35 +84,35 @@ class TestTrainerDeepLearning:
     def test_train_lstm(self, sequence_data):
         """LSTM训练应返回模型和准确率"""
         from src.models.lstm_model import LSTMModel
-        
+
         X, y = sequence_data
         model, accuracy = Trainer.train_deep_learning(
             X, y, LSTMModel, epochs=2, batch_size=16
         )
-        
+
         assert hasattr(model, 'forward')
         assert 0 <= accuracy <= 1
 
     def test_train_transformer(self, sequence_data):
         """Transformer训练应返回模型和准确率"""
         from src.models.transformer_model import TransformerModel
-        
+
         X, y = sequence_data
         model, accuracy = Trainer.train_deep_learning(
             X, y, TransformerModel, epochs=2, batch_size=16
         )
-        
+
         assert hasattr(model, 'forward')
         assert 0 <= accuracy <= 1
 
     def test_evaluate_model(self, sequence_data):
         """模型评估应返回准确率"""
         from src.models.lstm_model import LSTMModel
-        
+
         X, y = sequence_data
         model, _ = Trainer.train_deep_learning(
             X, y, LSTMModel, epochs=2, batch_size=16
         )
-        
+
         accuracy = Trainer.evaluate_model(model, X[:10], y[:10])
         assert 0 <= accuracy <= 1
