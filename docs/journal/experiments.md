@@ -10,10 +10,11 @@
 
 | 组件 | 型号 | 说明 |
 |------|------|------|
-| CPU | Intel Core i7-10700K | 8核16线程 |
-| 内存 | 16GB DDR4 | 运行内存 |
-| GPU | NVIDIA RTX 3080 | 10GB显存 |
-| 存储 | 1TB SSD | 数据存储 |
+| CPU | AMD Ryzen 9 7945HX | 十六核，基准2.5GHz，睿频5.4GHz |
+| 内存 | 16GB DDR5 5200MHz | 运行内存 |
+| GPU | NVIDIA GeForce RTX 5060 Laptop | 8GB显存（Blackwell架构） |
+| 存储 | 1TB PCIe 4.0 SSD | CT1000P3PSSD8 |
+| 主板 | MACHENIKE L16 | 机械师曙光16S |
 
 ### 2.2 软件配置
 

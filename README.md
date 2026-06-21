@@ -110,10 +110,14 @@ Lingxin/
 │   └── inference.py                # 实时推理入口
 │
 ├── web/                              # Web演示界面
-│   ├── index.html                    # 学习导航主页
-│   ├── demo.html                     # 手语识别在线演示
-│   ├── docs-viewer.html             # 文档在线查看器
-│   ├── resources.html                # 学习资源汇总
+│   ├── index.html                    # 首页（学习导航）
+│   ├── dashboard.html                # 全流程控制台
+│   ├── demo.html                     # 实时手语识别演示
+│   ├── docs.html                     # 文档在线查看器
+│   ├── resources.html                # 学习资源导航
+│   └── static/                       # 静态资源
+│       ├── css/                      # 样式文件
+│       └── js/                       # JavaScript文件
 │   └── mediapipe/                    # MediaPipe WASM资源
 │
 ├── pyproject.toml                    # 项目元数据和构建配置
@@ -505,7 +509,7 @@ conda activate lingxin
 | [07-常见问题](docs/07-faq.md) | 环境/数据/模型问题排查 |
 | [08-测试指南](docs/08-testing.md) | pytest使用、测试编写、最佳实践 |
 | [🎓 新手学习教程](learning/README.md) | 10阶段零基础学习路线 |
-| [🌐 Web演示](web/index.html) | 浏览器端在线手语识别 |
+| [🌐 Web演示](http://localhost:5000/) | 浏览器端在线手语识别 |
 | [开发历程](docs/journal/development.md) | 项目开发大事记 |
 | [实验记录](docs/journal/experiments.md) | 模型性能对比与调优 |
 

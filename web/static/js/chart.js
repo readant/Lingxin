@@ -30,14 +30,14 @@ function initConfidenceChart() {
         xAxis: {
             type: 'category',
             data: [],
-            axisLabel: { color: '#94a3b8', fontSize: 12 },
-            axisLine: { lineStyle: { color: 'rgba(255,255,255,0.1)' } }
+            axisLabel: { color: '#9B8B7A', fontSize: 12 },
+            axisLine: { lineStyle: { color: '#E8E0D5' } }
         },
         yAxis: {
             type: 'value',
             max: 100,
-            axisLabel: { color: '#64748b', formatter: '{value}%' },
-            splitLine: { lineStyle: { color: 'rgba(255,255,255,0.05)' } }
+            axisLabel: { color: '#9B8B7A', formatter: '{value}%' },
+            splitLine: { lineStyle: { color: '#F5F0E8' } }
         },
         series: [{
             type: 'bar',
@@ -46,8 +46,8 @@ function initConfidenceChart() {
             itemStyle: {
                 borderRadius: [4, 4, 0, 0],
                 color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-                    { offset: 0, color: '#818cf8' },
-                    { offset: 1, color: '#6366f1' }
+                    { offset: 0, color: '#E8C9A0' },
+                    { offset: 1, color: '#D4A574' }
                 ])
             },
             animationDuration: 300,
@@ -55,9 +55,9 @@ function initConfidenceChart() {
         }],
         tooltip: {
             trigger: 'axis',
-            backgroundColor: 'rgba(22, 27, 38, 0.95)',
-            borderColor: 'rgba(255,255,255,0.1)',
-            textStyle: { color: '#e2e8f0' },
+            backgroundColor: 'rgba(250, 247, 242, 0.95)',
+            borderColor: '#E8E0D5',
+            textStyle: { color: '#2C2420' },
             formatter: (params) => {
                 const p = params[0];
                 return `${p.name}<br/>置信度: <b>${p.value}%</b>`;
@@ -79,16 +79,16 @@ function initWordFreqChart() {
         backgroundColor: 'transparent',
         tooltip: {
             trigger: 'item',
-            backgroundColor: 'rgba(22, 27, 38, 0.95)',
-            borderColor: 'rgba(255,255,255,0.1)',
-            textStyle: { color: '#e2e8f0' },
+            backgroundColor: 'rgba(250, 247, 242, 0.95)',
+            borderColor: '#E8E0D5',
+            textStyle: { color: '#2C2420' },
             formatter: '{b}: {c}次 ({d}%)'
         },
         legend: {
             orient: 'vertical',
             right: 10,
             top: 'center',
-            textStyle: { color: '#94a3b8', fontSize: 11 }
+            textStyle: { color: '#9B8B7A', fontSize: 11 }
         },
         series: [{
             type: 'pie',
@@ -103,13 +103,13 @@ function initWordFreqChart() {
             data: [],
             itemStyle: {
                 borderRadius: 6,
-                borderColor: '#1c2333',
+                borderColor: '#FFFFFF',
                 borderWidth: 2
             }
         }],
         color: [
-            '#6366f1', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6',
-            '#06b6d4', '#ec4899', '#14b8a6', '#f97316', '#64748b'
+            '#D4A574', '#8B9A7D', '#C17F59', '#5A6B7C', '#E8C9A0',
+            '#A8B89A', '#D49A7A', '#7A8B6D', '#B8A090', '#9B8B7A'
         ]
     });
 

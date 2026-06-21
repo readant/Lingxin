@@ -783,7 +783,7 @@
         <!-- 侧边导航 -->
         <aside class="sidebar">
             <div class="sidebar-header">
-                <div class="sidebar-logo"><img src="assets/logo.png" alt="聆心"></div>
+                <div class="sidebar-logo"><img src="../assets/logo.png" alt="聆心"></div>
                 <span class="sidebar-title">资源导航</span>
             </div>
             <nav>
@@ -848,9 +848,27 @@
                 <div class="nav-divider"></div>
                 <ul class="nav-list">
                     <li class="nav-item">
-                        <a href="index.html" class="nav-link" style="color: var(--accent-terracotta);">
+                        <a href="/" class="nav-link" style="color: var(--accent-terracotta);">
                             <span class="nav-icon">🏠</span>
                             <span>返回首页</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="dashboard" class="nav-link">
+                            <span class="nav-icon">🎛️</span>
+                            <span>控制台</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="/demo" class="nav-link">
+                            <span class="nav-icon">🎬</span>
+                            <span>实时演示</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="/docs?file=docs/01-quickstart.md" class="nav-link">
+                            <span class="nav-icon">📖</span>
+                            <span>项目文档</span>
                         </a>
                     </li>
                 </ul>
@@ -860,11 +878,13 @@
         <!-- 主内容区 -->
         <main class="main-content">
             <header>
-                <a href="index.html" class="back-link">
-                    <span>←</span>
-                    <span>返回首页</span>
-                </a>
-                <div class="logo"><img src="assets/logo.png" alt="聆心 Logo"></div>
+                <div class="back-links" style="display:flex;gap:8px;position:absolute;top:16px;left:16px;">
+                    <a href="/" class="back-link" style="position:static;margin-bottom:0;">
+                        <span>←</span>
+                        <span>返回首页</span>
+                    </a>
+                </div>
+                <div class="logo"><img src="../assets/logo.png" alt="聆心 Logo"></div>
                 <h1>资源导航中心</h1>
                 <p class="subtitle">汇集Python技术栈、深度学习模型、手语识别论文等优质学习资源</p>
             </header>
@@ -1585,7 +1605,7 @@
 
             <footer>
                 <p>聆心手语识别 - 资源导航中心</p>
-                <p style="margin-top: 8px; font-size: 0.75rem;">© 2024 Lingxin Sign Language Recognition</p>
+                <p style="margin-top: 8px; font-size: 0.75rem;">© 2026 Lingxin Sign Language Recognition</p>
             </footer>
         </main>
     </div>

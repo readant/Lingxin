@@ -71,10 +71,12 @@ Lingxin/                              # 项目根目录
 │   ├── evaluate.py                   # 模型评估入口
 │   └── inference.py                  # 实时推理入口
 ├── web/                              # Web演示界面
-│   ├── index.html                    # 学习导航主页
-│   ├── demo.html                     # 在线手语识别演示
-│   ├── docs-viewer.html              # 文档在线查看器
-│   └── resources.html                # 学习资源汇总
+│   ├── index.html                    # 首页（学习导航）
+│   ├── dashboard.html                # 全流程控制台
+│   ├── demo.html                     # 实时手语识别演示
+│   ├── docs.html                     # 文档在线查看器
+│   ├── resources.html                # 学习资源导航
+│   └── static/                       # 静态资源
 ├── pyproject.toml                    # 项目元数据和构建配置
 ├── requirements.txt                  # pip 依赖清单
 ├── environment.yml                   # conda CPU环境文件

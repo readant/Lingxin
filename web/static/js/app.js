@@ -251,7 +251,7 @@ function updatePredictionDisplay(pred) {
 
     if (wordEl) {
         wordEl.textContent = pred.word;
-        wordEl.style.color = '#6366f1';
+        wordEl.style.color = '#B8860B';
     }
     if (confEl) {
         confEl.textContent = (pred.confidence * 100).toFixed(1) + '%';

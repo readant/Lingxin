@@ -438,17 +438,26 @@
 </head>
 <body>
 
-<div class="topbar">
-    <div class="topbar-left">
-        <button class="btn" id="toggleSidebar" onclick="toggleSidebar()">☰</button>
-        <span class="topbar-logo"><img src="assets/logo.png" alt="聆心"></span>
-        <span class="topbar-title">聆心文档</span>
-        <span class="breadcrumb" id="breadcrumb"></span>
+<div class="topbar" style="display:flex;align-items:center;justify-content:space-between;padding:0 24px;height:56px;background:rgba(250,247,242,0.95);border-bottom:1px solid #E8E0D5;backdrop-filter:blur(12px);position:sticky;top:0;z-index:100;">
+    <div style="display:flex;align-items:center;gap:12px;">
+        <img src="../assets/logo.png" alt="聆心" style="width:36px;height:36px;border-radius:8px;">
+        <span style="font-family:'Ma Shan Zheng',cursive;font-size:1.1rem;color:#2C2420;letter-spacing:0.05em;">聆心文档</span>
+        <span class="breadcrumb" id="breadcrumb" style="font-size:0.8rem;color:#9B8B7A;margin-left:8px;"></span>
     </div>
-    <div class="topbar-right">
-        <a href="index.html" class="btn">🏠 首页</a>
-        <a href="resources.html" class="btn">📚 资源导航</a>
-        <a href="#" class="btn primary" onclick="window.open(currentFile, '_blank')">↗ 原始文件</a>
+    <div style="display:flex;align-items:center;gap:8px;">
+        <a href="/" style="display:flex;align-items:center;gap:6px;padding:8px 16px;border-radius:8px;text-decoration:none;color:#6B5E54;font-size:0.9rem;transition:all 0.2s;" onmouseover="this.style.background='#F5F0E8'" onmouseout="this.style.background='transparent'">
+            <span>🏠</span><span>首页</span>
+        </a>
+        <a href="dashboard" style="display:flex;align-items:center;gap:6px;padding:8px 16px;border-radius:8px;text-decoration:none;color:#6B5E54;font-size:0.9rem;transition:all 0.2s;" onmouseover="this.style.background='#F5F0E8'" onmouseout="this.style.background='transparent'">
+            <span>🎛️</span><span>控制台</span>
+        </a>
+        <a href="/demo" style="display:flex;align-items:center;gap:6px;padding:8px 16px;border-radius:8px;text-decoration:none;color:#6B5E54;font-size:0.9rem;transition:all 0.2s;" onmouseover="this.style.background='#F5F0E8'" onmouseout="this.style.background='transparent'">
+            <span>🎬</span><span>演示</span>
+        </a>
+        <a href="/resources" style="display:flex;align-items:center;gap:6px;padding:8px 16px;border-radius:8px;text-decoration:none;color:#6B5E54;font-size:0.9rem;transition:all 0.2s;" onmouseover="this.style.background='#F5F0E8'" onmouseout="this.style.background='transparent'">
+            <span>📚</span><span>资源</span>
+        </a>
+        <button onclick="window.open(currentFile, '_blank')" style="display:flex;align-items:center;gap:6px;padding:8px 16px;border-radius:8px;background:#B8860B;color:white;border:none;cursor:pointer;font-size:0.9rem;">↗ 原始文件</button>
     </div>
 </div>
 

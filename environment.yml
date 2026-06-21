@@ -27,3 +27,4 @@ dependencies:
     # 新版MediaPipe（支持Task API）
     - mediapipe>=0.10.33
     - flask-cors>=4.0.0
+    - flask-sock>=0.6.0

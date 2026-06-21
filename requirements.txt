@@ -16,3 +16,4 @@ pillow>=10.0.0             # 图像处理
 # API服务
 flask>=3.0.0               # Web框架
 flask-cors>=4.0.0          # 跨域支持
+flask-sock>=0.6.0          # WebSocket支持

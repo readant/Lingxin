@@ -1,0 +1,364 @@
+/* ===== Lingxin Chinese Traditional Theme ===== */
+
+@import url('https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;600;700;900&family=ZCOOL+XiaoWei&display=swap');
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+    --ink-black: #1a1a1a;
+    --bg-primary: #FAF7F2;
+    --bg-secondary: #F5F0E8;
+    --bg-card: #FFFFFF;
+    --bg-input: #F5F0E8;
+    --text-primary: #2C2420;
+    --text-secondary: #6B5E54;
+    --text-muted: #9B8B7A;
+    --accent: #B8860B;
+    --accent-light: #D4A832;
+    --accent-warm: #D4A574;
+    --accent-gold: #B8860B;
+    --accent-terracotta: #C17F59;
+    --accent-sage: #5A8A6A;
+    --accent-indigo: #2E4057;
+    --success: #5A8A6A;
+    --warning: #D4A574;
+    --danger: #C17F59;
+    --border: #E8E0D5;
+    --border-light: #E8E0D5;
+    --border-medium: #D4C8B8;
+    --shadow-soft: 0 2px 12px rgba(44, 36, 32, 0.06);
+    --shadow-medium: 0 4px 24px rgba(44, 36, 32, 0.08);
+    --shadow-hover: 0 8px 32px rgba(44, 36, 32, 0.12);
+    --radius: 12px;
+    --radius-sm: 8px;
+    --transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-fast: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-normal: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+body {
+    font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    min-height: 100vh;
+    line-height: 1.7;
+    background-image:
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='400' height='400' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E"),
+        radial-gradient(circle at 20% 50%, rgba(184, 134, 11, 0.02) 0%, transparent 50%),
+        radial-gradient(circle at 80% 80%, rgba(90, 138, 106, 0.02) 0%, transparent 50%);
+}
+
+/* ===== Ink Wash Background Decoration ===== */
+body::before {
+    content: '';
+    position: fixed;
+    top: -200px;
+    right: -200px;
+    width: 600px;
+    height: 600px;
+    background: radial-gradient(
+        ellipse at center,
+        rgba(184, 134, 11, 0.02) 0%,
+        rgba(184, 134, 11, 0.01) 40%,
+        transparent 70%
+    );
+    border-radius: 50%;
+    filter: blur(60px);
+    pointer-events: none;
+    z-index: 0;
+}
+
+/* ===== Scrollbar ===== */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border-medium); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+
+/* ===== Buttons ===== */
+.btn {
+    padding: 10px 20px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
+    font-size: 0.88rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all var(--transition);
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-family: inherit;
+    background: var(--bg-card);
+    color: var(--text-primary);
+}
+.btn:hover { border-color: var(--accent); color: var(--accent-terracotta); }
+.btn-primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+.btn-primary:hover { background: var(--accent-terracotta); border-color: var(--accent-terracotta); }
+.btn-success { background: var(--success); color: #fff; border-color: var(--success); }
+.btn-success:hover { background: #7A8B6D; }
+.btn-danger { background: var(--danger); color: #fff; border-color: var(--danger); }
+.btn-danger:hover { background: #A86B49; }
+.btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text-primary); }
+.btn-outline:hover { background: var(--bg-secondary); border-color: var(--border-medium); }
+.btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* ===== Cards ===== */
+.card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+}
+.card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+}
+.card-title {
+    font-weight: 600;
+    font-size: 0.95rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.card-body { padding: 20px; }
+.card-footer {
+    padding: 12px 20px;
+    border-top: 1px solid var(--border);
+    background: var(--bg-secondary);
+}
+
+/* ===== Form Elements ===== */
+.form-group { margin-bottom: 16px; }
+.form-label {
+    display: block;
+    font-size: 0.82rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+    margin-bottom: 6px;
+}
+.form-input, .form-select, .form-textarea {
+    width: 100%;
+    padding: 10px 14px;
+    background: var(--bg-input);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--text-primary);
+    font-size: 0.88rem;
+    font-family: inherit;
+    transition: border-color var(--transition);
+}
+.form-input:focus, .form-select:focus, .form-textarea:focus {
+    outline: none;
+    border-color: var(--accent);
+}
+.form-select { cursor: pointer; }
+.form-select option { background: var(--bg-card); }
+.form-hint { font-size: 0.75rem; color: var(--text-muted); margin-top: 4px; }
+
+/* ===== Tags ===== */
+.tag {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 0.72rem;
+    font-weight: 500;
+}
+.tag-success { background: rgba(139, 154, 125, 0.15); color: var(--accent-sage); }
+.tag-warning { background: rgba(212, 165, 116, 0.15); color: var(--accent); }
+.tag-danger { background: rgba(193, 127, 89, 0.15); color: var(--accent-terracotta); }
+.tag-info { background: rgba(90, 107, 124, 0.15); color: var(--accent-indigo); }
+
+/* ===== Progress ===== */
+.progress { height: 6px; background: var(--bg-secondary); border-radius: 3px; overflow: hidden; }
+.progress-bar { height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent-light)); border-radius: 3px; transition: width 0.5s; }
+.progress-bar.success { background: linear-gradient(90deg, var(--accent-sage), #A8B89A); }
+.progress-bar.warning { background: linear-gradient(90deg, var(--accent), var(--accent-light)); }
+.progress-bar.danger { background: linear-gradient(90deg, var(--accent-terracotta), #D49A7A); }
+
+/* ===== Table ===== */
+.table-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; }
+th {
+    text-align: left;
+    padding: 12px 16px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border-bottom: 2px solid var(--border-medium);
+    font-family: 'Noto Serif SC', serif;
+}
+td { padding: 12px 16px; font-size: 0.88rem; border-bottom: 1px solid var(--border); color: var(--text-secondary); }
+tr:hover td { background: var(--bg-secondary); }
+
+/* ===== Log Console ===== */
+.log-console {
+    background: var(--bg-secondary);
+    border-radius: var(--radius-sm);
+    padding: 12px;
+    font-family: 'Consolas', 'Monaco', monospace;
+    font-size: 0.78rem;
+    max-height: 200px;
+    overflow-y: auto;
+    color: var(--text-secondary);
+    border: 1px solid var(--border);
+}
+.log-line { padding: 2px 0; line-height: 1.6; }
+.log-line .time { color: var(--text-muted); }
+.log-line.info .msg { color: var(--text-secondary); }
+.log-line.success .msg { color: var(--accent-sage); }
+.log-line.warning .msg { color: var(--accent); }
+.log-line.error .msg { color: var(--accent-terracotta); }
+
+/* ===== Status Indicator ===== */
+.status-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    display: inline-block;
+    margin-right: 8px;
+    transition: all 0.3s;
+}
+.status-dot.online {
+    background: var(--accent-sage);
+    box-shadow: 0 0 12px rgba(139, 154, 125, 0.6);
+    animation: pulse-sage 2s infinite;
+}
+.status-dot.offline {
+    background: var(--accent-terracotta);
+    box-shadow: 0 0 12px rgba(193, 127, 89, 0.6);
+    animation: pulse-terra 1.5s infinite;
+}
+.status-dot.connecting {
+    background: var(--accent);
+    animation: blink 0.8s infinite;
+}
+
+@keyframes pulse-sage {
+    0%, 100% { box-shadow: 0 0 8px rgba(139, 154, 125, 0.4); }
+    50% { box-shadow: 0 0 20px rgba(139, 154, 125, 0.8); }
+}
+@keyframes pulse-terra {
+    0%, 100% { box-shadow: 0 0 8px rgba(193, 127, 89, 0.4); }
+    50% { box-shadow: 0 0 20px rgba(193, 127, 89, 0.8); }
+}
+@keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+}
+
+/* ===== Timeline ===== */
+.timeline { position: relative; padding-left: 28px; }
+.timeline::before { content: ''; position: absolute; left: 8px; top: 0; bottom: 0; width: 2px; background: var(--border); }
+.timeline-item { position: relative; margin-bottom: 20px; }
+.timeline-item::before {
+    content: '';
+    position: absolute;
+    left: -24px;
+    top: 4px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--bg-card);
+    border: 2px solid var(--accent);
+}
+.timeline-item.done::before { background: var(--accent-sage); border-color: var(--accent-sage); }
+.timeline-item.active::before { background: var(--accent); border-color: var(--accent); box-shadow: 0 0 8px rgba(212, 165, 116, 0.4); }
+.timeline-title { font-weight: 600; margin-bottom: 4px; }
+.timeline-desc { font-size: 0.82rem; color: var(--text-secondary); }
+
+/* ===== Chinese Traditional Decorations ===== */
+
+/* Seal Stamp Logo */
+.seal-stamp {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 2.5px solid var(--accent-gold);
+    color: var(--accent-gold);
+    font-family: 'Ma Shan Zheng', cursive;
+    line-height: 1;
+    position: relative;
+    transform: rotate(-3deg);
+    padding: 4px 6px;
+}
+.seal-stamp::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+        radial-gradient(circle at 30% 20%, var(--bg-card) 1px, transparent 1px),
+        radial-gradient(circle at 70% 60%, var(--bg-card) 1.5px, transparent 1.5px),
+        radial-gradient(circle at 20% 70%, var(--bg-card) 2px, transparent 2px);
+    opacity: 0.4;
+    pointer-events: none;
+}
+
+/* Ink Divider */
+.ink-divider {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin: 32px 0;
+    color: var(--text-muted);
+    font-size: 13px;
+}
+.ink-divider::before,
+.ink-divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(
+        90deg,
+        transparent 0%,
+        var(--border-medium) 20%,
+        var(--text-muted) 50%,
+        var(--border-medium) 80%,
+        transparent 100%
+    );
+}
+
+/* Cloud Pattern */
+.cloud-bg::after {
+    content: '';
+    position: absolute;
+    top: -60px;
+    right: -40px;
+    width: 200px;
+    height: 120px;
+    opacity: 0.04;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 80'%3E%3Cpath d='M30,55 Q30,40 45,38 Q42,25 58,22 Q65,10 82,15 Q90,8 102,15 Q115,8 125,18 Q140,12 148,25 Q165,20 170,35 Q185,32 185,48 Q185,60 170,60 L40,60 Q25,60 25,55 Z' fill='%231a1a1a'/%3E%3C/svg%3E") no-repeat center;
+    pointer-events: none;
+}
+
+/* Vertical Text */
+.vertical-text {
+    writing-mode: vertical-rl;
+    text-orientation: mixed;
+    font-family: 'Ma Shan Zheng', cursive;
+    letter-spacing: 0.3em;
+    line-height: 2;
+}
+
+/* Chinese Title Style */
+.guofeng-title {
+    font-family: 'Ma Shan Zheng', cursive;
+    font-size: 2.4rem;
+    color: var(--ink-black);
+    position: relative;
+}
+
+/* ===== Animations ===== */
+@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+.fade-in { animation: fadeIn 0.3s ease; }
+@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+.pulse { animation: pulse 2s infinite; }
+@keyframes slideIn { from { opacity: 0; transform: translateX(16px); } to { opacity: 1; transform: translateX(0); } }
+@keyframes floatCloud {
+    0%, 100% { transform: translateX(0) translateY(0); }
+    50% { transform: translateX(10px) translateY(-5px); }
+}

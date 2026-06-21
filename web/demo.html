@@ -8,24 +8,26 @@
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         :root {
-            --bg: #0a0e17; --panel: #111827; --card: #1a2332;
-            --accent: #06d6a0; --accent-glow: rgba(6,214,160,0.3);
-            --text: #e2e8f0; --dim: #94a3b8; --muted: #64748b;
-            --border: rgba(255,255,255,0.06);
+            --bg: #FAF7F2; --panel: #F5F0E8; --card: #FFFFFF;
+            --accent: #B8860B; --accent-terracotta: #C17F59; --accent-sage: #5A8A6A;
+            --accent-glow: rgba(212,165,116,0.3);
+            --text: #2C2420; --dim: #6B5E54; --muted: #9B8B7A;
+            --border: #E8E0D5; --border-medium: #D4C8B8;
+            --success: #8B9A7D; --danger: #C17F59;
         }
-        body { font-family: 'Noto Sans SC', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
-        .header { display: flex; align-items: center; justify-content: space-between; padding: 14px 28px; background: rgba(17,24,39,0.9); border-bottom: 1px solid var(--border); }
-        .title { font-family: 'Noto Serif SC', serif; font-size: 1.1rem; font-weight: 700; background: linear-gradient(135deg, var(--accent), #6366f1); -webkit-background-clip: text; -webkit-text-fill-color: transparent; display: flex; align-items: center; gap: 10px; }
+        body { font-family: 'Noto Sans SC', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; background-image: radial-gradient(circle at 20% 50%, rgba(212,165,116,0.03) 0%, transparent 50%), radial-gradient(circle at 80% 80%, rgba(139,154,125,0.03) 0%, transparent 50%); }
+        .header { display: flex; align-items: center; justify-content: space-between; padding: 14px 28px; background: rgba(250,247,242,0.95); border-bottom: 1px solid var(--border); backdrop-filter: blur(12px); }
+        .title { font-family: 'Noto Serif SC', serif; font-size: 1.1rem; font-weight: 700; background: linear-gradient(135deg, var(--accent), var(--accent-terracotta)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; display: flex; align-items: center; gap: 10px; }
         .title img { width: 32px; height: auto; border-radius: 8px; -webkit-text-fill-color: initial; }
         .badges { display: flex; gap: 10px; align-items: center; }
-        .badge { display: flex; align-items: center; gap: 6px; padding: 5px 12px; background: var(--card); border-radius: 16px; font-size: 0.78rem; }
-        .dot { width: 7px; height: 7px; border-radius: 50%; background: #ef4444; }
-        .dot.on { background: var(--accent); box-shadow: 0 0 6px var(--accent-glow); }
-        .main { display: grid; grid-template-columns: minmax(400px, 1fr) 440px; height: calc(100vh - 58px); }
-        .video-wrap { flex: 1; position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; background: #111; }
+        .badge { display: flex; align-items: center; gap: 6px; padding: 5px 12px; background: var(--card); border-radius: 16px; font-size: 0.78rem; border: 1px solid var(--border); }
+        .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--danger); }
+        .dot.on { background: var(--accent-sage); box-shadow: 0 0 6px rgba(139,154,125,0.5); }
+        .main { display: grid; grid-template-columns: minmax(400px, 1fr) 440px; height: calc(100vh - 56px); }
+        .video-wrap { flex: 1; position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; background: #2C2420; }
         .video-inner { position: relative; width: 65%; max-height: 75%; aspect-ratio: 4/3; }
-        #webcam { width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); display: none; border-radius: 10px; box-shadow: 0 4px 20px rgba(0,0,0,0.5); }
-        #canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; transform: scaleX(-1); border-radius: 10px; }
+        #webcam { width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); display: none; border-radius: 10px; box-shadow: 0 4px 20px rgba(0,0,0,0.3); }
+        #canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; border-radius: 10px; }
         .placeholder {
             text-align: center;
             color: var(--muted);
@@ -33,63 +35,66 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
-        .placeholder .icon { font-size: 3.5rem; opacity: 0.4; margin-bottom: 12px; }
+        .placeholder .icon { font-size: 3.5rem; opacity: 0.4; margin-bottom: 12px; display: block; }
         .pred-overlay { position: absolute; top: 16px; left: 50%; transform: translateX(-50%); text-align: center; z-index: 10; pointer-events: none; }
         .pred-word { font-family: 'Noto Serif SC', serif; font-size: 2.8rem; font-weight: 900; color: #fff; text-shadow: 0 2px 20px rgba(0,0,0,0.5); opacity: 0; transform: scale(0.8); transition: all 0.3s cubic-bezier(0.34,1.56,0.64,1); }
         .pred-word.show { opacity: 1; transform: scale(1); }
         .pred-conf { font-size: 0.8rem; color: var(--accent); font-weight: 600; opacity: 0; transition: opacity 0.3s; }
         .pred-conf.show { opacity: 1; }
-        .controls { display: flex; align-items: center; justify-content: space-between; padding: 10px 20px; background: rgba(17,24,39,0.95); border-top: 1px solid var(--border); }
+        .controls { display: flex; align-items: center; justify-content: space-between; padding: 10px 20px; background: rgba(250,247,242,0.95); border-top: 1px solid var(--border); }
         .ctrl-left { display: flex; gap: 10px; align-items: center; }
         .btn { padding: 8px 18px; border-radius: 8px; border: 1px solid var(--border); background: var(--card); color: var(--text); font-size: 0.82rem; font-family: inherit; cursor: pointer; transition: all 0.2s; }
-        .btn:hover { background: #1f2b3d; }
-        .btn-go { background: var(--accent); color: #000; border-color: var(--accent); font-weight: 600; }
-        .btn-go:hover { background: #05c495; }
-        .btn-stop { background: rgba(239,68,68,0.15); color: #ef4444; border-color: rgba(239,68,68,0.3); }
+        .btn:hover { background: var(--bg); border-color: var(--border-medium); }
+        .btn-go { background: var(--accent); color: #fff; border-color: var(--accent); font-weight: 600; }
+        .btn-go:hover { background: var(--accent-terracotta); }
+        .btn-stop { background: rgba(193,127,89,0.15); color: var(--accent-terracotta); border-color: rgba(193,127,89,0.3); }
         .btn-icon { padding: 8px 12px; font-size: 1rem; }
         select, input[type="number"], input[type="text"] { padding: 7px 12px; border-radius: 6px; border: 1px solid var(--border); background: var(--card); color: var(--text); font-size: 0.82rem; font-family: inherit; }
-        select option { background: var(--panel); }
+        select option { background: var(--card); }
         .stats { font-size: 0.78rem; color: var(--muted); }
-        .side { display: flex; flex-direction: column; background: var(--panel); border-left: 1px solid var(--border); overflow-y: auto; }
+        .side { display: flex; flex-direction: column; background: var(--card); border-left: 1px solid var(--border); overflow-y: auto; }
         .sec { padding: 18px 20px; border-bottom: 1px solid var(--border); }
         .sec-title { font-size: 0.72rem; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 12px; }
         .result { text-align: center; padding: 24px 20px; }
-        .result-word { font-family: 'Noto Serif SC', serif; font-size: 2.6rem; font-weight: 700; min-height: 3.2rem; display: flex; align-items: center; justify-content: center; }
-        .result-word.active { color: var(--accent); }
+        .result-word { font-family: 'Noto Serif SC', serif; font-size: 2.6rem; font-weight: 700; min-height: 3.2rem; display: flex; align-items: center; justify-content: center; color: var(--muted); }
+        .result-word.active { color: var(--accent-terracotta); }
         .result-cat { font-size: 0.78rem; color: var(--muted); margin-bottom: 14px; }
-        .bar-bg { width: 100%; height: 5px; background: rgba(255,255,255,0.06); border-radius: 3px; overflow: hidden; margin-bottom: 6px; }
-        .bar-fill { height: 100%; background: linear-gradient(90deg, var(--accent), #6366f1); border-radius: 3px; transition: width 0.3s; width: 0%; }
+        .bar-bg { width: 100%; height: 5px; background: var(--bg); border-radius: 3px; overflow: hidden; margin-bottom: 6px; }
+        .bar-fill { height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent-terracotta)); border-radius: 3px; transition: width 0.3s; width: 0%; }
         .bar-text { font-size: 0.78rem; color: var(--dim); }
         .seq { display: flex; align-items: center; gap: 8px; }
-        .seq-bg { flex: 1; height: 4px; background: rgba(255,255,255,0.06); border-radius: 2px; overflow: hidden; }
+        .seq-bg { flex: 1; height: 4px; background: var(--bg); border-radius: 2px; overflow: hidden; }
         .seq-fill { height: 100%; background: var(--accent); border-radius: 2px; transition: width 0.15s; width: 0%; }
         .seq-txt { font-size: 0.72rem; color: var(--muted); min-width: 55px; text-align: right; }
         .hist { display: flex; flex-direction: column; gap: 5px; }
-        .hist-item { display: flex; align-items: center; gap: 10px; padding: 8px 12px; background: var(--card); border-radius: 8px; border: 1px solid var(--border); animation: slideIn 0.3s ease; }
+        .hist-item { display: flex; align-items: center; gap: 10px; padding: 8px 12px; background: var(--bg); border-radius: 8px; border: 1px solid var(--border); animation: slideIn 0.3s ease; }
         @keyframes slideIn { from { opacity: 0; transform: translateX(16px); } to { opacity: 1; transform: translateX(0); } }
         .hist-word { font-size: 1rem; font-weight: 600; flex: 1; }
-        .hist-conf { font-size: 0.72rem; color: var(--accent); }
+        .hist-conf { font-size: 0.72rem; color: var(--accent-sage); }
         .hist-time { font-size: 0.68rem; color: var(--muted); }
         .hist-empty { text-align: center; padding: 24px 0; color: var(--muted); font-size: 0.82rem; }
         .tech-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
-        .tech-item { padding: 8px 10px; background: var(--card); border-radius: 6px; border: 1px solid var(--border); }
+        .tech-item { padding: 8px 10px; background: var(--bg); border-radius: 6px; border: 1px solid var(--border); }
         .tech-lbl { font-size: 0.68rem; color: var(--muted); }
         .tech-val { font-size: 0.82rem; font-weight: 600; }
-        .log { background: var(--card); border-radius: 6px; padding: 10px; max-height: 120px; overflow-y: auto; font-family: monospace; font-size: 0.72rem; color: var(--dim); }
+        .log { background: var(--bg); border-radius: 6px; padding: 10px; max-height: 120px; overflow-y: auto; font-family: monospace; font-size: 0.72rem; color: var(--dim); border: 1px solid var(--border); }
         .log-e { padding: 2px 0; }
-        .log-e.err { color: #ef4444; }
-        .log-e.ok { color: var(--accent); }
+        .log-e.err { color: var(--accent-terracotta); }
+        .log-e.ok { color: var(--accent-sage); }
         @media (max-width: 900px) { .main { grid-template-columns: 1fr; grid-template-rows: 50vh auto; } }
 
         /* ===== Settings Modal ===== */
-        .modal-mask { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 1000; backdrop-filter: blur(4px); }
+        .modal-mask { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(44,36,32,0.4); z-index: 1000; backdrop-filter: blur(4px); }
         .modal-mask.show { display: flex; align-items: center; justify-content: center; }
-        .modal { background: var(--panel); border-radius: 16px; border: 1px solid var(--border); width: 480px; max-height: 80vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.5); }
+        .modal { background: var(--card); border-radius: 16px; border: 1px solid var(--border); width: 480px; max-height: 80vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(44,36,32,0.2); }
         .modal-header { display: flex; align-items: center; justify-content: space-between; padding: 18px 24px; border-bottom: 1px solid var(--border); }
         .modal-title { font-family: 'Noto Serif SC', serif; font-size: 1.1rem; font-weight: 700; }
-        .modal-close { width: 32px; height: 32px; border-radius: 8px; border: none; background: var(--card); color: var(--text); font-size: 1.2rem; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.2s; }
-        .modal-close:hover { background: rgba(239,68,68,0.2); color: #ef4444; }
+        .modal-close { width: 32px; height: 32px; border-radius: 8px; border: none; background: var(--bg); color: var(--text); font-size: 1.2rem; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.2s; border: 1px solid var(--border); }
+        .modal-close:hover { background: rgba(193,127,89,0.15); color: var(--accent-terracotta); }
         .modal-body { padding: 20px 24px; }
         .modal-footer { padding: 16px 24px; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 10px; }
 
@@ -105,7 +110,7 @@
         .toggle-wrap { display: flex; align-items: center; gap: 10px; }
         .toggle { position: relative; width: 40px; height: 22px; cursor: pointer; }
         .toggle input { opacity: 0; width: 0; height: 0; }
-        .toggle-slider { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: var(--card); border: 1px solid var(--border); border-radius: 11px; transition: all 0.3s; }
+        .toggle-slider { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: var(--bg); border: 1px solid var(--border); border-radius: 11px; transition: all 0.3s; }
         .toggle-slider::before { content: ''; position: absolute; width: 16px; height: 16px; border-radius: 50%; background: var(--muted); top: 2px; left: 2px; transition: all 0.3s; }
         .toggle input:checked + .toggle-slider { background: var(--accent); border-color: var(--accent); }
         .toggle input:checked + .toggle-slider::before { transform: translateX(18px); background: #fff; }
@@ -113,21 +118,15 @@
     </style>
 </head>
 <body>
-    <header class="header">
-        <div class="title"><img src="assets/logo.png" alt="聆心">聆心手语识别</div>
-        <div class="badges">
-            <div class="badge"><span class="dot" id="apiDot"></span><span id="apiText">未连接</span></div>
-            <div class="badge"><span id="modelText">模型: --</span></div>
-            <button class="btn btn-icon" onclick="openSettings()" title="设置">⚙️</button>
-        </div>
-    </header>
+    <div id="nav-container"></div>
+    <script src="static/js/nav.js"></script>
+    <script>NavController.inject('nav-container', { showStatus: true });</script>
 
     <div class="main">
         <div class="video-area">
             <div class="video-wrap">
                 <div class="video-inner">
                     <video id="webcam" autoplay playsinline muted></video>
-                    <canvas id="canvas"></canvas>
                     <div class="placeholder" id="ph"><div class="icon">📷</div><p>点击下方按钮开启摄像头</p></div>
                 </div>
                 <div class="pred-overlay" id="predOverlay"><div class="pred-word" id="pw"></div><div class="pred-conf" id="pc"></div></div>
@@ -196,9 +195,9 @@
                     <div class="setting-row">
                         <label>分辨率</label>
                         <select id="setRes">
-                            <option value="320x240">320×240</option>
-                            <option value="640x480" selected>640×480</option>
-                            <option value="1280x720">1280×720</option>
+                            <option value="320x240" selected>320×240 (快速)</option>
+                            <option value="640x480">640×480 (标准)</option>
+                            <option value="1280x720">1280×720 (高清)</option>
                         </select>
                     </div>
                     <div class="setting-row">
@@ -221,19 +220,19 @@
                     <div class="setting-row">
                         <label>发送帧率</label>
                         <select id="setSendFps">
-                            <option value="5">5 FPS</option>
-                            <option value="8">8 FPS</option>
-                            <option value="10" selected>10 FPS</option>
-                            <option value="15">15 FPS</option>
-                            <option value="20">20 FPS</option>
+                            <option value="5">5 FPS (省流量)</option>
+                            <option value="8" selected>8 FPS (推荐)</option>
+                            <option value="10">10 FPS (标准)</option>
+                            <option value="15">15 FPS (流畅)</option>
+                            <option value="20">20 FPS (高帧率)</option>
                         </select>
                     </div>
                     <div class="setting-row">
                         <label>图片质量</label>
                         <select id="setJpegQuality">
-                            <option value="0.3">低 (30%)</option>
-                            <option value="0.5">中 (50%)</option>
-                            <option value="0.6" selected>默认 (60%)</option>
+                            <option value="0.3">低 (30%) - 极速</option>
+                            <option value="0.5" selected>中 (50%) - 推荐</option>
+                            <option value="0.6">标准 (60%)</option>
                             <option value="0.8">高 (80%)</option>
                             <option value="1.0">最高 (100%)</option>
                         </select>
@@ -282,13 +281,18 @@
 
     <script>
     // =========================================================================
+    // Skeleton Drawing
+    // =========================================================================
+
+
+    // =========================================================================
     // Settings
     // =========================================================================
     const DEFAULT_SETTINGS = {
-        resolution: '640x480',
+        resolution: '320x240',
         videoScale: 65,
-        sendFps: 10,
-        jpegQuality: 0.6,
+        sendFps: 5,
+        jpegQuality: 0.4,
         showOverlay: true,
         showHistory: true,
         apiUrl: ''
@@ -368,8 +372,6 @@
     let history = [], fc = 0, lastFpsT = Date.now(), sendTimer = null;
 
     const video = document.getElementById('webcam');
-    const canvas = document.getElementById('canvas');
-    const ctx = canvas.getContext('2d');
 
     function safeStr(v) { if (v === null || v === undefined) return ''; if (typeof v === 'object') { try { return JSON.stringify(v); } catch(e) { return String(v); } } return String(v); }
     function log(m, t='') { const b=document.getElementById('logBox'); const time=new Date().toLocaleTimeString('zh-CN'); b.innerHTML=`<div class="log-e ${t}">[${time}] ${safeStr(m)}</div>`+b.innerHTML; if(b.children.length>40) b.removeChild(b.lastChild); }
@@ -392,17 +394,14 @@
             video.style.display = 'block';
             await video.play();
 
-            canvas.width = video.videoWidth;
-            canvas.height = video.videoHeight;
-
             running = true;
             document.getElementById('ph').style.display = 'none';
             btn.textContent = '关闭摄像头';
             btn.disabled = false;
             btn.className = 'btn btn-stop';
             document.getElementById('btnClear').style.display = 'inline-flex';
-            document.getElementById('apiDot').classList.add('on');
-            document.getElementById('apiText').textContent = '运行中';
+            document.getElementById('statusDot').classList.add('online');
+            document.getElementById('statusText').textContent = '运行中';
 
             log(`摄像头已开启 (${video.videoWidth}×${video.videoHeight})`, 'ok');
             startSendLoop();
@@ -423,9 +422,8 @@
         document.getElementById('btnStart').textContent = '开启摄像头';
         document.getElementById('btnStart').className = 'btn btn-go';
         document.getElementById('btnClear').style.display = 'none';
-        document.getElementById('apiDot').classList.remove('on');
-        document.getElementById('apiText').textContent = '已停止';
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        document.getElementById('statusDot').classList.remove('online');
+        document.getElementById('statusText').textContent = '已停止';
         log('摄像头已关闭');
     }
 
@@ -442,6 +440,7 @@
     function sendFrame() {
         if (!running || sending) return;
 
+        // 创建临时canvas捕获帧
         const tempCanvas = document.createElement('canvas');
         tempCanvas.width = video.videoWidth;
         tempCanvas.height = video.videoHeight;
@@ -467,7 +466,6 @@
         .then(data => {
             document.getElementById('lat').textContent = Math.round(performance.now() - t0);
             sending = false;
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
             if (data.error) { log('API: ' + data.error, 'err'); return; }
             if (data.prediction) showResult(data.prediction, data.confidence);
             if (data.buffer_size !== undefined) {
@@ -532,7 +530,7 @@
             });
             const d = await r.json();
             if (d.status === 'ok') {
-                document.getElementById('modelText').textContent = '模型: ' + t.toUpperCase();
+                document.getElementById('statusText').textContent = '已连接 | ' + t.toUpperCase() + ' (' + d.num_classes + '类)';
                 log('模型切换成功: ' + t, 'ok');
             } else { log('切换失败', 'err'); }
         } catch(e) { log('切换失败: ' + (e?.message || safeStr(e)), 'err'); }
@@ -540,22 +538,27 @@
 
     async function checkHealth() {
         try {
-            const r = await fetch(`${getApiUrl()}/api/health`);
+            const apiUrl = getApiUrl();
+            log('连接API: ' + apiUrl, 'info');
+            const r = await fetch(`${apiUrl}/api/health`);
             const d = await r.json();
             if (d.model_loaded) {
-                document.getElementById('apiDot').classList.add('on');
-                document.getElementById('apiText').textContent = '已连接';
-                document.getElementById('modelText').textContent = `模型: ${(d.model_type||'--').toUpperCase()} (${d.num_classes}类)`;
+                document.getElementById('statusDot').classList.add('online');
+                document.getElementById('statusText').textContent = `已连接 | ${(d.model_type||'--').toUpperCase()} (${d.num_classes}类)`;
                 document.getElementById('vc').textContent = d.num_classes;
                 document.getElementById('bs').textContent = '正常';
-                document.getElementById('bs').style.color = 'var(--accent)';
+                document.getElementById('bs').style.color = 'var(--accent-sage)';
                 log(`API已连接, ${safeStr(d.model_type)} ${safeStr(d.num_classes)}类`, 'ok');
-            } else { document.getElementById('apiText').textContent = '模型未加载'; }
+            } else {
+                document.getElementById('statusText').textContent = '模型未加载';
+                document.getElementById('bs').textContent = '模型未加载';
+            }
         } catch(e) {
-            document.getElementById('apiText').textContent = 'API未连接';
+            document.getElementById('statusText').textContent = 'API未连接';
             document.getElementById('bs').textContent = '未连接';
-            document.getElementById('bs').style.color = '#ef4444';
-            log('API未连接, 请启动: python api/app.py', 'err');
+            document.getElementById('bs').style.color = 'var(--danger)';
+            log('API未连接: ' + e.message, 'err');
+            log('请确保通过服务器访问: python api/app.py', 'err');
         }
     }
 

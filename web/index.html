@@ -6,7 +6,7 @@
     <title>聆心手语识别系统 - 学习导航</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700&family=Noto+Sans+SC:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;600;700;900&family=Noto+Sans+SC:wght@300;400;500;600&family=ZCOOL+XiaoWei&display=swap" rel="stylesheet">
     <style>
         * {
             margin: 0;
@@ -15,17 +15,20 @@
         }
 
         :root {
-            /* 温暖的日式配色 */
+            /* Chinese Traditional Colors */
+            --ink-black: #1a1a1a;
             --bg-primary: #FAF7F2;
             --bg-secondary: #F5F0E8;
             --bg-card: #FFFFFF;
             --text-primary: #2C2420;
             --text-secondary: #6B5E54;
             --text-muted: #9B8B7A;
+            --accent-vermillion: #B8860B;
             --accent-warm: #D4A574;
             --accent-terracotta: #C17F59;
-            --accent-sage: #8B9A7D;
-            --accent-indigo: #5A6B7C;
+            --accent-sage: #5A8A6A;
+            --accent-indigo: #2E4057;
+            --accent-gold: #B8860B;
             --border-light: #E8E0D5;
             --border-medium: #D4C8B8;
             --shadow-soft: 0 2px 12px rgba(44, 36, 32, 0.06);
@@ -43,8 +46,9 @@
             color: var(--text-primary);
             line-height: 1.7;
             background-image:
-                radial-gradient(circle at 20% 50%, rgba(212, 165, 116, 0.03) 0%, transparent 50%),
-                radial-gradient(circle at 80% 80%, rgba(139, 154, 125, 0.03) 0%, transparent 50%);
+                url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='400' height='400' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E"),
+                radial-gradient(circle at 20% 50%, rgba(184, 134, 11, 0.02) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(90, 138, 106, 0.02) 0%, transparent 50%);
         }
 
         .container {
@@ -58,6 +62,7 @@
             text-align: center;
             padding: 80px 20px 60px;
             position: relative;
+            overflow: hidden;
         }
 
         header::before {
@@ -66,10 +71,20 @@
             top: 40px;
             left: 50%;
             transform: translateX(-50%);
-            width: 60px;
-            height: 3px;
-            background: linear-gradient(90deg, transparent, var(--accent-warm), transparent);
-            border-radius: 2px;
+            width: 80px;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--accent-vermillion), transparent);
+        }
+
+        /* Ink Mountain Background */
+        .ink-mountain-bg {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 250px;
+            opacity: 0.04;
+            pointer-events: none;
         }
 
         .logo {
@@ -92,21 +107,23 @@
         }
 
         h1 {
-            font-family: 'Noto Serif SC', serif;
-            font-size: 2.8rem;
-            font-weight: 700;
+            font-family: 'Ma Shan Zheng', cursive;
+            font-size: 3.2rem;
+            font-weight: 400;
             margin-bottom: 16px;
             color: var(--text-primary);
-            letter-spacing: 0.05em;
+            letter-spacing: 0.1em;
         }
 
         .subtitle {
+            font-family: 'ZCOOL XiaoWei', serif;
             font-size: 1.1rem;
             color: var(--text-secondary);
             max-width: 500px;
             margin: 0 auto;
-            font-weight: 300;
+            font-weight: 400;
             line-height: 1.8;
+            letter-spacing: 0.15em;
         }
 
         .nav-button {
@@ -117,28 +134,37 @@
             background: var(--bg-card);
             color: var(--text-primary);
             text-decoration: none;
-            border-radius: 50px;
+            border-radius: 4px;
             font-weight: 500;
             margin-top: 32px;
             transition: all var(--transition-normal);
-            border: 1px solid var(--border-medium);
+            border: 1.5px solid var(--border-medium);
             box-shadow: var(--shadow-soft);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .nav-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: var(--accent-vermillion);
+            transform: scaleX(0);
+            transition: transform var(--transition-normal);
         }
 
         .nav-button:hover {
             transform: translateY(-2px);
             box-shadow: var(--shadow-hover);
-            border-color: var(--accent-warm);
-            color: var(--accent-terracotta);
+            border-color: var(--accent-vermillion);
+            color: var(--accent-vermillion);
         }
 
-        .nav-button::after {
-            content: '→';
-            transition: transform var(--transition-fast);
-        }
-
-        .nav-button:hover::after {
-            transform: translateX(4px);
+        .nav-button:hover::before {
+            transform: scaleX(1);
         }
 
         /* ===== 统计区域 ===== */
@@ -167,10 +193,10 @@
         }
 
         .stat-number {
-            font-family: 'Noto Serif SC', serif;
-            font-size: 2.4rem;
-            font-weight: 700;
-            color: var(--accent-terracotta);
+            font-family: 'Ma Shan Zheng', cursive;
+            font-size: 2.6rem;
+            font-weight: 400;
+            color: var(--accent-vermillion);
             margin-bottom: 4px;
         }
 
@@ -191,9 +217,9 @@
         }
 
         .section-title {
-            font-family: 'Noto Serif SC', serif;
-            font-size: 1.5rem;
-            font-weight: 600;
+            font-family: 'Ma Shan Zheng', cursive;
+            font-size: 1.6rem;
+            font-weight: 400;
             margin-bottom: 32px;
             display: flex;
             align-items: center;
@@ -203,10 +229,9 @@
 
         .section-title::before {
             content: '';
-            width: 4px;
+            width: 3px;
             height: 24px;
-            background: var(--accent-warm);
-            border-radius: 2px;
+            background: var(--accent-vermillion);
         }
 
         .path-steps {
@@ -251,12 +276,12 @@
         }
 
         .step-number {
-            font-family: 'Noto Serif SC', serif;
-            font-size: 2rem;
-            font-weight: 700;
-            color: var(--accent-warm);
+            font-family: 'Ma Shan Zheng', cursive;
+            font-size: 2.2rem;
+            font-weight: 400;
+            color: var(--accent-vermillion);
             margin-bottom: 12px;
-            opacity: 0.6;
+            opacity: 0.5;
         }
 
         .step-title {
@@ -341,7 +366,7 @@
 
         .nav-search input:focus {
             outline: none;
-            border-color: var(--accent-warm);
+            border-color: var(--accent-vermillion);
             background: var(--bg-card);
         }
 
@@ -457,7 +482,7 @@
         .file-item:hover {
             background: var(--bg-primary);
             padding-left: 20px;
-            border-color: var(--accent-warm);
+            border-color: var(--accent-vermillion);
         }
 
         .file-item:hover::before {
@@ -466,7 +491,7 @@
 
         .file-item.active {
             background: var(--bg-secondary);
-            border-color: var(--accent-warm);
+            border-color: var(--accent-vermillion);
         }
 
         .file-icon {
@@ -578,7 +603,7 @@
         }
 
         .learn-item a:hover {
-            color: var(--accent-terracotta);
+            color: var(--accent-vermillion);
         }
 
         .learn-badge {
@@ -618,7 +643,7 @@
         .tech-item:hover {
             transform: translateY(-4px);
             box-shadow: var(--shadow-medium);
-            border-color: var(--accent-warm);
+            border-color: var(--accent-vermillion);
         }
 
         .tech-icon {
@@ -704,7 +729,7 @@
         }
 
         .star.filled {
-            background: var(--accent-warm);
+            background: var(--accent-vermillion);
         }
 
         /* ===== 页脚 ===== */
@@ -723,7 +748,7 @@
 
         /* ===== 响应式 ===== */
         @media (max-width: 768px) {
-            h1 { font-size: 2rem; }
+            h1 { font-size: 2.2rem; }
             .logo img { width: 72px; }
             .stats { gap: 16px; }
             .stat-item { min-width: 100px; padding: 16px 20px; }
@@ -734,6 +759,66 @@
             .learn-grid { grid-template-columns: 1fr; }
             .nav-header { flex-direction: column; align-items: stretch; }
             .nav-search { max-width: none; }
+        }
+
+        /* ===== 国风装饰 ===== */
+        .seal-stamp {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border: 2.5px solid var(--accent-vermillion);
+            color: var(--accent-vermillion);
+            font-family: 'Ma Shan Zheng', cursive;
+            line-height: 1;
+            position: relative;
+            transform: rotate(-3deg);
+        }
+        .seal-stamp::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background:
+                radial-gradient(circle at 30% 20%, var(--bg-card) 1px, transparent 1px),
+                radial-gradient(circle at 70% 60%, var(--bg-card) 1.5px, transparent 1.5px),
+                radial-gradient(circle at 20% 70%, var(--bg-card) 2px, transparent 2px);
+            opacity: 0.4;
+            pointer-events: none;
+        }
+
+        .ink-divider {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin: 32px 0;
+            color: var(--text-muted);
+            font-size: 13px;
+        }
+        .ink-divider::before,
+        .ink-divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--border-medium) 20%, var(--text-muted) 50%, var(--border-medium) 80%, transparent);
+        }
+
+        /* ===== 页脚 ===== */
+        footer {
+            text-align: center;
+            padding: 48px 20px;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            border-top: 1px solid var(--border-light);
+            margin-top: 48px;
+            position: relative;
+        }
+
+        footer .footer-poem {
+            font-family: 'Ma Shan Zheng', cursive;
+            font-size: 18px;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+            letter-spacing: 0.3em;
+            opacity: 0.6;
         }
 
         /* ===== 动画 ===== */
@@ -755,9 +840,23 @@
 <body>
     <div class="container">
         <header>
-            <div class="logo"><img src="assets/logo.png" alt="聆心 Logo"></div>
+            <!-- Ink Mountain Background SVG -->
+            <svg class="ink-mountain-bg" viewBox="0 0 1200 250" preserveAspectRatio="none">
+                <defs>
+                    <linearGradient id="mtnGrad" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stop-color="#1a1a1a" stop-opacity="0.12"/>
+                        <stop offset="100%" stop-color="#1a1a1a" stop-opacity="0"/>
+                    </linearGradient>
+                </defs>
+                <path d="M0,250 L0,180 Q100,100 200,150 Q300,70 400,120 Q500,40 600,100 Q700,50 800,110 Q900,40 1000,90 Q1100,60 1200,130 L1200,250 Z" fill="url(#mtnGrad)"/>
+                <path d="M0,250 L0,200 Q150,140 300,180 Q450,110 600,160 Q750,100 900,150 Q1050,90 1200,170 L1200,250 Z" fill="url(#mtnGrad)" opacity="0.5"/>
+            </svg>
+
+            <div style="display:inline-block;margin-bottom:24px;position:relative;">
+                <img src="../assets/logo.png" alt="聆心" style="width:80px;height:80px;border-radius:16px;box-shadow:0 4px 24px rgba(44,36,32,0.08);">
+            </div>
             <h1>聆心手语识别系统</h1>
-            <p class="subtitle">基于深度学习的实时手语识别系统学习导航，支持多种模型架构</p>
+            <p class="subtitle">以科技之力，传无声之美</p>
             <div class="stats">
                 <div class="stat-item">
                     <div class="stat-number">8</div>
@@ -780,7 +879,7 @@
                 <span>🎛️</span>
                 <span>全流程控制台</span>
             </a>
-            <a href="docs-viewer.html?file=docs/01-quickstart.md" class="nav-button" style="margin-left:12px;">
+            <a href="/docs?file=docs/01-quickstart.md" class="nav-button" style="margin-left:12px;">
                 <span>📚</span>
                 <span>文档阅读</span>
             </a>
@@ -788,47 +887,51 @@
                 <span>🎬</span>
                 <span>实时演示</span>
             </a>
+            <a href="/resources" class="nav-button" style="margin-left:12px;">
+                <span>🔗</span>
+                <span>资源导航</span>
+            </a>
         </header>
 
         <section class="learning-path">
             <h2 class="section-title">推荐学习路径</h2>
             <div class="path-steps">
-                <div class="path-step" onclick="window.open('docs-viewer.html?file=docs/01-quickstart.md', '_blank')">
+                <div class="path-step" onclick="window.open('/docs?file=docs/01-quickstart.md', '_blank')">
                     <div class="step-number">01</div>
                     <div class="step-title">快速入门</div>
                     <div class="step-desc">项目简介与环境搭建</div>
                 </div>
-                <div class="path-step" onclick="window.open('docs-viewer.html?file=docs/02-architecture.md', '_blank')">
+                <div class="path-step" onclick="window.open('/docs?file=docs/02-architecture.md', '_blank')">
                     <div class="step-number">02</div>
                     <div class="step-title">架构设计</div>
                     <div class="step-desc">系统架构与技术选型</div>
                 </div>
-                <div class="path-step" onclick="window.open('docs-viewer.html?file=docs/03-data-collection.md', '_blank')">
+                <div class="path-step" onclick="window.open('/docs?file=docs/03-data-collection.md', '_blank')">
                     <div class="step-number">03</div>
                     <div class="step-title">数据采集</div>
                     <div class="step-desc">摄像头与视频采集</div>
                 </div>
-                <div class="path-step" onclick="window.open('docs-viewer.html?file=docs/04-training.md', '_blank')">
+                <div class="path-step" onclick="window.open('/docs?file=docs/04-training.md', '_blank')">
                     <div class="step-number">04</div>
                     <div class="step-title">模型训练</div>
                     <div class="step-desc">训练评估推理流程</div>
                 </div>
-                <div class="path-step" onclick="window.open('docs-viewer.html?file=docs/05-code-guide.md', '_blank')">
+                <div class="path-step" onclick="window.open('/docs?file=docs/05-code-guide.md', '_blank')">
                     <div class="step-number">05</div>
                     <div class="step-title">代码导读</div>
                     <div class="step-desc">源码结构与扩展指南</div>
                 </div>
-                <div class="path-step" onclick="window.open('docs-viewer.html?file=docs/06-design-patterns.md', '_blank')">
+                <div class="path-step" onclick="window.open('/docs?file=docs/06-design-patterns.md', '_blank')">
                     <div class="step-number">06</div>
                     <div class="step-title">设计模式</div>
                     <div class="step-desc">架构与设计实践</div>
                 </div>
-                <div class="path-step" onclick="window.open('docs-viewer.html?file=docs/07-faq.md', '_blank')">
+                <div class="path-step" onclick="window.open('/docs?file=docs/07-faq.md', '_blank')">
                     <div class="step-number">07</div>
                     <div class="step-title">常见问题</div>
                     <div class="step-desc">环境/数据/模型排查</div>
                 </div>
-                <div class="path-step" onclick="window.open('docs-viewer.html?file=docs/08-testing.md', '_blank')">
+                <div class="path-step" onclick="window.open('/docs?file=docs/08-testing.md', '_blank')">
                     <div class="step-number">08</div>
                     <div class="step-title">测试指南</div>
                     <div class="step-desc">pytest与测试编写</div>
@@ -862,25 +965,25 @@
                 <div class="card-desc">从入门到进阶的系统性学习路径，按编号顺序阅读效果最佳。</div>
                 <ul class="learn-list">
                     <li class="learn-item">
-                        <a href="docs-viewer.html?file=docs/01-quickstart.md" target="_blank">
+                        <a href="/docs?file=docs/01-quickstart.md" target="_blank">
                             <span>🚀 快速入门</span>
                             <span class="learn-badge">开始</span>
                         </a>
                     </li>
                     <li class="learn-item">
-                        <a href="docs-viewer.html?file=docs/02-architecture.md" target="_blank">
+                        <a href="/docs?file=docs/02-architecture.md" target="_blank">
                             <span>🏛️ 架构设计</span>
                             <span class="learn-badge">必读</span>
                         </a>
                     </li>
                     <li class="learn-item">
-                        <a href="docs-viewer.html?file=docs/04-training.md" target="_blank">
+                        <a href="/docs?file=docs/04-training.md" target="_blank">
                             <span>🎯 模型训练</span>
                             <span class="learn-badge">实战</span>
                         </a>
                     </li>
                     <li class="learn-item">
-                        <a href="docs-viewer.html?file=docs/07-faq.md" target="_blank">
+                        <a href="/docs?file=docs/07-faq.md" target="_blank">
                             <span>❓ 常见问题</span>
                             <span class="learn-badge">排错</span>
                         </a>
@@ -896,25 +999,25 @@
                 <div class="card-desc">深入理解源码实现、设计模式和项目开发历程。</div>
                 <ul class="learn-list">
                     <li class="learn-item">
-                        <a href="docs-viewer.html?file=docs/05-code-guide.md" target="_blank">
+                        <a href="/docs?file=docs/05-code-guide.md" target="_blank">
                             <span>💻 核心代码导读</span>
                             <span class="learn-badge">深入</span>
                         </a>
                     </li>
                     <li class="learn-item">
-                        <a href="docs-viewer.html?file=docs/06-design-patterns.md" target="_blank">
+                        <a href="/docs?file=docs/06-design-patterns.md" target="_blank">
                             <span>🎨 设计模式</span>
                             <span class="learn-badge">进阶</span>
                         </a>
                     </li>
                     <li class="learn-item">
-                        <a href="docs-viewer.html?file=docs/journal/development.md" target="_blank">
+                        <a href="/docs?file=docs/journal/development.md" target="_blank">
                             <span>🛠️ 开发历程</span>
                             <span class="learn-badge">参考</span>
                         </a>
                     </li>
                     <li class="learn-item">
-                        <a href="docs-viewer.html?file=docs/journal/experiments.md" target="_blank">
+                        <a href="/docs?file=docs/journal/experiments.md" target="_blank">
                             <span>📊 实验记录</span>
                             <span class="learn-badge">参考</span>
                         </a>
@@ -1080,8 +1183,12 @@
         </section>
 
         <footer>
+            <div class="footer-poem">以科技之力，传无声之美</div>
+            <div class="ink-divider" style="max-width:300px;margin:0 auto 16px;">◆</div>
             <p>聆心手语识别系统 - 让沟通无障碍</p>
-            <p>Made with 💚 for the deaf community</p>
+            <div style="display:flex;justify-content:center;margin-top:16px;">
+                <img src="../assets/logo.png" alt="聆心" style="width:40px;height:40px;border-radius:8px;">
+            </div>
             <p style="margin-top:16px;font-size:0.75rem;color:var(--text-muted);max-width:500px;margin-left:auto;margin-right:auto;line-height:1.8;">
                 💡 <strong>提示：</strong>直接用浏览器打开 HTML 文件可能无法加载 Markdown 文档（CORS 限制）。
                 推荐在项目根目录运行 <code style="background:var(--bg-secondary);padding:2px 6px;border-radius:4px;">python -m http.server 8080</code>
