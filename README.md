@@ -524,6 +524,16 @@ conda activate lingxin
 
 ## 更新日志
 
+### v0.3.0 (2026-06-21) — 第三个稳定版本
+- 前端重构：统一导航组件 nav.js，所有页面链接统一为路由格式
+- 文件重命名：docs-viewer.html → docs.html，删除冗余 index_new.html
+- 新增页面：全流程控制台 dashboard.html
+- 实时推理优化：移除骨架绘制，降低延迟，优化帧率(5FPS)
+- 后端增强：API启动输出访问链接，兼容旧路由
+- 依赖同步：pyproject.toml/requirements.txt/environment.yml 统一
+- 文档更新：配置文件学习指南 09-configuration-guide.md
+- 测试补充：LSTM/Trainer/Transformer 模型测试
+
 ### v0.2.0 (2026-06-16) — 第二个稳定版本
 - 项目工程化：pyproject.toml、pre-commit hooks、GPU环境配置
 - 文档全面同步：README/架构/开发记录/实验记录对齐项目实际
