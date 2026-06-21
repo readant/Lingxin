@@ -115,9 +115,13 @@ Lingxin/
 │   ├── demo.html                     # 实时手语识别演示
 │   ├── docs.html                     # 文档在线查看器
 │   ├── resources.html                # 学习资源导航
-│   └── static/                       # 静态资源
-│       ├── css/                      # 样式文件
-│       └── js/                       # JavaScript文件
+│   ├── static/                       # 静态资源
+│   │   ├── css/                      # 样式文件
+│   │   └── js/                       # JavaScript文件
+│   │       ├── app.js                # 核心应用逻辑
+│   │       ├── nav.js                # 统一导航组件
+│   │       ├── chart.js              # 图表组件
+│   │       └── onboarding.js         # 新手引导
 │   └── mediapipe/                    # MediaPipe WASM资源
 │
 ├── pyproject.toml                    # 项目元数据和构建配置
@@ -336,6 +340,11 @@ API接口：
 - `POST /api/detect` — 仅检测手部关键点（返回 171 维特征）
 - `POST /api/load_model` — 加载/切换模型
 - `GET /api/health` — 健康检查
+- `GET /api/models` — 模型列表
+- `POST /api/collect` — 启动数据采集
+- `POST /api/preprocess` — 启动数据预处理
+- `POST /api/train` — 启动模型训练
+- `GET /api/data/stats` — 数据统计
 - `WS /ws/detect` — WebSocket 实时检测+预测
 
 ### 7. 全流程控制台

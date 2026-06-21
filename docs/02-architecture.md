@@ -76,7 +76,14 @@ Lingxin/                              # 项目根目录
 │   ├── demo.html                     # 实时手语识别演示
 │   ├── docs.html                     # 文档在线查看器
 │   ├── resources.html                # 学习资源导航
-│   └── static/                       # 静态资源
+│   ├── static/                       # 静态资源
+│   │   ├── css/                      # 样式文件
+│   │   └── js/                       # JavaScript文件
+│   │       ├── app.js                # 核心应用逻辑
+│   │       ├── nav.js                # 统一导航组件
+│   │       ├── chart.js              # 图表组件
+│   │       └── onboarding.js         # 新手引导
+│   └── mediapipe/                    # MediaPipe WASM资源
 ├── pyproject.toml                    # 项目元数据和构建配置
 ├── requirements.txt                  # pip 依赖清单
 ├── environment.yml                   # conda CPU环境文件
