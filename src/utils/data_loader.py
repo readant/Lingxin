@@ -21,7 +21,6 @@ import os
 import numpy as np
 import torch
 from torch.utils.data import Dataset as TorchDataset
-from collections import defaultdict
 
 
 def parse_person_id(filename):

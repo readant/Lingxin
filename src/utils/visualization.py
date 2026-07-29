@@ -14,7 +14,7 @@ Visualization - 可视化工具类
 
 import matplotlib.pyplot as plt
 import numpy as np
-from typing import Dict, List, Optional, Union
+from typing import Dict, List
 
 from src.constants import HAND_CONNECTIONS
 

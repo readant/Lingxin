@@ -27,7 +27,6 @@ python learning/download_models.py
 """
 
 import os
-import sys
 
 # 禁用 MediaPipe 遥测上传（clearcut）
 # 必须在 import mediapipe 之前设置，因为 MediaPipe 在模块加载时即初始化遥测线程。
@@ -139,6 +138,8 @@ class HandDetector:
                     z = lm.z
                     hand_landmark.append([x, y, z])
                 landmarks.append(hand_landmark)
+        if not landmarks:
+            return np.empty((0, 21, 3))
         return np.array(landmarks)
 
     def draw_landmarks(self, image, results):
@@ -264,6 +265,8 @@ class PoseDetector:
                     y = lm.y * image_shape[0]
                     z = lm.z
                     landmarks.append([x, y, z])
+        if not landmarks:
+            return np.empty((0, 15, 3))
         return np.array(landmarks)
 
     def draw_landmarks(self, image, results):

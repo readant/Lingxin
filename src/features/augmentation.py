@@ -18,7 +18,7 @@
 """
 
 import numpy as np
-from typing import Optional, Tuple
+from typing import Tuple
 
 
 class KeypointAugmenter:
@@ -97,9 +97,10 @@ class KeypointAugmenter:
         ty = np.random.uniform(-self.translate_range, self.translate_range)
 
         if sequence.ndim == 2:
-            # (frames, features): 只平移坐标部分（每3个维度中的前2个）
+            # (frames, features): 只平移前63维坐标（21个关键点×3），不动后面的标量特征
             result = sequence.copy()
-            for i in range(0, sequence.shape[1], 3):
+            n_coords = min(sequence.shape[1], 63)
+            for i in range(0, n_coords, 3):
                 result[:, i] += tx
                 result[:, i + 1] += ty
             return result

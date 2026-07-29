@@ -65,6 +65,7 @@ from PIL import Image, ImageDraw, ImageFont
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from src.detection.hand_detector import HolisticDetector
 from src.constants import HAND_CONNECTIONS, POSE_CONNECTIONS_HOLISTIC
+from src.config import config
 from src.utils.logger import get_logger
 import json
 import time
@@ -289,13 +290,13 @@ class DataCollector:
             tuple: (是否成功, 消息)
         """
         # 检查序列长度是否满足最低要求
-        if len(sequence) < 15:
-            return False, f"序列太短（{len(sequence)}帧），至少需要15帧"
+        if len(sequence) < config.min_sequence_length:
+            return False, f"序列太短（{len(sequence)}帧），至少需要{config.min_sequence_length}帧"
 
         # 对过长序列进行中心裁剪
-        if len(sequence) > 150:
-            start = (len(sequence) - 150) // 2
-            sequence = sequence[start:start + 150]
+        if len(sequence) > config.max_raw_sequence_length:
+            start = (len(sequence) - config.max_raw_sequence_length) // 2
+            sequence = sequence[start:start + config.max_raw_sequence_length]
 
         # 转换为numpy数组
         sequence_array = np.array(sequence, dtype=np.float32)
@@ -495,7 +496,14 @@ class DataCollector:
         在PIL图像上绘制中文文本（仅用于非实时路径：倒计时/回顾界面）
         """
         draw = ImageDraw.Draw(pil_img)
-        draw.text(position, text, font=self.font, fill=color)
+        if font_size != 20 and os.path.exists("C:/Windows/Fonts/msyh.ttc"):
+            try:
+                font = ImageFont.truetype("C:/Windows/Fonts/msyh.ttc", font_size)
+            except Exception:
+                font = self.font
+        else:
+            font = self.font
+        draw.text(position, text, font=font, fill=color)
 
     def _create_blank_frame(self, h, w, color=(20, 20, 20)):
         """

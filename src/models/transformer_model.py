@@ -51,8 +51,8 @@ class TransformerModel(BaseModel):
         # 线性嵌入层：将输入特征映射到d_model维度
         self.embedding = nn.Linear(self.input_size, d_model)
 
-        # 位置编码：为序列添加位置信息
-        self.pos_encoding = self._generate_positional_encoding(input_shape[0], d_model)
+        # 位置编码：为序列添加位置信息（注册为buffer，随模型设备迁移）
+        self.register_buffer('pos_encoding', self._generate_positional_encoding(input_shape[0], d_model))
 
         # Transformer编码器层
         encoder_layer = nn.TransformerEncoderLayer(
@@ -126,7 +126,7 @@ class TransformerModel(BaseModel):
         x = x * torch.sqrt(torch.tensor(self.d_model, dtype=torch.float32))
 
         # 添加位置编码（只取对应序列长度的部分）
-        x = x + self.pos_encoding[:, :x.size(1), :].to(x.device)
+        x = x + self.pos_encoding[:, :x.size(1), :]
 
         # Transformer编码：(batch, seq_len, d_model) → (batch, seq_len, d_model)
         out = self.transformer_encoder(x)

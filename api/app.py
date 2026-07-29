@@ -26,6 +26,7 @@ from flask_sock import Sock
 
 from src.detection.hand_detector import HolisticDetector
 from src.config import config
+from src.constants import RAW_HOLISTIC_FEATURES
 from src.utils.logger import get_logger
 
 logger = get_logger(__name__)
@@ -45,7 +46,7 @@ class_names = None
 model_type = None
 _model_loaded = False
 sequence_buffer = []
-MAX_SEQ_LENGTH = 30
+MAX_SEQ_LENGTH = config.max_sequence_length
 
 
 def get_detector():
@@ -83,10 +84,10 @@ def load_model(m_type='lstm', m_path=None):
         import torch
         if m_type == 'lstm':
             from src.models.lstm_model import LSTMModel
-            model = LSTMModel((30, 171), num_classes)
+            model = LSTMModel((30, RAW_HOLISTIC_FEATURES), num_classes)
         else:
             from src.models.transformer_model import TransformerModel
-            model = TransformerModel((30, 171), num_classes)
+            model = TransformerModel((30, RAW_HOLISTIC_FEATURES), num_classes)
         model.load(m_path)
         model.eval()
 

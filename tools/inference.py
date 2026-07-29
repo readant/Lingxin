@@ -23,6 +23,7 @@ from src.detection.hand_detector import HolisticDetector
 from src.models.lstm_model import LSTMModel
 from src.models.transformer_model import TransformerModel
 from src.config import config
+from src.constants import RAW_HOLISTIC_FEATURES
 from src.utils.logger import get_logger
 
 logger = get_logger("InferenceRunner")
@@ -65,7 +66,7 @@ class InferenceRunner:
     def __init__(self):
         self.detector = HolisticDetector(min_detection_confidence=0.3)
         self.sequence_buffer = []
-        self.max_sequence_length = 30
+        self.max_sequence_length = config.max_sequence_length
         self.scaler = None
         self.font = init_font(26)
         self.font_small = init_font(18)
@@ -190,7 +191,7 @@ class InferenceRunner:
         if model_class is None:
             raise ValueError(f"未知模型类型: {model_type}")
 
-        input_shape = (self.max_sequence_length, 171)
+        input_shape = (self.max_sequence_length, RAW_HOLISTIC_FEATURES)
         model = model_class(input_shape, num_classes)
 
         if model_path is None:

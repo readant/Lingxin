@@ -163,10 +163,8 @@ class TrainRunner:
 
             # 分类器在测试集上的评估
             if X_test is not None:
-                from sklearn.preprocessing import StandardScaler
-                scaler = StandardScaler()
-                X_t_scaled = scaler.fit_transform(X_train)
-                X_test_scaled = scaler.transform(X_test)
+                X_t_scaled = model_data['scaler'].transform(X_train)
+                X_test_scaled = model_data['scaler'].transform(X_test)
                 y_pred = model_data['model'].predict(X_test_scaled)
                 test_acc = np.mean(y_pred == y_test)
                 logger.info(f'测试集准确率: {test_acc:.4f} ({len(y_test)} samples)')

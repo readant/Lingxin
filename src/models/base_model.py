@@ -170,7 +170,7 @@ class BaseModel(ABC, nn.Module):
         if val_loader is not None and lr_scheduler_patience > 0:
             scheduler = optim.lr_scheduler.ReduceLROnPlateau(
                 optimizer, mode='min', factor=lr_scheduler_factor,
-                patience=lr_scheduler_patience, verbose=False
+                patience=lr_scheduler_patience
             )
 
         # 早停机制
@@ -337,4 +337,4 @@ class BaseModel(ABC, nn.Module):
         Args:
             path (str): 模型参数文件路径
         """
-        self.load_state_dict(torch.load(path, map_location=self.device))
+        self.load_state_dict(torch.load(path, map_location=self.device, weights_only=True))

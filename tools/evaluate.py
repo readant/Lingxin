@@ -22,13 +22,13 @@ python tools/evaluate.py
 import numpy as np
 import os
 import sys
-import torch
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from src.training.trainer import Trainer
 from src.models.lstm_model import LSTMModel
 from src.models.transformer_model import TransformerModel
 from src.config import config
+from src.constants import RAW_HOLISTIC_FEATURES
 
 
 class EvaluateRunner:
@@ -60,12 +60,12 @@ class EvaluateRunner:
         },
         'lstm': {
             'data_type': 'sequence',        # 序列数据
-            'input_shape': (30, 71),         # (序列长度, 特征维度)
+            'input_shape': (30, RAW_HOLISTIC_FEATURES),  # (序列长度, 特征维度)
             'epochs': 50,
         },
         'transformer': {
             'data_type': 'sequence',
-            'input_shape': (30, 71),
+            'input_shape': (30, RAW_HOLISTIC_FEATURES),
             'epochs': 50,
         }
     }
@@ -94,8 +94,8 @@ class EvaluateRunner:
             print(f'未知模型类型: {model_type}，可选类型: {", ".join(self.MODEL_CONFIG.keys())}')
             return
 
-        config = self.MODEL_CONFIG[model_type]
-        data_type = config['data_type']
+        model_config = self.MODEL_CONFIG[model_type]
+        data_type = model_config['data_type']
         data_files = self.DATA_FILES[data_type]
 
         # 加载数据
@@ -108,7 +108,7 @@ class EvaluateRunner:
         if data_type == 'classifier':
             self._evaluate_classifier(X, y, model_type)
         else:
-            self._evaluate_deep_learning(X, y, model_type, config)
+            self._evaluate_deep_learning(X, y, model_type, model_config)
 
     def _evaluate_classifier(self, X, y, model_type):
         """
@@ -149,6 +149,7 @@ class EvaluateRunner:
             model_type (str): 模型类型
             config (dict): 模型配置
         """
+        import torch
         print(f'正在评估 {model_type} 模型...')
 
         # 获取模型类

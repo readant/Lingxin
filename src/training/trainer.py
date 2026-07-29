@@ -17,9 +17,7 @@ Trainer - 模型训练器
 - Transformer: 并行处理能力强，适合大规模数据
 """
 
-import torch
 import numpy as np
-from torch.utils.data import DataLoader, TensorDataset
 from sklearn.model_selection import train_test_split
 
 
@@ -87,7 +85,9 @@ class Trainer:
     @staticmethod
     def train_deep_learning(X, y, model_class, test_size=0.2, epochs=50,
                             batch_size=32, lr=0.001, device='auto',
-                            early_stopping_patience=10, save_best_path=None,
+                            early_stopping_patience=10,
+                            lr_scheduler_patience=5, lr_scheduler_factor=0.5,
+                            save_best_path=None,
                             X_val=None, y_val=None,
                             **kwargs):
         """
@@ -149,6 +149,8 @@ class Trainer:
             train_loader, val_loader,
             epochs=epochs, lr=lr, device=device,
             early_stopping_patience=early_stopping_patience,
+            lr_scheduler_patience=lr_scheduler_patience,
+            lr_scheduler_factor=lr_scheduler_factor,
             save_best_path=save_best_path
         )
 
