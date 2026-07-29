@@ -7,7 +7,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import numpy as np
 import pytest
 from src.features.augmentation import KeypointAugmenter
-from src.constants import EXTRACTED_FEATURE_DIMS, DEFAULT_SEQUENCE_LENGTH
+from src.constants import RAW_HOLISTIC_FEATURES, DEFAULT_SEQUENCE_LENGTH
 
 
 class TestKeypointAugmenter:
@@ -19,9 +19,9 @@ class TestKeypointAugmenter:
 
     @pytest.fixture
     def sequence(self):
-        """创建模拟序列 (30, 71)"""
+        """创建模拟序列 (30, 171)"""
         np.random.seed(42)
-        return np.random.randn(DEFAULT_SEQUENCE_LENGTH, EXTRACTED_FEATURE_DIMS).astype(np.float32)
+        return np.random.randn(DEFAULT_SEQUENCE_LENGTH, RAW_HOLISTIC_FEATURES).astype(np.float32)
 
     def test_output_shape_2d(self, augmenter, sequence):
         """增强后形状应不变 (2D)"""
@@ -67,6 +67,6 @@ class TestKeypointAugmenter:
     def test_single_frame_sequence(self):
         """单帧序列不应崩溃"""
         augmenter = KeypointAugmenter(p=1.0)
-        single = np.random.randn(1, 71).astype(np.float32)
+        single = np.random.randn(1, RAW_HOLISTIC_FEATURES).astype(np.float32)
         result = augmenter(single)
         assert result.shape == single.shape

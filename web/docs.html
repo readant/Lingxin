@@ -89,8 +89,6 @@
         .btn.primary { background: var(--accent-warm); color: white; border: none; }
         .btn.primary:hover { background: var(--accent-terracotta); }
 
-        #toggleSidebar { display: none; }
-
         .breadcrumb {
             font-size: 0.8rem;
             color: var(--text-muted);
@@ -427,7 +425,6 @@
                 transform: translateX(-100%);
             }
             .sidebar.open { transform: translateX(0); box-shadow: var(--shadow-medium); }
-            #toggleSidebar { display: inline-flex; }
             .main { padding: 24px 20px; }
             .markdown-body h1 { font-size: 1.6rem; }
             .markdown-body h2 { font-size: 1.2rem; }
@@ -496,6 +493,9 @@
             </button>
             <button class="sidebar-link" data-file="docs/08-testing.md">
                 <span class="icon">🧪</span> 08 — 测试指南
+            </button>
+            <button class="sidebar-link" data-file="docs/09-configuration-guide.md">
+                <span class="icon">⚙️</span> 09 — 配置管理指南
             </button>
         </div>
 
@@ -656,6 +656,7 @@
         'docs/06-design-patterns.md',
         'docs/07-faq.md',
         'docs/08-testing.md',
+        'docs/09-configuration-guide.md',
         'docs/journal/development.md',
         'docs/journal/experiments.md',
         'README.md',
@@ -670,6 +671,7 @@
         'docs/06-design-patterns.md': ['🎨', '06 · 设计模式'],
         'docs/07-faq.md': ['❓', '07 · 常见问题'],
         'docs/08-testing.md': ['🧪', '08 · 测试指南'],
+        'docs/09-configuration-guide.md': ['⚙️', '09 · 配置管理指南'],
         'docs/journal/development.md': ['📝', '开发历程'],
         'docs/journal/experiments.md': ['📊', '实验记录'],
         'README.md': ['📋', 'README'],

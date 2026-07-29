@@ -1,12 +1,15 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>聆心手语识别系统 - 学习导航</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;600;700;900&family=Noto+Sans+SC:wght@300;400;500;600&family=ZCOOL+XiaoWei&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;600;700;900&family=Noto+Sans+SC:wght@300;400;500;600&family=ZCOOL+XiaoWei&display=swap"
+        rel="stylesheet">
     <style>
         * {
             margin: 0;
@@ -102,8 +105,15 @@
         }
 
         @keyframes gentleFloat {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-8px); }
+
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+
+            50% {
+                transform: translateY(-8px);
+            }
         }
 
         h1 {
@@ -711,6 +721,7 @@
             background: rgba(139, 154, 125, 0.15);
             color: var(--accent-sage);
         }
+
         .type-dl {
             background: rgba(193, 127, 89, 0.15);
             color: var(--accent-terracotta);
@@ -748,17 +759,54 @@
 
         /* ===== 响应式 ===== */
         @media (max-width: 768px) {
-            h1 { font-size: 2.2rem; }
-            .logo img { width: 72px; }
-            .stats { gap: 16px; }
-            .stat-item { min-width: 100px; padding: 16px 20px; }
-            .stat-number { font-size: 1.8rem; }
-            .learning-path, .tech-stack, .model-comparison { padding: 32px 24px; }
-            .path-steps { gap: 12px; }
-            .path-step { min-width: 140px; padding: 20px 16px; }
-            .learn-grid { grid-template-columns: 1fr; }
-            .nav-header { flex-direction: column; align-items: stretch; }
-            .nav-search { max-width: none; }
+            h1 {
+                font-size: 2.2rem;
+            }
+
+            .logo img {
+                width: 72px;
+            }
+
+            .stats {
+                gap: 16px;
+            }
+
+            .stat-item {
+                min-width: 100px;
+                padding: 16px 20px;
+            }
+
+            .stat-number {
+                font-size: 1.8rem;
+            }
+
+            .learning-path,
+            .tech-stack,
+            .model-comparison {
+                padding: 32px 24px;
+            }
+
+            .path-steps {
+                gap: 12px;
+            }
+
+            .path-step {
+                min-width: 140px;
+                padding: 20px 16px;
+            }
+
+            .learn-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .nav-header {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .nav-search {
+                max-width: none;
+            }
         }
 
         /* ===== 国风装饰 ===== */
@@ -773,6 +821,7 @@
             position: relative;
             transform: rotate(-3deg);
         }
+
         .seal-stamp::after {
             content: '';
             position: absolute;
@@ -793,6 +842,7 @@
             color: var(--text-muted);
             font-size: 13px;
         }
+
         .ink-divider::before,
         .ink-divider::after {
             content: '';
@@ -823,20 +873,39 @@
 
         /* ===== 动画 ===== */
         @keyframes fadeInUp {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         .animate-fadeInUp {
             animation: fadeInUp 0.6s ease forwards;
         }
 
-        .delay-1 { animation-delay: 0.1s; }
-        .delay-2 { animation-delay: 0.2s; }
-        .delay-3 { animation-delay: 0.3s; }
-        .delay-4 { animation-delay: 0.4s; }
+        .delay-1 {
+            animation-delay: 0.1s;
+        }
+
+        .delay-2 {
+            animation-delay: 0.2s;
+        }
+
+        .delay-3 {
+            animation-delay: 0.3s;
+        }
+
+        .delay-4 {
+            animation-delay: 0.4s;
+        }
     </style>
 </head>
+
 <body>
     <div class="container">
         <header>
@@ -844,16 +913,20 @@
             <svg class="ink-mountain-bg" viewBox="0 0 1200 250" preserveAspectRatio="none">
                 <defs>
                     <linearGradient id="mtnGrad" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stop-color="#1a1a1a" stop-opacity="0.12"/>
-                        <stop offset="100%" stop-color="#1a1a1a" stop-opacity="0"/>
+                        <stop offset="0%" stop-color="#1a1a1a" stop-opacity="0.12" />
+                        <stop offset="100%" stop-color="#1a1a1a" stop-opacity="0" />
                     </linearGradient>
                 </defs>
-                <path d="M0,250 L0,180 Q100,100 200,150 Q300,70 400,120 Q500,40 600,100 Q700,50 800,110 Q900,40 1000,90 Q1100,60 1200,130 L1200,250 Z" fill="url(#mtnGrad)"/>
-                <path d="M0,250 L0,200 Q150,140 300,180 Q450,110 600,160 Q750,100 900,150 Q1050,90 1200,170 L1200,250 Z" fill="url(#mtnGrad)" opacity="0.5"/>
+                <path
+                    d="M0,250 L0,180 Q100,100 200,150 Q300,70 400,120 Q500,40 600,100 Q700,50 800,110 Q900,40 1000,90 Q1100,60 1200,130 L1200,250 Z"
+                    fill="url(#mtnGrad)" />
+                <path d="M0,250 L0,200 Q150,140 300,180 Q450,110 600,160 Q750,100 900,150 Q1050,90 1200,170 L1200,250 Z"
+                    fill="url(#mtnGrad)" opacity="0.5" />
             </svg>
 
             <div style="display:inline-block;margin-bottom:24px;position:relative;">
-                <img src="../assets/logo.png" alt="聆心" style="width:80px;height:80px;border-radius:16px;box-shadow:0 4px 24px rgba(44,36,32,0.08);">
+                <img src="../assets/logo.png" alt="聆心"
+                    style="width:80px;height:80px;border-radius:16px;box-shadow:0 4px 24px rgba(44,36,32,0.08);">
             </div>
             <h1>聆心手语识别系统</h1>
             <p class="subtitle">以科技之力，传无声之美</p>
@@ -872,7 +945,7 @@
                 </div>
                 <div class="stat-item">
                     <div class="stat-number">171</div>
-                    <div class="stat-label">特征维度</div>
+                    <div class="stat-label">原始关键点维度</div>
                 </div>
             </div>
             <a href="dashboard" class="nav-button">
@@ -1135,7 +1208,7 @@
                     </tr>
                     <tr>
                         <td>MLP</td>
-                        <td><span class="model-type type-dl">深度学习</span></td>
+                        <td><span class="model-type type-ml">传统ML</span></td>
                         <td>90%</td>
                         <td>🚀 快</td>
                         <td>
@@ -1189,10 +1262,14 @@
             <div style="display:flex;justify-content:center;margin-top:16px;">
                 <img src="../assets/logo.png" alt="聆心" style="width:40px;height:40px;border-radius:8px;">
             </div>
-            <p style="margin-top:16px;font-size:0.75rem;color:var(--text-muted);max-width:500px;margin-left:auto;margin-right:auto;line-height:1.8;">
+            <p
+                style="margin-top:16px;font-size:0.75rem;color:var(--text-muted);max-width:500px;margin-left:auto;margin-right:auto;line-height:1.8;">
                 💡 <strong>提示：</strong>直接用浏览器打开 HTML 文件可能无法加载 Markdown 文档（CORS 限制）。
-                推荐在项目根目录运行 <code style="background:var(--bg-secondary);padding:2px 6px;border-radius:4px;">python -m http.server 8080</code>
-                然后访问 <code style="background:var(--bg-secondary);padding:2px 6px;border-radius:4px;">http://localhost:8080</code> 获得完整体验。
+                推荐在项目根目录运行 <code
+                    style="background:var(--bg-secondary);padding:2px 6px;border-radius:4px;">python -m http.server 8080</code>
+                然后访问 <code
+                    style="background:var(--bg-secondary);padding:2px 6px;border-radius:4px;">http://localhost:8080</code>
+                获得完整体验。
             </p>
         </footer>
     </div>
@@ -1216,10 +1293,13 @@
                         { name: "06-design-patterns.md", type: "file", badge: "doc" },
                         { name: "07-faq.md", type: "file", badge: "doc" },
                         { name: "08-testing.md", type: "file", badge: "doc" },
-                        { name: "journal", type: "folder", children: [
-                            { name: "development.md", type: "file", badge: "doc" },
-                            { name: "experiments.md", type: "file", badge: "doc" }
-                        ]}
+                        { name: "09-configuration-guide.md", type: "file", badge: "doc" },
+                        {
+                            name: "journal", type: "folder", children: [
+                                { name: "development.md", type: "file", badge: "doc" },
+                                { name: "experiments.md", type: "file", badge: "doc" }
+                            ]
+                        }
                     ]
                 },
                 {
@@ -1229,14 +1309,21 @@
                         { name: "00_env_setup.py", type: "file", badge: "py" },
                         { name: "01_python_basics.py", type: "file", badge: "py" },
                         { name: "02_opencv_basics.py", type: "file", badge: "py" },
+                        { name: "02_opencv_video.py", type: "file", badge: "py" },
                         { name: "03_mediapipe_intro.py", type: "file", badge: "py" },
-                        { name: "04_hand_detection.py", type: "file", badge: "py" },
+                        { name: "04_hand_detection_simple.py", type: "file", badge: "py" },
+                        { name: "04_hand_detection_draw.py", type: "file", badge: "py" },
                         { name: "05_pose_detection.py", type: "file", badge: "py" },
                         { name: "06_numpy_intro.py", type: "file", badge: "py" },
+                        { name: "06_numpy_operations.py", type: "file", badge: "py" },
                         { name: "07_feature_extraction.py", type: "file", badge: "py" },
                         { name: "08_svm_intro.py", type: "file", badge: "py" },
                         { name: "09_lstm_intro.py", type: "file", badge: "py" },
                         { name: "10_data_collection.py", type: "file", badge: "py" },
+                        { name: "11_config_management.py", type: "file", badge: "py" },
+                        { name: "12_training_pipeline.py", type: "file", badge: "py" },
+                        { name: "13_data_augmentation.py", type: "file", badge: "py" },
+                        { name: "download_models.py", type: "file", badge: "py" },
                         { name: "README.md", type: "file", badge: "doc" }
                     ]
                 },
@@ -1246,28 +1333,37 @@
                     children: [
                         { name: "config.py", type: "file", badge: "py" },
                         { name: "constants.py", type: "file", badge: "py" },
-                        { name: "detection", type: "folder", children: [
-                            { name: "hand_detector.py", type: "file", badge: "py" }
-                        ]},
-                        { name: "features", type: "folder", children: [
-                            { name: "feature_extractor.py", type: "file", badge: "py" },
-                            { name: "augmentation.py", type: "file", badge: "py" }
-                        ]},
-                        { name: "models", type: "folder", children: [
-                            { name: "base_model.py", type: "file", badge: "py" },
-                            { name: "classifiers.py", type: "file", badge: "py" },
-                            { name: "lstm_model.py", type: "file", badge: "py" },
-                            { name: "transformer_model.py", type: "file", badge: "py" }
-                        ]},
-                        { name: "training", type: "folder", children: [
-                            { name: "trainer.py", type: "file", badge: "py" }
-                        ]},
-                        { name: "utils", type: "folder", children: [
-                            { name: "data_loader.py", type: "file", badge: "py" },
-                            { name: "logger.py", type: "file", badge: "py" },
-                            { name: "metrics.py", type: "file", badge: "py" },
-                            { name: "visualization.py", type: "file", badge: "py" }
-                        ]}
+                        {
+                            name: "detection", type: "folder", children: [
+                                { name: "hand_detector.py", type: "file", badge: "py" }
+                            ]
+                        },
+                        {
+                            name: "features", type: "folder", children: [
+                                { name: "feature_extractor.py", type: "file", badge: "py" },
+                                { name: "augmentation.py", type: "file", badge: "py" }
+                            ]
+                        },
+                        {
+                            name: "models", type: "folder", children: [
+                                { name: "base_model.py", type: "file", badge: "py" },
+                                { name: "lstm_model.py", type: "file", badge: "py" },
+                                { name: "transformer_model.py", type: "file", badge: "py" }
+                            ]
+                        },
+                        {
+                            name: "training", type: "folder", children: [
+                                { name: "trainer.py", type: "file", badge: "py" }
+                            ]
+                        },
+                        {
+                            name: "utils", type: "folder", children: [
+                                { name: "data_loader.py", type: "file", badge: "py" },
+                                { name: "logger.py", type: "file", badge: "py" },
+                                { name: "metrics.py", type: "file", badge: "py" },
+                                { name: "visualization.py", type: "file", badge: "py" }
+                            ]
+                        }
                     ]
                 },
                 {
@@ -1348,7 +1444,7 @@
 
             // 添加文件夹点击事件
             document.querySelectorAll('.folder-header').forEach(header => {
-                header.addEventListener('click', function() {
+                header.addEventListener('click', function () {
                     const content = this.nextElementSibling;
                     const isOpen = content && content.classList.contains('open');
 
@@ -1365,7 +1461,7 @@
 
             // 添加文件点击事件
             document.querySelectorAll('.file-item').forEach(item => {
-                item.addEventListener('click', function() {
+                item.addEventListener('click', function () {
                     // 移除其他文件的active状态
                     document.querySelectorAll('.file-item').forEach(f => f.classList.remove('active'));
                     // 添加当前文件的active状态
@@ -1398,7 +1494,7 @@
         // 搜索功能
         function initSearch() {
             const searchInput = document.getElementById('searchInput');
-            searchInput.addEventListener('input', function() {
+            searchInput.addEventListener('input', function () {
                 const query = this.value.toLowerCase();
                 const fileItems = document.querySelectorAll('.file-item');
 
@@ -1421,10 +1517,13 @@
         }
 
         // 页面加载完成后初始化
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             initFileTree();
             initSearch();
         });
+
     </script>
+
 </body>
+
 </html>

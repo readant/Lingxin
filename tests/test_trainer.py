@@ -76,7 +76,7 @@ class TestTrainerDeepLearning:
         np.random.seed(42)
         n_samples = 50
         seq_len = 30
-        n_features = 71
+        n_features = 171  # 使用原始关键点维度
         X = np.random.randn(n_samples, seq_len, n_features).astype(np.float32)
         y = np.array([0] * 25 + [1] * 25)
         return X, y

@@ -141,6 +141,7 @@
                         <option value="mlp">MLP</option>
                     </select>
                     <button class="btn btn-stop" onclick="clearHist()" style="display:none" id="btnClear">清空</button>
+                    <button class="btn" onclick="openSettings()">⚙️</button>
                 </div>
                 <div class="stats">FPS: <span id="fps">0</span> | 延迟: <span id="lat">0</span>ms</div>
             </div>
@@ -169,7 +170,7 @@
                 <div class="sec-title">系统信息</div>
                 <div class="tech-grid">
                     <div class="tech-item"><div class="tech-lbl">后端检测</div><div class="tech-val">MediaPipe</div></div>
-                    <div class="tech-item"><div class="tech-lbl">特征维度</div><div class="tech-val">171</div></div>
+                    <div class="tech-item"><div class="tech-lbl">特征维度</div><div class="tech-val">171 (原始关键点)</div></div>
                     <div class="tech-item"><div class="tech-lbl">词汇量</div><div class="tech-val" id="vc">--</div></div>
                     <div class="tech-item"><div class="tech-lbl">后端状态</div><div class="tech-val" id="bs">未连接</div></div>
                 </div>

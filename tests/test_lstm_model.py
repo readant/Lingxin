@@ -7,6 +7,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import pytest
 import torch
 from src.models.lstm_model import LSTMModel
+from src.constants import RAW_HOLISTIC_FEATURES
 
 
 class TestLSTMModel:
@@ -15,13 +16,13 @@ class TestLSTMModel:
     @pytest.fixture
     def model(self):
         """创建LSTM模型实例"""
-        input_shape = (30, 71)  # seq_len=30, feature_dim=71
+        input_shape = (30, RAW_HOLISTIC_FEATURES)  # seq_len=30, feature_dim=171
         num_classes = 5
         return LSTMModel(input_shape, num_classes)
 
     def test_init(self, model):
         """模型初始化应正确设置参数"""
-        assert model.input_size == 71
+        assert model.input_size == RAW_HOLISTIC_FEATURES
         assert model.hidden_size == 128
         assert model.num_layers == 2
 
@@ -29,7 +30,7 @@ class TestLSTMModel:
         """前向传播输出形状应正确"""
         batch_size = 4
         seq_len = 30
-        n_features = 71
+        n_features = RAW_HOLISTIC_FEATURES
 
         x = torch.randn(batch_size, seq_len, n_features)
         output = model(x)
@@ -39,14 +40,14 @@ class TestLSTMModel:
     def test_forward_different_batch(self, model):
         """不同batch_size应正常工作"""
         for batch_size in [1, 8, 16]:
-            x = torch.randn(batch_size, 30, 71)
+            x = torch.randn(batch_size, 30, RAW_HOLISTIC_FEATURES)
             output = model(x)
             assert output.shape[0] == batch_size
 
     def test_forward_different_seq_len(self, model):
         """不同序列长度应正常工作"""
         for seq_len in [10, 30, 50]:
-            x = torch.randn(2, seq_len, 71)
+            x = torch.randn(2, seq_len, RAW_HOLISTIC_FEATURES)
             output = model(x)
             assert output.shape == (2, 5)
 
@@ -61,7 +62,7 @@ class TestLSTMModel:
 
     def test_trainable(self, model):
         """模型应可训练"""
-        x = torch.randn(4, 30, 71)
+        x = torch.randn(4, 30, RAW_HOLISTIC_FEATURES)
         y = torch.tensor([0, 1, 2, 3])
 
         criterion = torch.nn.CrossEntropyLoss()
