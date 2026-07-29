@@ -166,8 +166,8 @@ def section_5_practical():
   model_path = config.get_model_path('lstm')
 
   # 从 constants 导入维度常量
-  from src.constants import EXTRACTED_FEATURE_DIMS
-  input_dim = EXTRACTED_FEATURE_DIMS  # 71
+  from src.constants import RAW_HOLISTIC_FEATURES
+  input_dim = RAW_HOLISTIC_FEATURES  # 171（原始关键点维度）
 
 使用配置的好处：
 - 路径变更只需改 config.py 一处

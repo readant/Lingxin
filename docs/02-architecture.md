@@ -26,10 +26,11 @@ Lingxin/                              # 项目根目录
 │   ├── 06-design-patterns.md         # 设计模式实践
 │   ├── 07-faq.md                     # 常见问题
 │   ├── 08-testing.md                 # 测试指南
+│   ├── 09-configuration-guide.md     # 配置管理指南
 │   └── journal/                      # 项目日志
 │       ├── development.md            # 开发历程
 │       └── experiments.md            # 实验记录
-├── learning/                         # 新手学习教程（10阶段）
+├── learning/                         # 新手学习教程（13阶段）
 │   ├── README.md                     # 学习指南
 │   └── *.py                          # 各阶段学习脚本
 ├── models/                           # 模型文件目录
@@ -46,7 +47,6 @@ Lingxin/                              # 项目根目录
 │   │   └── augmentation.py           # 关键点序列数据增强
 │   ├── models/                       # 模型定义模块
 │   │   ├── base_model.py             # 模型基类（模板方法模式）
-│   │   ├── classifiers.py            # 传统ML模型（SVM/RF/MLP）
 │   │   ├── lstm_model.py             # LSTM序列模型
 │   │   └── transformer_model.py      # Transformer序列模型
 │   ├── training/                     # 训练模块
@@ -62,7 +62,10 @@ Lingxin/                              # 项目根目录
 │   ├── test_collect_from_video.py    # 视频采集测试
 │   ├── test_config.py                # 配置管理测试
 │   ├── test_constants.py             # 常量测试
-│   └── test_feature_extractor.py     # 特征提取测试
+│   ├── test_feature_extractor.py     # 特征提取测试
+│   ├── test_lstm_model.py            # LSTM模型测试
+│   ├── test_trainer.py               # 训练器测试
+│   └── test_transformer_model.py     # Transformer模型测试
 ├── tools/                            # 工具脚本
 │   ├── collect_data.py               # 摄像头实时采集
 │   ├── collect_from_video.py         # 视频文件批量采集
@@ -219,7 +222,7 @@ tools/ (入口层)
   ├── collect_from_video.py ←── HolisticDetector, config
   ├── preprocess.py    ←── DataLoader, config, logger
   ├── train.py         ←── Trainer, BaseModel, config, logger
-  ├── evaluate.py      ←── MetricsCalculator, config
+  ├── evaluate.py      ←── Metrics, config
   └── inference.py     ←── HandDetector, FeatureExtractor, config
 
 src/ (核心层)

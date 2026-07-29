@@ -15,7 +15,6 @@ src/
 │   └── augmentation.py       # 关键点序列数据增强
 ├── models/                # 模型定义
 │   ├── base_model.py         # 抽象基类（模板方法模式）
-│   ├── classifiers.py        # SVM / 随机森林 / MLP
 │   ├── lstm_model.py         # LSTM 序列模型
 │   └── transformer_model.py  # Transformer 序列模型
 ├── training/              # 训练逻辑
@@ -142,10 +141,10 @@ class BaseModel(ABC, nn.Module):
 #### Transformer (`transformer_model.py`)
 
 ```
-输入 → 线性嵌入 → 位置编码 → Transformer编码器(4层, 4头) → 全局池化 → FC → 输出
+输入 → 线性嵌入 → 位置编码 → Transformer编码器(2层, 2头) → 全局池化 → FC → 输出
 ```
 
-#### 传统 ML 模型 (`classifiers.py`)
+#### 传统 ML 模型
 
 通过 `Trainer.train_classifier()` 统一调用 scikit-learn 的 SVM/RF/MLP。
 
