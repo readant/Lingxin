@@ -132,7 +132,7 @@ Day 21-22: 12_training_pipeline.py → 13_data_augmentation.py
 
 ```powershell
 # 1. 激活conda环境
-conda activate lingxin
+conda activate lingxin-gpu
 
 # 2. 下载模型（首次运行）
 python learning/download_models.py

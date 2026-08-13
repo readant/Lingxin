@@ -4,7 +4,7 @@ name: lingxin-gpu
 # 驱动：CUDA 13.1 (向后兼容 CUDA 12.8)
 #
 # 版本选择逻辑：
-#   Python 3.10  — 与项目现有 lingxin 环境保持一致，避免兼容性问题
+#   Python 3.10  — 与项目默认 lingxin-gpu 环境保持一致，避免兼容性问题
 #   CUDA 12.8    — Blackwell 最低要求 (≥12.8)
 #   PyTorch 2.8  — 最后一个支持 Python 3.10 的 GPU 版本，2.9+ 不再支持 py310
 #

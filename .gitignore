@@ -41,6 +41,7 @@ models/*
 .idea/
 .claude/
 .mimocode/
+.cursor/
 *.swp
 *.swo
 *~

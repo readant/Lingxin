@@ -153,7 +153,7 @@ Conda 环境配置文件，用于创建可复现的开发环境。
 ### 结构
 
 ```yaml
-name: lingxin              # 环境名称
+name: lingxin-gpu              # 环境名称
 channels:                  # 包来源渠道
   - pytorch
   - conda-forge
@@ -181,7 +181,7 @@ dependencies:              # 依赖列表
 conda env create -f environment.yml
 
 # 激活环境
-conda activate lingxin
+conda activate lingxin-gpu
 
 # 更新环境
 conda env update -f environment.yml --prune

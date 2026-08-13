@@ -1,4 +1,4 @@
-name: lingxin
+name: lingxin-gpu
 channels:
   - pytorch
   - conda-forge

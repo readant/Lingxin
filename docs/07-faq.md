@@ -53,8 +53,8 @@ python tools/train.py --model svm
 
 **解决**：推荐使用 Python 3.9–3.11：
 ```bash
-conda create -n lingxin python=3.10
-conda activate lingxin
+conda create -n lingxin-gpu python=3.10
+conda activate lingxin-gpu
 ```
 
 ### Q6: PyTorch GPU 不可用
@@ -77,9 +77,9 @@ pip install torch torchvision --index-url https://download.pytorch.org/whl/cu118
 
 如果之前安装过旧版环境，建议重建：
 ```bash
-conda env remove -n lingxin -y
+conda env remove -n lingxin-gpu -y
 conda env create -f environment.yml
-conda activate lingxin
+conda activate lingxin-gpu
 ```
 
 ## 二、数据问题

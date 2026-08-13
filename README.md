@@ -64,7 +64,7 @@ cd Lingxin
 conda env create -f environment.yml
 
 # 激活环境
-conda activate lingxin
+conda activate lingxin-gpu
 
 # 验证安装
 python -c "import torch; import mediapipe; print('✅ 安装成功')"
@@ -74,8 +74,8 @@ python -c "import torch; import mediapipe; print('✅ 安装成功')"
 
 ```bash
 # 创建Python 3.10环境
-conda create -n lingxin python=3.10 -y
-conda activate lingxin
+conda create -n lingxin-gpu python=3.10 -y
+conda activate lingxin-gpu
 
 # 安装PyTorch（CPU版本）
 conda install "pytorch>=2.0.0,<2.12.0" torchvision cpuonly -c pytorch -y

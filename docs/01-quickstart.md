@@ -45,7 +45,7 @@ cd Lingxin
 conda env create -f environment.yml
 
 # 3. 激活环境
-conda activate lingxin
+conda activate lingxin-gpu
 
 # 4. 验证安装
 python -c "import torch; import mediapipe; print('安装成功')"
@@ -54,8 +54,8 @@ python -c "import torch; import mediapipe; print('安装成功')"
 ### 手动创建（如果 environment.yml 不可用）
 
 ```bash
-conda create -n lingxin python=3.10 -y
-conda activate lingxin
+conda create -n lingxin-gpu python=3.10 -y
+conda activate lingxin-gpu
 conda install "pytorch>=2.0.0,<2.12.0" torchvision cpuonly -c pytorch -y
 conda install "scikit-learn>=1.3.0,<1.5.0" pandas "numpy>=1.24.0" matplotlib seaborn tqdm pillow opencv flask -y
 pip install "mediapipe>=0.10.33" flask-cors
@@ -98,7 +98,7 @@ import sklearn; print(f"scikit-learn: {sklearn.__version__}")
 ### 第 1 步：数据采集（摄像头）
 
 ```bash
-conda activate lingxin
+conda activate lingxin-gpu
 python tools/collect_data.py
 ```
 

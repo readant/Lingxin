@@ -80,7 +80,7 @@ data/
 ### 3.1 启动
 
 ```bash
-conda activate lingxin
+conda activate lingxin-gpu
 python tools/collect_data.py
 ```
 
