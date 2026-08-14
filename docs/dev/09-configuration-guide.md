@@ -1,3 +1,10 @@
+---
+title: 配置管理指南
+order: 3
+icon: ⚙️
+description: 统一配置、常量管理、环境配置
+---
+
 # 09 - 配置文件学习指南
 
 本文档介绍项目中各种配置文件的作用和使用方法。
@@ -5,10 +12,9 @@
 ## 目录
 
 1. [pyproject.toml](#pyprojecttoml)
-2. [requirements.txt](#requirementstxt)
-3. [environment.yml](#environmentyml)
-4. [.gitignore](#gitignore)
-5. [.pre-commit-config.yaml](#pre-commit-configyaml)
+2. [environment-gpu.yml](#environment-gpyml)
+3. [.gitignore](#gitignore)
+4. [.pre-commit-config.yaml](#pre-commit-configyaml)
 
 ---
 
@@ -104,63 +110,23 @@ python_files = ["test_*.py"]  # 测试文件命名规则
 
 ---
 
-## requirements.txt
+## environment-gpu.yml
 
 ### 作用
 
-传统的 pip 依赖声明文件，用于快速安装项目依赖。
-
-### 格式
-
-```
-# 注释行
-numpy>=1.24.0,<1.27.0
-torch>=2.0.0
-flask>=3.0.0
-```
-
-### 与 pyproject.toml 的关系
-
-| 功能 | requirements.txt | pyproject.toml |
-|------|:----------------:|:--------------:|
-| 声明依赖 | ✅ | ✅ |
-| 版本约束 | ✅ | ✅ |
-| 项目元数据 | ❌ | ✅ |
-| 工具配置 | ❌ | ✅ |
-| 命令行入口 | ❌ | ✅ |
-| 发布到PyPI | ❌ | ✅ |
-
-**建议：** 两个文件都保留，保持内容一致。
-
-### 使用方式
-
-```bash
-# 安装所有依赖
-pip install -r requirements.txt
-
-# 只安装核心依赖（不安装开发工具）
-pip install -r requirements.txt --no-dev
-```
-
----
-
-## environment.yml
-
-### 作用
-
-Conda 环境配置文件，用于创建可复现的开发环境。
+Conda GPU 环境**重建手册**，用于从零创建可复现的 `lingxin-gpu` 开发环境。依赖清单以 `pyproject.toml` 为唯一真相源，本文件的 pip 段需与 `pyproject.toml` 保持手动一致。
 
 ### 结构
 
 ```yaml
-name: lingxin-gpu              # 环境名称
+name: lingxin-gpu              # 环境名称（必须与解释器路径一致）
 channels:                  # 包来源渠道
   - pytorch
   - conda-forge
   - defaults
 dependencies:              # 依赖列表
   - python=3.10            # Python 版本
-  - pytorch>=2.0.0         # conda 包
+  - pytorch>=2.0.0         # conda 包（GPU 版）
   - pip:                   # pip 包（conda 没有的）
     - mediapipe>=0.10.33
 ```
@@ -178,13 +144,13 @@ dependencies:              # 依赖列表
 
 ```bash
 # 创建环境
-conda env create -f environment.yml
+conda env create -f environment-gpu.yml
 
 # 激活环境
 conda activate lingxin-gpu
 
 # 更新环境
-conda env update -f environment.yml --prune
+conda env update -f environment-gpu.yml --prune
 ```
 
 ---
@@ -268,7 +234,7 @@ pre-commit run --all-files
 ```
 pyproject.toml ─────────────────────────────────┐
     │                                           │
-    ├── dependencies ─────── requirements.txt ──┤
+    ├── dependencies ────── environment-gpu.yml ┤  (pip 段手动同步)
     │                                           │
     ├── [tool.pytest] ───── pytest 配置         │
     ├── [tool.black] ────── Black 配置          │
@@ -276,16 +242,12 @@ pyproject.toml ─────────────────────�
     │                                           │
     └── [project.scripts] ─ 命令行入口          │
                                                 │
-environment.yml ───── conda 环境（部分重叠）─────┘
-                                                │
 .gitignore ────────── Git 忽略规则（独立）────────┘
 ```
 
----
-
 ## 最佳实践
 
-1. **保持一致性**：pyproject.toml 和 requirements.txt 的依赖版本要一致
+1. **单一真相源**：依赖统一声明在 `pyproject.toml`，不再维护 `requirements.txt` / `environment.yml`
 2. **版本锁定**：生产环境使用 `==` 锁定版本，开发环境使用 `>=` 保持灵活
 3. **分离关注点**：核心依赖和开发依赖分开声明
 4. **文档化**：配置文件中添加注释说明用途
@@ -297,7 +259,7 @@ environment.yml ───── conda 环境（部分重叠）─────┘
 
 ### Q: 应该用 pyproject.toml 还是 requirements.txt？
 
-**A:** 两者都用。pyproject.toml 是现代标准，requirements.txt 方便不熟悉 pip 的用户。
+**A:** 只用 `pyproject.toml`。它是项目的**唯一真相源**，同时声明依赖与 CLI 入口；`requirements.txt` 与 `environment.yml` 已删除，避免多清单漂移。
 
 ### Q: conda 和 pip 可以混用吗？
 
@@ -312,4 +274,4 @@ environment.yml ───── conda 环境（部分重叠）─────┘
 
 ---
 
-*最后更新：2026-06-20*
+*最后更新：2026-08-15*
