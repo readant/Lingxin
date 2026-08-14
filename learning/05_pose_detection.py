@@ -72,9 +72,12 @@ def main():
             frame = detector.draw_landmarks(frame, results)
 
         # 检查检测结果
+        # 注意：MediaPipe 原生返回全身 33 个关键点，
+        # 本项目 PoseDetector.get_landmarks() 只取上半身前 15 个（索引 0-14）。
         if results.pose_landmarks:
-            num_landmarks = len(results.pose_landmarks[0])
-            print(f"\r检测到 {num_landmarks} 个姿态关键点", end='')
+            landmarks = detector.get_landmarks(results, frame.shape)
+            num_landmarks = len(landmarks)
+            print(f"\r检测到 {num_landmarks} 个姿态关键点（本项目只用上半身15点）", end='')
             cv2.putText(frame, f"Pose Landmarks: {num_landmarks}",
                         (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)
         else:

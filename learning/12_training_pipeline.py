@@ -2,6 +2,8 @@
 第12阶段：训练流程 - train.py 和 evaluate.py
 
 本脚本帮助您了解项目中的完整训练和评估流程。
+
+对应文档：docs/usage/04-training.md
 """
 
 import sys
@@ -149,7 +151,7 @@ TrainRunner 核心逻辑（tools/train.py）：
 
           # 3. 测试集评估
           if X_test is not None:
-              test_acc = evaluate(model, X_test, y_test)
+              test_acc = Trainer.evaluate_model(model, X_test, y_test)
 
 Trainer 支持的功能（src/training/trainer.py）：
 ----------------------------------------------

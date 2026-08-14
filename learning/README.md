@@ -8,123 +8,99 @@
 - 关键点检测原理
 - 数据采集和处理
 - 模型训练和评估
+- 实时推理与 Web 部署
+
+> 学习是为了适应机器学习和机器视觉项目：路线由通用基础快速收敛到 ML/MV 主线，
+> 每个脚本都直接对接 `src/` 与 `tools/` 的真实实现。配合阅读下方"对应文档"，
+> 脚本与文档互相印证，理解更完整。
 
 ---
 
-## 📚 学习路线（13个阶段）
+## 📚 学习路线（15个阶段）
 
 ### 第0阶段：环境准备
-| 文件 | 学习目标 |
-|------|----------|
-| `00_env_setup.py` | 检查Python环境和依赖安装 |
-| `download_models.py` | 下载MediaPipe模型文件 |
+| 文件 | 学习目标 | 对应文档 |
+|------|----------|----------|
+| `00_env_setup.py` | 检查Python环境和依赖安装 | — |
+| `download_models.py` | 下载MediaPipe模型文件 | — |
 
 ### 第1阶段：Python基础
-| 文件 | 学习目标 |
-|------|----------|
-| `01_python_basics.py` | Python基础语法、函数、类 |
+| 文件 | 学习目标 | 对应文档 |
+|------|----------|----------|
+| `01_python_basics.py` | Python基础语法、函数、类 | — |
 
 ### 第2阶段：OpenCV基础
-| 文件 | 学习目标 |
-|------|----------|
-| `02_opencv_basics.py` | 图像读取、显示、保存 |
-| `02_opencv_video.py` | 摄像头访问和视频处理 |
+| 文件 | 学习目标 | 对应文档 |
+|------|----------|----------|
+| `02_opencv_basics.py` | 图像读取、显示、保存 | — |
+| `02_opencv_video.py` | 摄像头访问和视频处理 | — |
 
 ### 第3阶段：MediaPipe入门
-| 文件 | 学习目标 |
-|------|----------|
-| `03_mediapipe_intro.py` | MediaPipe框架介绍、Task API、模型文件 |
+| 文件 | 学习目标 | 对应文档 |
+|------|----------|----------|
+| `03_mediapipe_intro.py` | MediaPipe框架介绍、Task API、模型文件 | — |
 
 ### 第4阶段：手部检测
-| 文件 | 学习目标 |
-|------|----------|
-| `04_hand_detection_simple.py` | 基础手部关键点检测 |
-| `04_hand_detection_draw.py` | 绘制关键点和骨架 |
+| 文件 | 学习目标 | 对应文档 |
+|------|----------|----------|
+| `04_hand_detection_simple.py` | 基础手部关键点检测 | — |
+| `04_hand_detection_draw.py` | 绘制关键点和骨架 | — |
 
 ### 第5阶段：姿态检测
-| 文件 | 学习目标 |
-|------|----------|
-| `05_pose_detection.py` | 人体姿态关键点检测 |
+| 文件 | 学习目标 | 对应文档 |
+|------|----------|----------|
+| `05_pose_detection.py` | 人体姿态关键点检测 | — |
 
 ### 第6阶段：NumPy数据处理
-| 文件 | 学习目标 |
-|------|----------|
-| `06_numpy_intro.py` | NumPy数组基础 |
-| `06_numpy_operations.py` | NumPy进阶和性能优化 |
+| 文件 | 学习目标 | 对应文档 |
+|------|----------|----------|
+| `06_numpy_intro.py` | NumPy数组基础 | — |
+| `06_numpy_operations.py` | NumPy进阶和性能优化 | — |
 
 ### 第7阶段：特征工程
-| 文件 | 学习目标 |
-|------|----------|
-| `07_feature_extraction.py` | 171维原始向量 vs 71维提取特征 |
+| 文件 | 学习目标 | 对应文档 |
+|------|----------|----------|
+| `07_feature_extraction.py` | 171维原始向量 vs 71维提取特征 | `docs/design/05-code-guide.md` |
 
 ### 第8阶段：机器学习
-| 文件 | 学习目标 |
-|------|----------|
-| `08_svm_intro.py` | SVM分类器原理和使用 |
+| 文件 | 学习目标 | 对应文档 |
+|------|----------|----------|
+| `08_svm_intro.py` | SVM分类器原理和使用 | — |
 
 ### 第9阶段：深度学习
-| 文件 | 学习目标 |
-|------|----------|
-| `09_lstm_intro.py` | LSTM原理、项目LSTMModel、训练流程 |
+| 文件 | 学习目标 | 对应文档 |
+|------|----------|----------|
+| `09_lstm_intro.py` | LSTM原理、项目LSTMModel、训练流程 | — |
 
 ### 第10阶段：数据采集
-| 文件 | 学习目标 |
-|------|----------|
-| `10_data_collection.py` | 项目采集工具介绍、简化版演示 |
+| 文件 | 学习目标 | 对应文档 |
+|------|----------|----------|
+| `10_data_collection.py` | 项目采集工具介绍、简化版演示 | `docs/usage/03-data-collection.md` |
 
-### 第11阶段：配置管理（新增）
-| 文件 | 学习目标 |
-|------|----------|
-| `11_config_management.py` | config.py 统一配置、constants.py 共享常量 |
+### 第11阶段：配置管理
+| 文件 | 学习目标 | 对应文档 |
+|------|----------|----------|
+| `11_config_management.py` | config.py 统一配置、constants.py 共享常量 | `docs/dev/09-configuration-guide.md` |
 
-### 第12阶段：训练流程（新增）
-| 文件 | 学习目标 |
-|------|----------|
-| `12_training_pipeline.py` | preprocess → train → evaluate 完整流程 |
+### 第12阶段：训练流程
+| 文件 | 学习目标 | 对应文档 |
+|------|----------|----------|
+| `12_training_pipeline.py` | preprocess → train → evaluate 完整流程 | `docs/usage/04-training.md` |
 
-### 第13阶段：数据增强（新增）
-| 文件 | 学习目标 |
-|------|----------|
-| `13_data_augmentation.py` | KeypointAugmenter 5种增强策略 |
+### 第13阶段：数据增强
+| 文件 | 学习目标 | 对应文档 |
+|------|----------|----------|
+| `13_data_augmentation.py` | KeypointAugmenter 5种增强策略 | `docs/design/06-design-patterns.md` |
 
----
+### 第14阶段：实时推理
+| 文件 | 学习目标 | 对应文档 |
+|------|----------|----------|
+| `14_inference.py` | 实时推理闭环，对接 tools/inference.py | `docs/usage/04-training.md` |
 
-## 📅 学习计划
-
-### 第1周：基础准备
-```
-Day 1-2: 00_env_setup.py → download_models.py → 01_python_basics.py
-```
-
-### 第2周：图像处理
-```
-Day 3-4: 02_opencv_basics.py → 02_opencv_video.py
-Day 5-6: 03_mediapipe_intro.py
-```
-
-### 第3周：关键点检测
-```
-Day 7-8: 04_hand_detection_simple.py → 04_hand_detection_draw.py
-Day 9-10: 05_pose_detection.py
-```
-
-### 第4周：数据处理
-```
-Day 11-12: 06_numpy_intro.py → 06_numpy_operations.py
-Day 13-14: 07_feature_extraction.py
-```
-
-### 第5周：模型训练
-```
-Day 15-16: 08_svm_intro.py
-Day 17-18: 09_lstm_intro.py
-```
-
-### 第6周：项目实战
-```
-Day 19-20: 10_data_collection.py → 11_config_management.py
-Day 21-22: 12_training_pipeline.py → 13_data_augmentation.py
-```
+### 第15阶段：Web 部署
+| 文件 | 学习目标 | 对应文档 |
+|------|----------|----------|
+| `15_api_intro.py` | Flask API、REST/WebSocket 实时识别 | `docs/usage/04-training.md` |
 
 ---
 
@@ -155,6 +131,8 @@ python learning/10_data_collection.py
 python learning/11_config_management.py
 python learning/12_training_pipeline.py
 python learning/13_data_augmentation.py
+python learning/14_inference.py
+python learning/15_api_intro.py
 ```
 
 ---
@@ -179,9 +157,11 @@ learning/
 ├── 08_svm_intro.py              # SVM入门
 ├── 09_lstm_intro.py             # LSTM入门（引用项目LSTMModel）
 ├── 10_data_collection.py        # 数据采集实战
-├── 11_config_management.py      # 配置管理（新增）
-├── 12_training_pipeline.py      # 训练流程（新增）
-└── 13_data_augmentation.py      # 数据增强（新增）
+├── 11_config_management.py      # 配置管理
+├── 12_training_pipeline.py      # 训练流程
+├── 13_data_augmentation.py      # 数据增强
+├── 14_inference.py              # 实时推理闭环
+└── 15_api_intro.py              # Web 部署（Flask API）
 ```
 
 ---
@@ -190,9 +170,10 @@ learning/
 
 1. **循序渐进**：按照阶段顺序学习，不要跳过
 2. **动手实践**：每段代码都要自己运行一遍
-3. **记录笔记**：遇到问题和解决方案及时记录
-4. **调试技巧**：使用print()调试变量
-5. **寻求帮助**：遇到困难可以查看文档或提问
+3. **配套阅读**：学到第 7 阶段及以后，同步阅读每节"对应文档"中的 docs 章节，脚本与文档互相印证
+4. **记录笔记**：遇到问题和解决方案及时记录
+5. **调试技巧**：使用print()调试变量
+6. **寻求帮助**：遇到困难可以查看文档或提问
 
 ---
 

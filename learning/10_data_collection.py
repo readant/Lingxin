@@ -3,6 +3,8 @@
 
 本脚本演示项目中的数据采集流程，并引导使用完整的采集工具。
 
+对应文档：docs/usage/03-data-collection.md
+
 项目提供两种采集方式：
 1. tools/collect_data.py — 摄像头实时采集（推荐）
 2. tools/collect_from_video.py — 视频文件批量采集

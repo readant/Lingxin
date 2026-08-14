@@ -2,6 +2,8 @@
 第11阶段：配置管理 - config.py 和 constants.py
 
 本脚本帮助您了解项目中的统一配置管理和共享常量系统。
+
+对应文档：docs/dev/09-configuration-guide.md
 """
 
 import sys

@@ -28,6 +28,11 @@ def check_package_installed(package_name, min_version=None):
         )
         if result.returncode == 0:
             version = result.stdout.strip()
+            if min_version:
+                from packaging.version import Version
+                if Version(version) < Version(min_version):
+                    print(f"[ERROR] {package_name} 版本过低: {version}，需要 >= {min_version}")
+                    return False
             print(f"[OK] {package_name} 已安装，版本: {version}")
             return True
         else:
@@ -48,21 +53,22 @@ def main():
 
     print("\n[开始检查项目依赖...]")
 
-    # 检查核心依赖
+    # 检查核心依赖（mediapipe 需要 >= 0.10.33 才支持新版 Task API）
     packages = [
-        'mediapipe',
-        'cv2',
-        'numpy',
-        'pandas',
-        'sklearn',
-        'torch',
-        'matplotlib',
-        'tqdm'
+        ('mediapipe', '0.10.33'),
+        ('cv2', None),
+        ('numpy', None),
+        ('pandas', None),
+        ('sklearn', None),
+        ('torch', None),
+        ('flask', None),
+        ('matplotlib', None),
+        ('tqdm', None)
     ]
 
     all_passed = True
-    for package in packages:
-        if not check_package_installed(package):
+    for package, min_version in packages:
+        if not check_package_installed(package, min_version):
             all_passed = False
 
     # 检查模型文件

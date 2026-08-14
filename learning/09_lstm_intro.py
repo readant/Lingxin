@@ -188,7 +188,9 @@ def section_4_lstm_classifier():
 - GPU 自动检测支持
 
 模型结构：
-  输入(30, 171) → LSTM(2层, 128隐藏单元) → 全连接(128→64) → 输出(num_classes)
+  输入(30, 171) → LSTM(2层, 128隐藏单元, dropout=0.2)
+      → 全连接(128→64) → ReLU → 全连接(64→num_classes) → 输出
+  其中 num_classes 由词表（词汇数量）决定
 """)
 
         # 创建模型

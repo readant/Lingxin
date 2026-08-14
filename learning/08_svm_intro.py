@@ -198,7 +198,11 @@ def main():
 
     print("\n" + "=" * 60)
     print("SVM学习完成！")
-    print("下一步：运行 09_lstm_intro.py 学习深度学习")
+    print("\n项目真实衔接：")
+    print("  真实训练入口: python tools/train.py --model svm")
+    print("  特征来源: 使用 src.features.feature_extractor.FeatureExtractor 提取的 71 维特征")
+    print("  数据来源: data/processed/X.npy（经 tools/preprocess.py 预处理）")
+    print("\n下一步：运行 09_lstm_intro.py 学习深度学习")
     print("=" * 60)
 
 if __name__ == '__main__':

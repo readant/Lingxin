@@ -207,11 +207,16 @@ def main():
     # 访问摄像头
     cap = section_1_access_camera()
 
+    if cap is None:
+        # 无摄像头：优雅退出，不误报"学习完成"
+        print("\n[提示] 未检测到摄像头，跳过摄像头相关演示。")
+        print("       可先运行 02_opencv_basics.py 学习静态图像处理。")
+        return
+
     # 显示实时视频
-    if cap:
-        section_2_display_video(cap)
-        cap.release()
-        cv2.destroyAllWindows()
+    section_2_display_video(cap)
+    cap.release()
+    cv2.destroyAllWindows()
 
     # 录制视频
     section_3_video_writer()

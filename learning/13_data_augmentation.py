@@ -2,6 +2,8 @@
 第13阶段：数据增强 - augmentation.py
 
 本脚本帮助您了解项目中的关键点序列数据增强方法。
+
+对应文档：docs/design/06-design-patterns.md
 """
 
 import numpy as np

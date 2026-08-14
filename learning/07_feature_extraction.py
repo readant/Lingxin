@@ -2,6 +2,8 @@
 第7阶段：特征工程入门
 
 本脚本帮助您学习如何从关键点数据中提取有意义的特征。
+
+对应文档：docs/design/05-code-guide.md
 """
 
 import numpy as np
@@ -34,7 +36,18 @@ def section_1_relative_coordinates():
         [105, 140, -8],  # 食指第一关节 (索引6)
         [100, 110, -13], # 食指中间关节 (索引7)
         [95, 85, -18],   # 食指指尖 (索引8)
-        # ... 省略其他关键点
+        [105, 195, -4],  # 中指根部 (索引9)
+        [100, 160, -9],  # 中指第一关节 (索引10)
+        [95, 125, -14],  # 中指中间关节 (索引11)
+        [90, 90, -19],   # 中指指尖 (索引12)
+        [100, 200, -4],  # 无名指根部 (索引13)
+        [95, 170, -9],   # 无名指第一关节 (索引14)
+        [90, 140, -14],  # 无名指中间关节 (索引15)
+        [85, 110, -19],  # 无名指指尖 (索引16)
+        [95, 200, -4],   # 小指根部 (索引17)
+        [90, 175, -9],   # 小指第一关节 (索引18)
+        [85, 150, -14],  # 小指中间关节 (索引19)
+        [80, 125, -19],  # 小指指尖 (索引20)
     ])
 
     print(f"原始关键点形状: {hand_landmarks.shape}")
@@ -214,10 +227,26 @@ def section_4_feature_vector_construction():
         length = np.linalg.norm(finger[-1] - finger[0])
         finger_lengths.append(length)
 
+    # 关节角度（4维）：手腕-手指根-手指中，与 FeatureExtractor 的约定一致
+    def calc_angle(a, b, c):
+        v1 = a - b
+        v2 = c - b
+        cos = np.dot(v1, v2) / (np.linalg.norm(v1) * np.linalg.norm(v2) + 1e-8)
+        return np.arccos(np.clip(cos, -1, 1))
+
+    finger_angle_points = [
+        [0, 1, 2],    # 拇指
+        [0, 5, 6],    # 食指
+        [0, 9, 10],   # 中指
+        [0, 13, 14],  # 无名指
+    ]
+    joint_angles = np.array([calc_angle(left_hand[a], left_hand[b], left_hand[c])
+                             for a, b, c in finger_angle_points])
+
     extracted_features = np.concatenate([
         relative_coords,                # 63维
         np.array(finger_lengths),       # 4维
-        np.random.rand(4)               # 4维（关节角度）
+        joint_angles                    # 4维（关节角度）
     ])
 
     print(f"\n提取特征向量维度: {extracted_features.shape[0]} (用于SVM/RF/MLP)")
@@ -258,6 +287,25 @@ results = detector.detect(frame)
 landmarks = detector.get_landmarks(results, frame.shape)
 # landmarks 就是171维特征向量
 """)
+
+    # 项目真实衔接：FeatureExtractor 从手部关键点生成 71 维特征
+    print("项目真实衔接：FeatureExtractor")
+    print("-" * 50)
+    try:
+        from src.features.feature_extractor import FeatureExtractor
+        extractor = FeatureExtractor()
+
+        # 模拟一只手部关键点（21点，取自上一阶段 HandDetector.get_landmarks）
+        mock_hand = np.random.rand(1, 21, 3)
+        feats = extractor.extract_features(mock_hand)
+        print("[OK] FeatureExtractor 提取成功")
+        print(f"  输出特征维度: {feats.shape[0]} (相对坐标63 + 手指长度4 + 关节角度4)")
+        print(f"  特征向量: {np.round(feats, 3)}")
+        print("  说明: 上述 171 维原始向量传给深度学习模型(LSTM)，")
+        print("        71 维提取特征传给传统ML模型(SVM/RF/MLP)。")
+    except ImportError as e:
+        print(f"[ERROR] 无法导入 FeatureExtractor: {e}")
+        print("  提示: 需在项目根目录运行，且 src.features 包结构完整。")
 
 def main():
     print("=" * 60)
