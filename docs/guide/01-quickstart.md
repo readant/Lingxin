@@ -1,3 +1,10 @@
+---
+title: 快速入门
+order: 1
+icon: 🚀
+description: 项目简介、环境搭建、5分钟体验
+---
+
 # 01 — 快速入门
 
 > **学习目标**：了解项目背景，完成环境搭建，跑通最小闭环。
@@ -41,8 +48,8 @@
 git clone git@github.com:readant/Lingxin.git
 cd Lingxin
 
-# 2. 创建 conda 环境
-conda env create -f environment.yml
+# 2. 创建 conda 环境（环境文件见 environment-gpu.yml）
+conda env create -f environment-gpu.yml
 
 # 3. 激活环境
 conda activate lingxin-gpu
@@ -51,7 +58,7 @@ conda activate lingxin-gpu
 python -c "import torch; import mediapipe; print('安装成功')"
 ```
 
-### 手动创建（如果 environment.yml 不可用）
+### 手动创建（如果 environment-gpu.yml 不可用）
 
 ```bash
 conda create -n lingxin-gpu python=3.10 -y
@@ -156,9 +163,9 @@ collect_data   preprocess      train.py        inference
 
 ## 五、下一步
 
-- 开始采集数据 → [03-数据采集指南](03-data-collection.md)
-- 了解系统架构 → [02-架构设计](02-architecture.md)
-- 遇到问题？→ [07-常见问题](07-faq.md)
+- 开始采集数据 → [03-数据采集指南](../usage/03-data-collection.md)
+- 了解系统架构 → [02-架构设计](../design/02-architecture.md)
+- 遇到问题？→ [07-常见问题](../dev/07-faq.md)
 
 ---
 

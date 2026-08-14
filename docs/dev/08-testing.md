@@ -1,3 +1,10 @@
+---
+title: 测试指南
+order: 2
+icon: 🧪
+description: pytest 使用、测试编写、最佳实践
+---
+
 # 08 — 测试指南
 
 > **学习目标**：理解测试的重要性，掌握 pytest 使用方法，学会为项目编写测试用例。
@@ -59,8 +66,8 @@ Git：能告诉你改完后对不对 ✗
 # 开发依赖已包含 pytest
 pip install pytest
 
-# 或从 requirements 安装
-pip install -r requirements.txt
+# 从 pyproject.toml 安装（开发依赖包含 pytest）
+pip install -e ".[dev]"
 ```
 
 ### 2.2 第一个测试

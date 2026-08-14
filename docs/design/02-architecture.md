@@ -1,3 +1,10 @@
+---
+title: 架构设计
+order: 1
+icon: 🏛️
+description: 系统架构、模块设计、技术选型
+---
+
 # 聆心手语识别系统 - 架构设计
 
 ## 一、系统概述
@@ -88,9 +95,7 @@ Lingxin/                              # 项目根目录
 │   │       └── onboarding.js         # 新手引导
 │   └── mediapipe/                    # MediaPipe WASM资源
 ├── pyproject.toml                    # 项目元数据和构建配置
-├── requirements.txt                  # pip 依赖清单
-├── environment.yml                   # conda CPU环境文件
-├── environment-gpu.yml               # conda GPU环境文件
+├── environment-gpu.yml               # conda GPU 环境重建手册
 ├── .pre-commit-config.yaml           # Git钩子配置
 └── README.md                         # 项目说明
 ```

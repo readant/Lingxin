@@ -61,7 +61,7 @@ git clone https://github.com/readant/Lingxin.git
 cd Lingxin
 
 # 创建conda环境
-conda env create -f environment.yml
+conda env create -f environment-gpu.yml
 
 # 激活环境
 conda activate lingxin-gpu
@@ -97,8 +97,8 @@ python -c "import torch; import mediapipe; print('✅ 安装成功')"
 git clone https://github.com/readant/Lingxin.git
 cd Lingxin
 
-# 安装依赖
-pip install -r requirements.txt
+# 安装依赖（依赖以 pyproject.toml 为唯一真相源）
+pip install -e ".[dev]"
 
 # 验证安装
 python -c "import torch; import mediapipe; print('✅ 安装成功')"
@@ -244,9 +244,8 @@ Lingxin/
 ├── data/                             # 数据目录
 ├── models/                           # 模型文件目录
 ├── docs/                             # 详细技术文档
-├── pyproject.toml                    # 项目配置
-├── requirements.txt                  # 依赖清单
-└── environment.yml                   # conda环境文件
+├── pyproject.toml                    # 项目配置（依赖唯一真相源）
+└── environment-gpu.yml               # conda GPU环境重建手册
 ```
 
 ---
@@ -256,14 +255,14 @@ Lingxin/
 | 文档 | 适合人群 | 内容简介 |
 |------|----------|----------|
 | [📖 文档中心](docs/README.md) | 所有人 | 文档导航、推荐学习路径 |
-| [01-快速入门](docs/01-quickstart.md) | 初学者 | 项目简介、环境搭建、5分钟体验 |
-| [02-架构设计](docs/02-architecture.md) | 开发者 | 系统架构、模块设计、技术选型 |
-| [03-数据采集指南](docs/03-data-collection.md) | 采集者 | 摄像头与视频批量采集全流程 |
-| [04-模型训练](docs/04-training.md) | 工程师 | 训练、评估、推理完整流程 |
-| [05-核心代码导读](docs/05-code-guide.md) | 贡献者 | 源码结构、模块详解、扩展指南 |
-| [06-设计模式实践](docs/06-design-patterns.md) | 进阶 | 模板方法、字典映射实践 |
-| [07-常见问题](docs/07-faq.md) | 所有人 | 环境/数据/模型问题排查 |
-| [08-测试指南](docs/08-testing.md) | 贡献者 | pytest使用、测试编写 |
+| [01-快速入门](docs/guide/01-quickstart.md) | 初学者 | 项目简介、环境搭建、5分钟体验 |
+| [02-架构设计](docs/design/02-architecture.md) | 开发者 | 系统架构、模块设计、技术选型 |
+| [03-数据采集指南](docs/usage/03-data-collection.md) | 采集者 | 摄像头与视频批量采集全流程 |
+| [04-模型训练](docs/usage/04-training.md) | 工程师 | 训练、评估、推理完整流程 |
+| [05-核心代码导读](docs/design/05-code-guide.md) | 贡献者 | 源码结构、模块详解、扩展指南 |
+| [06-设计模式实践](docs/design/06-design-patterns.md) | 进阶 | 模板方法、字典映射实践 |
+| [07-常见问题](docs/dev/07-faq.md) | 所有人 | 环境/数据/模型问题排查 |
+| [08-测试指南](docs/dev/08-testing.md) | 贡献者 | pytest使用、测试编写 |
 | [🎓 学习教程](learning/README.md) | 零基础 | 13阶段循序渐进学习路线 |
 
 ---

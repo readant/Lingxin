@@ -1,3 +1,10 @@
+---
+title: 模型训练
+order: 2
+icon: 🎯
+description: 训练、评估、推理完整流程
+---
+
 # 04 — 模型训练与评估
 
 > **学习目标**：掌握从数据预处理到模型训练、评估、推理的完整流程。
@@ -177,9 +184,9 @@ python tools/inference.py --model lstm --checkpoint models/lstm_model.pth
 
 ## 九、下一步
 
-- 深入代码实现 → [05-核心代码导读](05-code-guide.md)
-- 理解架构设计 → [02-架构设计](02-architecture.md)
-- 遇到问题？→ [07-常见问题](07-faq.md)
+- 深入代码实现 → [05-核心代码导读](../design/05-code-guide.md)
+- 理解架构设计 → [02-架构设计](../design/02-architecture.md)
+- 遇到问题？→ [07-常见问题](../dev/07-faq.md)
 
 ---
 

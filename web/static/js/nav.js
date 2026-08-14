@@ -29,7 +29,7 @@ const NavController = {
             { id: 'home', label: '首页', icon: '🏠', href: '/' },
             { id: 'dashboard', label: '控制台', icon: '🎛️', href: '/dashboard' },
             { id: 'demo', label: '演示', icon: '🎬', href: '/demo' },
-            { id: 'docs', label: '文档', icon: '📖', href: '/docs?file=docs/01-quickstart.md' },
+            { id: 'docs', label: '文档', icon: '📖', href: '/docs?file=docs/guide/01-quickstart.md' },
             { id: 'resources', label: '资源', icon: '📚', href: '/resources' }
         ];
 

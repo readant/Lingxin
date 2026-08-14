@@ -1,3 +1,10 @@
+---
+title: 常见问题
+order: 1
+icon: ❓
+description: 环境/数据/模型/性能问题排查
+---
+
 # 07 — 常见问题
 
 > 遇到问题时，先查看以下分类。大部分问题都能在这里找到答案。
@@ -78,7 +85,7 @@ pip install torch torchvision --index-url https://download.pytorch.org/whl/cu118
 如果之前安装过旧版环境，建议重建：
 ```bash
 conda env remove -n lingxin-gpu -y
-conda env create -f environment.yml
+conda env create -f environment-gpu.yml
 conda activate lingxin-gpu
 ```
 

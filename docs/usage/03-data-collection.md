@@ -1,3 +1,10 @@
+---
+title: 数据采集指南
+order: 1
+icon: 📹
+description: 摄像头及视频批量采集全流程
+---
+
 # 聆心手语识别系统 — 数据采集指南
 
 ## 一、采集工具概览
@@ -6,8 +13,8 @@
 
 | 工具 | 输入源 | 控制方式 | 适用场景 |
 |------|--------|----------|----------|
-| [collect_data.py](../tools/collect_data.py) | 实时摄像头 | 手动交互（空格录制） | 人工演示、实验室环境 |
-| [collect_from_video.py](../tools/collect_from_video.py) | 视频文件 | 自动批处理 | 网络视频、已有素材批量入库 |
+| [collect_data.py](../../tools/collect_data.py) | 实时摄像头 | 手动交互（空格录制） | 人工演示、实验室环境 |
+| [collect_from_video.py](../../tools/collect_from_video.py) | 视频文件 | 自动批处理 | 网络视频、已有素材批量入库 |
 
 **共同输出**：两种工具产生的 `.npy` 文件格式完全一致，可混合使用。
 

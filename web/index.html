@@ -932,8 +932,12 @@
             <p class="subtitle">以科技之力，传无声之美</p>
             <div class="stats">
                 <div class="stat-item">
-                    <div class="stat-number">8</div>
+                    <div class="stat-number" id="statDocs">0</div>
                     <div class="stat-label">学习文档</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number" id="statJournal">0</div>
+                    <div class="stat-label">项目日志</div>
                 </div>
                 <div class="stat-item">
                     <div class="stat-number">5</div>
@@ -943,16 +947,12 @@
                     <div class="stat-number">1058</div>
                     <div class="stat-label">手语词汇</div>
                 </div>
-                <div class="stat-item">
-                    <div class="stat-number">171</div>
-                    <div class="stat-label">原始关键点维度</div>
-                </div>
             </div>
             <a href="dashboard" class="nav-button">
                 <span>🎛️</span>
                 <span>全流程控制台</span>
             </a>
-            <a href="/docs?file=docs/01-quickstart.md" class="nav-button" style="margin-left:12px;">
+            <a href="/docs?file=docs/guide/01-quickstart.md" class="nav-button" style="margin-left:12px;">
                 <span>📚</span>
                 <span>文档阅读</span>
             </a>
@@ -968,48 +968,7 @@
 
         <section class="learning-path">
             <h2 class="section-title">推荐学习路径</h2>
-            <div class="path-steps">
-                <div class="path-step" onclick="window.open('/docs?file=docs/01-quickstart.md', '_blank')">
-                    <div class="step-number">01</div>
-                    <div class="step-title">快速入门</div>
-                    <div class="step-desc">项目简介与环境搭建</div>
-                </div>
-                <div class="path-step" onclick="window.open('/docs?file=docs/02-architecture.md', '_blank')">
-                    <div class="step-number">02</div>
-                    <div class="step-title">架构设计</div>
-                    <div class="step-desc">系统架构与技术选型</div>
-                </div>
-                <div class="path-step" onclick="window.open('/docs?file=docs/03-data-collection.md', '_blank')">
-                    <div class="step-number">03</div>
-                    <div class="step-title">数据采集</div>
-                    <div class="step-desc">摄像头与视频采集</div>
-                </div>
-                <div class="path-step" onclick="window.open('/docs?file=docs/04-training.md', '_blank')">
-                    <div class="step-number">04</div>
-                    <div class="step-title">模型训练</div>
-                    <div class="step-desc">训练评估推理流程</div>
-                </div>
-                <div class="path-step" onclick="window.open('/docs?file=docs/05-code-guide.md', '_blank')">
-                    <div class="step-number">05</div>
-                    <div class="step-title">代码导读</div>
-                    <div class="step-desc">源码结构与扩展指南</div>
-                </div>
-                <div class="path-step" onclick="window.open('/docs?file=docs/06-design-patterns.md', '_blank')">
-                    <div class="step-number">06</div>
-                    <div class="step-title">设计模式</div>
-                    <div class="step-desc">架构与设计实践</div>
-                </div>
-                <div class="path-step" onclick="window.open('/docs?file=docs/07-faq.md', '_blank')">
-                    <div class="step-number">07</div>
-                    <div class="step-title">常见问题</div>
-                    <div class="step-desc">环境/数据/模型排查</div>
-                </div>
-                <div class="path-step" onclick="window.open('/docs?file=docs/08-testing.md', '_blank')">
-                    <div class="step-number">08</div>
-                    <div class="step-title">测试指南</div>
-                    <div class="step-desc">pytest与测试编写</div>
-                </div>
-            </div>
+            <div class="path-steps" id="learningPath"><!-- 由文档索引动态生成 --></div>
         </section>
 
         <section class="resource-nav">
@@ -1029,75 +988,11 @@
             </ul>
         </section>
 
+        <section class="learn-grid" id="categoryCards">
+            <!-- 文档分类卡片由索引动态生成 -->
+        </section>
+
         <section class="learn-grid">
-            <div class="learn-card animate-fadeInUp">
-                <div class="card-header">
-                    <div class="card-icon">📋</div>
-                    <div class="card-title">学习文档</div>
-                </div>
-                <div class="card-desc">从入门到进阶的系统性学习路径，按编号顺序阅读效果最佳。</div>
-                <ul class="learn-list">
-                    <li class="learn-item">
-                        <a href="/docs?file=docs/01-quickstart.md" target="_blank">
-                            <span>🚀 快速入门</span>
-                            <span class="learn-badge">开始</span>
-                        </a>
-                    </li>
-                    <li class="learn-item">
-                        <a href="/docs?file=docs/02-architecture.md" target="_blank">
-                            <span>🏛️ 架构设计</span>
-                            <span class="learn-badge">必读</span>
-                        </a>
-                    </li>
-                    <li class="learn-item">
-                        <a href="/docs?file=docs/04-training.md" target="_blank">
-                            <span>🎯 模型训练</span>
-                            <span class="learn-badge">实战</span>
-                        </a>
-                    </li>
-                    <li class="learn-item">
-                        <a href="/docs?file=docs/07-faq.md" target="_blank">
-                            <span>❓ 常见问题</span>
-                            <span class="learn-badge">排错</span>
-                        </a>
-                    </li>
-                </ul>
-            </div>
-
-            <div class="learn-card animate-fadeInUp delay-1">
-                <div class="card-header">
-                    <div class="card-icon">📚</div>
-                    <div class="card-title">进阶阅读</div>
-                </div>
-                <div class="card-desc">深入理解源码实现、设计模式和项目开发历程。</div>
-                <ul class="learn-list">
-                    <li class="learn-item">
-                        <a href="/docs?file=docs/05-code-guide.md" target="_blank">
-                            <span>💻 核心代码导读</span>
-                            <span class="learn-badge">深入</span>
-                        </a>
-                    </li>
-                    <li class="learn-item">
-                        <a href="/docs?file=docs/06-design-patterns.md" target="_blank">
-                            <span>🎨 设计模式</span>
-                            <span class="learn-badge">进阶</span>
-                        </a>
-                    </li>
-                    <li class="learn-item">
-                        <a href="/docs?file=docs/journal/development.md" target="_blank">
-                            <span>🛠️ 开发历程</span>
-                            <span class="learn-badge">参考</span>
-                        </a>
-                    </li>
-                    <li class="learn-item">
-                        <a href="/docs?file=docs/journal/experiments.md" target="_blank">
-                            <span>📊 实验记录</span>
-                            <span class="learn-badge">参考</span>
-                        </a>
-                    </li>
-                </ul>
-            </div>
-
             <div class="learn-card animate-fadeInUp delay-2">
                 <div class="card-header">
                     <div class="card-icon">💻</div>
@@ -1274,8 +1169,12 @@
         </footer>
     </div>
 
+    <script src="./static/js/docs-index.generated.js"></script>
+    <script src="./static/js/docs-index.js"></script>
     <script>
         // 文件树数据
+        // docs/ 目录由文档索引（docs-index.generated.js）动态生成，见 buildDocsTree()；
+        // 其余目录为项目源码结构静态数据，不属于文档索引范围。
         const fileTreeData = {
             name: "Lingxin",
             type: "folder",
@@ -1283,24 +1182,7 @@
                 {
                     name: "docs",
                     type: "folder",
-                    children: [
-                        { name: "README.md", type: "file", badge: "doc" },
-                        { name: "01-quickstart.md", type: "file", badge: "doc" },
-                        { name: "02-architecture.md", type: "file", badge: "doc" },
-                        { name: "03-data-collection.md", type: "file", badge: "doc" },
-                        { name: "04-training.md", type: "file", badge: "doc" },
-                        { name: "05-code-guide.md", type: "file", badge: "doc" },
-                        { name: "06-design-patterns.md", type: "file", badge: "doc" },
-                        { name: "07-faq.md", type: "file", badge: "doc" },
-                        { name: "08-testing.md", type: "file", badge: "doc" },
-                        { name: "09-configuration-guide.md", type: "file", badge: "doc" },
-                        {
-                            name: "journal", type: "folder", children: [
-                                { name: "development.md", type: "file", badge: "doc" },
-                                { name: "experiments.md", type: "file", badge: "doc" }
-                            ]
-                        }
-                    ]
+                    children: []
                 },
                 {
                     name: "learning",
@@ -1404,6 +1286,40 @@
             md: "Markdown"
         };
 
+        // 按相对路径把文档节点插入目录树（任意层级）
+        function insertTreePath(folder, parts, item) {
+            if (parts.length === 1) {
+                folder.children.push({
+                    name: parts[0],
+                    type: "file",
+                    badge: "doc",
+                    docFile: item.file,
+                    docTitle: item.title
+                });
+                return;
+            }
+            let child = folder.children.find(c => c.type === "folder" && c.name === parts[0]);
+            if (!child) {
+                child = { name: parts[0], type: "folder", children: [] };
+                folder.children.push(child);
+            }
+            insertTreePath(child, parts.slice(1), item);
+        }
+
+        // 从文档索引构建 docs 目录树（分类目录层级由索引路径推导）
+        function buildDocsTree() {
+            const docsFolder = fileTreeData.children.find(c => c.name === "docs");
+            docsFolder.children = [];
+            (DocIndex.items() || []).forEach(item => {
+                insertTreePath(docsFolder, item.file.split('/').slice(1), item);
+            });
+            // README.md 排在文档索引之前（不参与索引）
+            docsFolder.children.unshift({
+                name: "README.md", type: "file", badge: "doc",
+                docFile: "docs/README.md", docTitle: "文档中心"
+            });
+        }
+
         // 生成文件树HTML
         function generateFileTree(node, depth = 0) {
             if (node.type === "folder") {
@@ -1428,7 +1344,7 @@
                 `;
             } else {
                 return `
-                    <li class="file-item" data-name="${node.name}" data-path="${node.name}">
+                    <li class="file-item" data-name="${node.name}" data-path="${node.name}" data-doc="${node.docFile || ''}">
                         <span class="file-icon">${fileIcons[node.badge] || "📄"}</span>
                         <span class="file-name">${node.name}</span>
                         <span class="file-badge">${fileTypeLabels[node.badge] || "文件"}</span>
@@ -1439,6 +1355,7 @@
 
         // 初始化文件树
         function initFileTree() {
+            buildDocsTree();
             const fileTreeElement = document.getElementById('fileTree');
             fileTreeElement.innerHTML = generateFileTree(fileTreeData);
 
@@ -1467,9 +1384,13 @@
                     // 添加当前文件的active状态
                     this.classList.add('active');
 
-                    // 打开文件
-                    const fileName = this.dataset.name;
-                    console.log('打开文件:', fileName);
+                    // 文档（.md）→ 在文档阅读器中打开；其余源码文件仅高亮
+                    const docFile = this.dataset.doc;
+                    if (docFile) {
+                        window.open('/docs?file=' + encodeURIComponent(docFile), '_blank');
+                    } else {
+                        updateBreadcrumb(this.dataset.name);
+                    }
                 });
             });
         }
@@ -1516,8 +1437,61 @@
             });
         }
 
+        // 动态渲染学习路径：取非 journal 文档按 (分类顺序, order) 排序，最多 8 步
+        function renderLearningPath() {
+            const container = document.getElementById('learningPath');
+            const docs = DocIndex.getLearningDocs().slice(0, 8);
+            container.innerHTML = docs.map((doc, i) => `
+                <div class="path-step" onclick="window.open('/docs?file=${doc.file}', '_blank')">
+                    <div class="step-number">${String(i + 1).padStart(2, '0')}</div>
+                    <div class="step-title">${doc.icon} ${doc.title}</div>
+                    <div class="step-desc">${doc.description || ''}</div>
+                </div>
+            `).join('');
+        }
+
+        // 动态渲染分类文档卡片（排除 journal，学习脚本卡片为静态内容）
+        function renderCategoryCards() {
+            const container = document.getElementById('categoryCards');
+            container.innerHTML = DocIndex.categories()
+                .filter(cat => cat.key !== 'journal')
+                .map(cat => {
+                    const docs = DocIndex.items().filter(i => i.category === cat.key);
+                    if (docs.length === 0) return '';
+                    const list = docs.map(doc => `
+                        <li class="learn-item">
+                            <a href="/docs?file=${doc.file}" target="_blank">
+                                <span>${doc.icon} ${doc.title}</span>
+                                <span class="learn-badge">${doc.order}</span>
+                            </a>
+                        </li>
+                    `).join('');
+                    return `
+                        <div class="learn-card animate-fadeInUp">
+                            <div class="card-header">
+                                <div class="card-icon">${cat.icon}</div>
+                                <div class="card-title">${cat.label}</div>
+                            </div>
+                            <div class="card-desc">共 ${docs.length} 篇文档，按分类顺序阅读。${cat.description || ''}</div>
+                            <ul class="learn-list">${list}</ul>
+                        </div>
+                    `;
+                })
+                .join('');
+        }
+
+        // 动态统计：文档数 / 日志数
+        function renderStats() {
+            document.getElementById('statDocs').textContent = DocIndex.getLearningDocs().length;
+            document.getElementById('statJournal').textContent =
+                DocIndex.items().filter(i => i.category === 'journal').length;
+        }
+
         // 页面加载完成后初始化
         document.addEventListener('DOMContentLoaded', function () {
+            renderStats();
+            renderLearningPath();
+            renderCategoryCards();
             initFileTree();
             initSearch();
         });
